@@ -1,0 +1,15 @@
+python/
+node/
+node_modules/
+ACE-Step-1.5/
+models/
+cache/
+temp/
+downloads/
+ffmpeg/
+app/data/
+app/server/public/audio/
+app/node_modules/
+app/server/node_modules/
+*.db
+cuda_version.txt
