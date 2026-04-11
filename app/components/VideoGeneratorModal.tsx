@@ -102,6 +102,16 @@ const PRESETS: { id: PresetType; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'Minimal', labelKey: 'presetClean', icon: <Type size={16} /> },
 ];
 
+/** Draw image with cover-fit (no stretching, crops to fill) centered at (cx, cy) */
+function drawImageCover(ctx: CanvasRenderingContext2D, img: CanvasImageSource, cx: number, cy: number, canvasW: number, canvasH: number) {
+  const imgW = (img as HTMLImageElement).naturalWidth || (img as HTMLVideoElement).videoWidth || canvasW;
+  const imgH = (img as HTMLImageElement).naturalHeight || (img as HTMLVideoElement).videoHeight || canvasH;
+  const scale = Math.max(canvasW / imgW, canvasH / imgH);
+  const drawW = imgW * scale;
+  const drawH = imgH * scale;
+  ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+}
+
 function ColumnsIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -675,7 +685,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         const zoom = 1 + (Math.sin(time * 0.5) * 0.05);
         ctx.translate(centerX, centerY);
         ctx.scale(zoom, zoom);
-        ctx.drawImage(bgSource, -width/2, -height/2, width, height);
+        drawImageCover(ctx, bgSource, 0, 0, width, height);
         ctx.restore();
       }
 
@@ -1144,7 +1154,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         const zoom = 1 + (Math.sin(time * 0.5) * 0.05);
         ctx.translate(centerX, centerY);
         ctx.scale(zoom, zoom);
-        ctx.drawImage(bgSource, -width/2, -height/2, width, height);
+        drawImageCover(ctx, bgSource, 0, 0, width, height);
         ctx.restore();
     }
 
