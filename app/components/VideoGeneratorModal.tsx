@@ -2557,8 +2557,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                             </div>
                                         </div>
 
-                                        {/* Lines visible */}
-                                        <div>
+                                        {/* Lines visible — only for 'lines' style */}
+                                        {lyricsStyle === 'lines' && <div>
                                             <label className="text-[10px] text-zinc-500 block mb-1">{t('visibleLines') || 'Visible Lines'}</label>
                                             <div className="grid grid-cols-3 gap-1">
                                                 {[1, 2, 3].map(n => (
@@ -2571,7 +2571,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                                     </button>
                                                 ))}
                                             </div>
-                                        </div>
+                                        </div>}
 
                                         {/* Font size */}
                                         <div>
