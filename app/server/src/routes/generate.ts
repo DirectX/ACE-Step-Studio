@@ -485,8 +485,8 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                 await pool.query(
                   `INSERT INTO songs (id, user_id, title, lyrics, style, caption, audio_url,
                                       duration, bpm, key_scale, time_signature, tags, is_public, generation_params,
-                                      dit_model, lm_model, lm_backend, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+                                      dit_model, lm_model, lm_backend, generation_time, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
                   [
                     songId,
                     req.user!.id,
@@ -504,6 +504,7 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                     params.ditModel || null,
                     params.lmModel || null,
                     params.lmBackend || null,
+                    aceStatus.result.generationTime || null,
                   ]
                 );
 
@@ -514,8 +515,8 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                 await pool.query(
                   `INSERT INTO songs (id, user_id, title, lyrics, style, caption, audio_url,
                                       duration, bpm, key_scale, time_signature, tags, is_public, generation_params,
-                                      dit_model, lm_model, lm_backend, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+                                      dit_model, lm_model, lm_backend, generation_time, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
                   [
                     songId,
                     req.user!.id,
@@ -533,6 +534,7 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                     params.ditModel || null,
                     params.lmModel || null,
                     params.lmBackend || null,
+                    aceStatus.result.generationTime || null,
                   ]
                 );
                 localPaths.push(audioUrl);

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Song } from '../types';
-import { Play, MoreHorizontal, Heart, ThumbsDown, ListPlus, Pause, Search, Filter, Check, Globe, Lock, Loader2, ThumbsUp, Share2, Video, Info, Clock } from 'lucide-react';
+import { Play, MoreHorizontal, Heart, ThumbsDown, ListPlus, Pause, Search, Filter, Check, Globe, Lock, Loader2, ThumbsUp, Share2, Video, Info, Clock, Timer } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { SongDropdownMenu } from './SongDropdownMenu';
@@ -638,6 +638,12 @@ const SongItem: React.FC<SongItemProps> = ({
                         <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm" title={`DiT: ${song.ditModel || '?'} | LM: ${song.lmModel || '?'} (${song.lmBackend || '?'})`}>
                             {getModelDisplayName(song.ditModel)}
                         </span>
+                        {song.generationTime != null && song.generationTime > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] text-zinc-400 dark:text-zinc-500" title="Generation time">
+                                <Timer size={10} />
+                                {song.generationTime}s
+                            </span>
+                        )}
                         {song.isPublic === false && (
                             <Lock size={12} className="text-zinc-400 dark:text-zinc-500" />
                         )}

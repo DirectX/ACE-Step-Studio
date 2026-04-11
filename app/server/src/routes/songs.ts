@@ -107,7 +107,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     const result = await pool.query(
       `SELECT s.id, s.title, s.lyrics, s.style, s.caption, s.cover_url, s.audio_url,
               s.duration, s.bpm, s.key_scale, s.time_signature, s.tags, s.is_public, 
-              s.like_count, s.view_count, s.user_id, s.created_at, s.generation_params, s.dit_model, s.lm_model, s.lm_backend,
+              s.like_count, s.view_count, s.user_id, s.created_at, s.generation_params, s.dit_model, s.lm_model, s.lm_backend, s.generation_time,
               COALESCE(u.username, 'Anonymous') as creator
        FROM songs s
        LEFT JOIN users u ON s.user_id = u.id
@@ -252,7 +252,7 @@ router.get('/:id/full', optionalAuthMiddleware, async (req: AuthenticatedRequest
       pool.query(
         `SELECT s.id, s.user_id, s.title, s.lyrics, s.style, s.caption, s.cover_url, s.audio_url,
                 s.duration, s.bpm, s.key_scale, s.time_signature, s.tags, s.is_public,
-                s.like_count, s.view_count, s.created_at, s.generation_params, s.dit_model, s.lm_model, s.lm_backend,
+                s.like_count, s.view_count, s.created_at, s.generation_params, s.dit_model, s.lm_model, s.lm_backend, s.generation_time,
                 COALESCE(u.username, 'Anonymous') as creator, u.avatar_url as creator_avatar
          FROM songs s
          LEFT JOIN users u ON s.user_id = u.id

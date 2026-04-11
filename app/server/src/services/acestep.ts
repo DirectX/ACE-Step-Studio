@@ -684,6 +684,8 @@ async function processGenerationViaGradio(
     ? actualDuration
     : (metas.duration || params.duration || 0);
 
+  const generationTime = Math.round((Date.now() - job.startTime) / 1000);
+
   job.status = 'succeeded';
   job.result = {
     audioUrls,
@@ -691,6 +693,7 @@ async function processGenerationViaGradio(
     bpm: metas.bpm || params.bpm,
     keyScale: metas.keyScale || params.keyScale,
     timeSignature: metas.timeSignature || params.timeSignature,
+    generationTime,
     status: 'succeeded',
   };
   job.rawResponse = { genDetails, genStatus };
@@ -841,6 +844,8 @@ async function processGenerationViaPython(
 
     const finalDuration = actualDuration > 0 ? actualDuration : (params.duration && params.duration > 0 ? params.duration : 0);
 
+    const generationTime = Math.round((Date.now() - job.startTime) / 1000);
+
     job.status = 'succeeded';
     job.result = {
       audioUrls,
@@ -848,6 +853,7 @@ async function processGenerationViaPython(
       bpm: params.bpm,
       keyScale: params.keyScale,
       timeSignature: params.timeSignature,
+      generationTime,
       status: 'succeeded',
     };
     job.rawResponse = result;
