@@ -2628,9 +2628,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                     />
                                     <div className="flex items-center gap-2">
                                         <span className="text-[10px] text-zinc-500">{t('size')}</span>
-                                        <input type="range" min="12" max="120" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="flex-1 accent-pink-500" />
+                                        <input type="range" min="12" max="120" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="flex-1 accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
                                         <span className="text-[10px] text-zinc-400 w-8 text-right">{layer.size}px</span>
-                                        <span className="text-[10px] text-zinc-500">{t('color')}</span>
                                         <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
                                     </div>
                                 </div>
