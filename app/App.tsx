@@ -800,6 +800,8 @@ function AppContent() {
       // Simple mode: use LLM to generate caption/lyrics/metadata from description
       let enrichedParams = { ...params };
       if (!params.customMode && params.songDescription && token) {
+        // Try create_sample first (full LLM enrichment: caption + lyrics + metadata)
+        let enriched = false;
         try {
           const sample = await generateApi.createSample({
             query: params.songDescription,
@@ -809,7 +811,7 @@ function AppContent() {
           if (sample.caption) {
             enrichedParams = {
               ...enrichedParams,
-              customMode: true, // switch to custom mode for generation
+              customMode: true,
               style: sample.caption,
               lyrics: sample.lyrics || '',
               instrumental: sample.instrumental,
@@ -821,12 +823,33 @@ function AppContent() {
               thinking: true,
               isFormatCaption: true,
             };
-            // Update temp song title with generated caption
             setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
+            enriched = true;
           }
         } catch (err) {
-          console.warn('[CreateSample] LLM enrichment failed, using raw description:', err);
-          // Continue with raw description — not a fatal error
+          console.warn('[CreateSample] Failed, trying format_caption fallback:', err);
+        }
+
+        // Fallback: use format_caption to at least enrich the style description
+        if (!enriched) {
+          try {
+            const formatted = await generateApi.formatInput({
+              caption: params.songDescription,
+              lyrics: '',
+            }, token);
+            if (formatted.caption) {
+              enrichedParams = {
+                ...enrichedParams,
+                customMode: true,
+                style: formatted.caption,
+                thinking: true,
+                isFormatCaption: true,
+              };
+              setSongs(prev => prev.map(s => s.id === tempId ? { ...s, style: formatted.caption } : s));
+            }
+          } catch (err2) {
+            console.warn('[FormatCaption] Fallback also failed, using raw description:', err2);
+          }
         }
       }
 
