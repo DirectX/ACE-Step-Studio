@@ -55,6 +55,7 @@ export const translations = {
     modelDescSft: '4B, max quality',
     modelDescBf16: '4B BF16, compact',
     inQueue: 'in queue',
+    uploadForCover: 'Upload audio for Cover / Remix',
 
     // Common
     cancel: 'Cancel',
@@ -664,6 +665,7 @@ export const translations = {
     modelDescSft: '4B，最高质量',
     modelDescBf16: '4B BF16，紧凑',
     inQueue: '排队中',
+    uploadForCover: '上传音频进行翻唱 / 混音',
 
     // Common
     cancel: '取消',
@@ -1273,6 +1275,7 @@ export const translations = {
     modelDescSft: '4B、最高品質',
     modelDescBf16: '4B BF16、コンパクト',
     inQueue: 'キュー内',
+    uploadForCover: 'カバー / リミックス用にオーディオをアップロード',
 
     // Common
     cancel: 'キャンセル',
@@ -1882,6 +1885,7 @@ export const translations = {
     modelDescSft: '4B, 최고 품질',
     modelDescBf16: '4B BF16, 컴팩트',
     inQueue: '대기 중',
+    uploadForCover: '커버 / 리믹스를 위해 오디오 업로드',
 
     // Common
     cancel: '취소',
@@ -2486,6 +2490,7 @@ export const translations = {
     modelDescSft: '4B, макс. качество',
     modelDescBf16: '4B BF16, компактная',
     inQueue: 'в очереди',
+    uploadForCover: 'Загрузить аудио для Cover / Remix',
 
     // Common
     cancel: 'Отмена',
