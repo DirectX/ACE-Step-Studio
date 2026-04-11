@@ -892,6 +892,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         }, token);
         if (sample.lyrics) {
           setLyrics(sample.lyrics);
+          if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
+          if (sample.duration && sample.duration > 0) setDuration(sample.duration);
+          if (sample.keyScale) setKeyScale(sample.keyScale);
+          if (sample.timeSignature) {
+            const ts = String(sample.timeSignature);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+          }
         } else {
           alert('LLM did not generate lyrics. Try a more descriptive style.');
         }
@@ -915,6 +922,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         if (result.caption || result.lyrics || result.bpm || result.duration) {
           if (target === 'style' && result.caption) setStyle(result.caption);
           if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
+          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
+          if (result.duration && result.duration > 0) setDuration(result.duration);
+          if (result.key_scale) setKeyScale(result.key_scale);
+          if (result.time_signature) {
+            const ts = String(result.time_signature);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+          }
           // Show AI-suggested values but don't mark as manual
           if (target === 'style') setIsFormatCaption(true);
         } else {
