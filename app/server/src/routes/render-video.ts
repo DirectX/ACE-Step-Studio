@@ -8,12 +8,11 @@ import { fileURLToPath } from 'url';
 const router = Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const TMP_BASE = path.join(__dirname, '../../tmp');
 
 function findFfmpeg(): string {
-  // Check portable ffmpeg
   const portable = path.resolve(__dirname, '../../../../ffmpeg/ffmpeg.exe');
   if (existsSync(portable)) return portable;
-  // Check system ffmpeg
   try {
     execSync('ffmpeg -version', { stdio: 'ignore' });
     return 'ffmpeg';
@@ -22,7 +21,6 @@ function findFfmpeg(): string {
   }
 }
 
-// Check if NVENC is available
 function hasNvenc(ffmpegPath: string): boolean {
   try {
     const result = execSync(`"${ffmpegPath}" -encoders 2>&1`, { encoding: 'utf-8', timeout: 5000 });
@@ -32,33 +30,66 @@ function hasNvenc(ffmpegPath: string): boolean {
   }
 }
 
-router.post('/encode', async (req: Request, res: Response) => {
-  const { frames, audioUrl, fps = 30 } = req.body;
+// Active render sessions
+const sessions = new Map<string, { dir: string; frameCount: number; created: number }>();
 
-  if (!frames || !frames.length) {
-    res.status(400).json({ error: 'No frames provided' });
+// Cleanup old sessions (>30min)
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (now - session.created > 30 * 60 * 1000) {
+      rm(session.dir, { recursive: true, force: true }).catch(() => {});
+      sessions.delete(id);
+    }
+  }
+}, 60000);
+
+// 1. Start render session
+router.post('/start', async (_req: Request, res: Response) => {
+  const sessionId = `render_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const dir = path.join(TMP_BASE, sessionId);
+  await mkdir(dir, { recursive: true });
+  sessions.set(sessionId, { dir, frameCount: 0, created: Date.now() });
+  console.log(`[Render] Session started: ${sessionId}`);
+  res.json({ sessionId });
+});
+
+// 2. Upload frame chunk (batches of ~50-100 frames)
+router.post('/frames', async (req: Request, res: Response) => {
+  const { sessionId, frames, startIndex } = req.body;
+  const session = sessions.get(sessionId);
+  if (!session) {
+    res.status(400).json({ error: 'Invalid session' });
     return;
   }
 
-  const tmpDir = path.join(__dirname, '../../tmp', `render_${Date.now()}`);
+  const start = startIndex || session.frameCount;
+  for (let i = 0; i < frames.length; i++) {
+    const frameData = Buffer.from(frames[i], 'base64');
+    await writeFile(path.join(session.dir, `frame${String(start + i).padStart(6, '0')}.jpg`), frameData);
+  }
+  session.frameCount = start + frames.length;
+
+  res.json({ received: frames.length, total: session.frameCount });
+});
+
+// 3. Finish — encode with ffmpeg
+router.post('/finish', async (req: Request, res: Response) => {
+  const { sessionId, audioUrl, fps = 30 } = req.body;
+  const session = sessions.get(sessionId);
+  if (!session) {
+    res.status(400).json({ error: 'Invalid session' });
+    return;
+  }
 
   try {
     const ffmpegPath = findFfmpeg();
     const useNvenc = hasNvenc(ffmpegPath);
-    console.log(`[Render] ${frames.length} frames, ffmpeg: ${ffmpegPath}, nvenc: ${useNvenc}`);
+    console.log(`[Render] Encoding ${session.frameCount} frames, nvenc: ${useNvenc}`);
 
-    await mkdir(tmpDir, { recursive: true });
-
-    // Write frames
-    for (let i = 0; i < frames.length; i++) {
-      const frameData = Buffer.from(frames[i], 'base64');
-      await writeFile(path.join(tmpDir, `frame${String(i).padStart(6, '0')}.jpg`), frameData);
-    }
-
-    // Download audio
-    const audioPath = path.join(tmpDir, 'audio.mp3');
-    if (audioUrl.startsWith('/')) {
-      // Local audio file
+    // Copy audio
+    const audioPath = path.join(session.dir, 'audio.mp3');
+    if (audioUrl?.startsWith('/')) {
       const localAudioPath = path.join(__dirname, '../../public', audioUrl);
       if (existsSync(localAudioPath)) {
         const audioData = await readFile(localAudioPath);
@@ -66,17 +97,13 @@ router.post('/encode', async (req: Request, res: Response) => {
       }
     }
 
-    const outputPath = path.join(tmpDir, 'output.mp4');
-
-    // Build ffmpeg command
+    const outputPath = path.join(session.dir, 'output.mp4');
     const args = [
       '-framerate', String(fps),
-      '-i', path.join(tmpDir, 'frame%06d.jpg'),
+      '-i', path.join(session.dir, 'frame%06d.jpg'),
     ];
 
-    if (existsSync(audioPath)) {
-      args.push('-i', audioPath);
-    }
+    if (existsSync(audioPath)) args.push('-i', audioPath);
 
     if (useNvenc) {
       args.push('-c:v', 'h264_nvenc', '-preset', 'p4', '-rc', 'vbr', '-cq', '28');
@@ -89,11 +116,10 @@ router.post('/encode', async (req: Request, res: Response) => {
       '-c:a', 'aac', '-b:a', '192k',
       '-shortest',
       '-movflags', '+faststart',
-      '-y',
-      outputPath,
+      '-y', outputPath,
     );
 
-    console.log(`[Render] Running: ffmpeg ${args.join(' ')}`);
+    console.log(`[Render] ffmpeg ${args.slice(0, 10).join(' ')}...`);
 
     await new Promise<void>((resolve, reject) => {
       const proc = spawn(ffmpegPath, args, { stdio: 'pipe' });
@@ -106,9 +132,8 @@ router.post('/encode', async (req: Request, res: Response) => {
       proc.on('error', reject);
     });
 
-    // Read output and send
     const videoData = await readFile(outputPath);
-    console.log(`[Render] Done: ${videoData.length} bytes`);
+    console.log(`[Render] Done: ${(videoData.length / 1024 / 1024).toFixed(1)}MB`);
 
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', 'attachment; filename="video.mp4"');
@@ -118,8 +143,8 @@ router.post('/encode', async (req: Request, res: Response) => {
     console.error('[Render] Failed:', error.message);
     res.status(500).json({ error: error.message });
   } finally {
-    // Cleanup
-    try { await rm(tmpDir, { recursive: true, force: true }); } catch {}
+    rm(session.dir, { recursive: true, force: true }).catch(() => {});
+    sessions.delete(sessionId);
   }
 });
 

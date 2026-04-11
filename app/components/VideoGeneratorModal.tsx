@@ -1063,17 +1063,32 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     setExportStage('encoding');
     setExportProgress(70);
 
-    // Send frames to server for encoding with local ffmpeg (GPU accelerated)
-    console.log(`[Video] Sending ${capturedFrames.length} frames to server for encoding...`);
+    // Send frames to server in chunks for encoding with local ffmpeg
+    console.log(`[Video] Sending ${capturedFrames.length} frames to server...`);
 
-    const response = await fetch('/api/render-video/encode', {
+    // Start session
+    const startRes = await fetch('/api/render-video/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const { sessionId } = await startRes.json();
+
+    // Upload frames in chunks of 50
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < capturedFrames.length; i += CHUNK_SIZE) {
+      const chunk = capturedFrames.slice(i, i + CHUNK_SIZE);
+      await fetch('/api/render-video/frames', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, frames: chunk, startIndex: i }),
+      });
+      setExportProgress(70 + Math.round((i / capturedFrames.length) * 20));
+    }
+
+    setExportProgress(90);
+
+    // Encode
+    const response = await fetch('/api/render-video/finish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        frames: capturedFrames,
-        audioUrl: song.audioUrl || song.audio_url || '',
-        fps,
-      }),
+      body: JSON.stringify({ sessionId, audioUrl: song.audioUrl || song.audio_url || '', fps }),
     });
 
     if (!response.ok) {
