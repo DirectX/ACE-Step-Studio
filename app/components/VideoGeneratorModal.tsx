@@ -154,6 +154,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
   // State
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackTime, setPlaybackTime] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
   const [backgroundType, setBackgroundType] = useState<'random' | 'custom' | 'video'>('random');
   const [backgroundSeed, setBackgroundSeed] = useState(Date.now());
   const [customImage, setCustomImage] = useState<string | null>(null);
@@ -232,6 +235,18 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
   // Text Layers State
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
+
+  // Sync playback time state with audio element
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      if (audioRef.current) {
+        setPlaybackTime(audioRef.current.currentTime);
+        setPlaybackDuration(audioRef.current.duration || 0);
+      }
+    }, 250);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   // Init default text + parse LRC on load
   useEffect(() => {
@@ -2033,14 +2048,13 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
               </h2>
             </div>
 
-            {/* WYSIWYG Hint */}
-            <div className="flex items-center justify-center gap-3 py-1.5 bg-white/5 text-[10px] text-zinc-500">
-              <span>🖱 {t('dragToMove') || 'Drag to move'}</span>
-              <span>⚙ {t('scrollToResize') || 'Scroll to resize'}</span>
-            </div>
-
             {/* Canvas Preview */}
-            <div className={`w-full ${config.aspectRatio === '1:1' ? 'aspect-square' : config.aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[60vh]' : 'aspect-video'}`}>
+            <div className={`relative w-full ${config.aspectRatio === '1:1' ? 'aspect-square' : config.aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[60vh]' : 'aspect-video'}`}>
+              {/* WYSIWYG Hint overlay */}
+              <div className="absolute top-2 left-0 right-0 z-10 flex items-center justify-center gap-3 text-[10px] text-zinc-400 pointer-events-none">
+                <span className="bg-black/50 px-2 py-0.5 rounded">🖱 {t('dragToMove')}</span>
+                <span className="bg-black/50 px-2 py-0.5 rounded">⚙ {t('scrollToResize')}</span>
+              </div>
               <canvas
                 ref={canvasRef}
                 width={RESOLUTIONS[config.aspectRatio].width}
@@ -2059,19 +2073,19 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
               {/* Timeline */}
               <div className="flex items-center gap-2 mb-2 px-2">
                 <span className="text-[10px] text-zinc-400 font-mono w-10 text-right">
-                  {audioRef.current ? `${Math.floor(audioRef.current.currentTime / 60)}:${String(Math.floor(audioRef.current.currentTime % 60)).padStart(2, '0')}` : '0:00'}
+                  {`${Math.floor(playbackTime / 60)}:${String(Math.floor(playbackTime % 60)).padStart(2, '0')}`}
                 </span>
                 <input
                   type="range"
                   min={0}
-                  max={audioRef.current?.duration || 100}
-                  value={audioRef.current?.currentTime || 0}
-                  onChange={(e) => { if (audioRef.current) audioRef.current.currentTime = Number(e.target.value); }}
+                  max={playbackDuration || 100}
+                  value={playbackTime}
+                  onChange={(e) => { const v = Number(e.target.value); setPlaybackTime(v); if (audioRef.current) audioRef.current.currentTime = v; }}
                   className="flex-1 h-1 accent-pink-500 cursor-pointer"
                   step={0.1}
                 />
                 <span className="text-[10px] text-zinc-400 font-mono w-10">
-                  {audioRef.current ? `${Math.floor(audioRef.current.duration / 60)}:${String(Math.floor(audioRef.current.duration % 60)).padStart(2, '0')}` : '0:00'}
+                  {`${Math.floor(playbackDuration / 60)}:${String(Math.floor(playbackDuration % 60)).padStart(2, '0')}`}
                 </span>
               </div>
               {/* Play + Volume */}
@@ -2090,8 +2104,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     min={0}
                     max={1}
                     step={0.01}
-                    value={audioRef.current?.volume ?? 1}
-                    onChange={(e) => { if (audioRef.current) audioRef.current.volume = Number(e.target.value); }}
+                    value={volume}
+                    onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (audioRef.current) audioRef.current.volume = v; }}
                     className="w-20 h-1 accent-pink-500 cursor-pointer"
                   />
                 </div>
@@ -2672,19 +2686,19 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                  {/* Timeline */}
                  <div className="flex items-center gap-3 mb-3 px-2">
                    <span className="text-[11px] text-zinc-400 font-mono w-12 text-right">
-                     {audioRef.current ? `${Math.floor(audioRef.current.currentTime / 60)}:${String(Math.floor(audioRef.current.currentTime % 60)).padStart(2, '0')}` : '0:00'}
+                     {`${Math.floor(playbackTime / 60)}:${String(Math.floor(playbackTime % 60)).padStart(2, '0')}`}
                    </span>
                    <input
                      type="range"
                      min={0}
-                     max={audioRef.current?.duration || 100}
-                     value={audioRef.current?.currentTime || 0}
-                     onChange={(e) => { if (audioRef.current) audioRef.current.currentTime = Number(e.target.value); }}
+                     max={playbackDuration || 100}
+                     value={playbackTime}
+                     onChange={(e) => { const v = Number(e.target.value); setPlaybackTime(v); if (audioRef.current) audioRef.current.currentTime = v; }}
                      className="flex-1 h-1.5 accent-pink-500 cursor-pointer"
                      step={0.1}
                    />
                    <span className="text-[11px] text-zinc-400 font-mono w-12">
-                     {audioRef.current ? `${Math.floor(audioRef.current.duration / 60)}:${String(Math.floor(audioRef.current.duration % 60)).padStart(2, '0')}` : '0:00'}
+                     {`${Math.floor(playbackDuration / 60)}:${String(Math.floor(playbackDuration % 60)).padStart(2, '0')}`}
                    </span>
                  </div>
                  {/* Play + Volume */}
@@ -2703,8 +2717,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                        min={0}
                        max={1}
                        step={0.01}
-                       value={audioRef.current?.volume ?? 1}
-                       onChange={(e) => { if (audioRef.current) audioRef.current.volume = Number(e.target.value); }}
+                       value={volume}
+                       onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (audioRef.current) audioRef.current.volume = v; }}
                        className="w-24 h-1.5 accent-pink-500 cursor-pointer"
                      />
                    </div>
