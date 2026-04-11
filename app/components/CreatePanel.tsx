@@ -812,10 +812,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setIsFormattingLyrics(true);
     }
     try {
-      // If lyrics is empty and we want to generate lyrics — use create_sample
-      if (target === 'lyrics' && !lyrics.trim()) {
+      // Lyrics: generate full song text via create_sample (style + existing text as context)
+      if (target === 'lyrics') {
+        const query = lyrics.trim()
+          ? `${style}\n\nExpand and complete these lyrics:\n${lyrics}`
+          : style;
         const sample = await generateApi.createSample({
-          query: style,
+          query,
           instrumental: false,
           vocalLanguage: vocalLanguage || 'en',
           lmTemperature,
