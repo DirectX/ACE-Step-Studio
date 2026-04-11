@@ -16,18 +16,14 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Update Studio wrapper
+REM Update ACE-Step Studio (includes ACE-Step-1.5 backend)
 if exist ".git" (
     echo Updating ACE-Step Studio...
     git pull
 )
 
-REM Update ACE-Step 1.5
-if exist "ACE-Step-1.5\.git" (
-    echo Updating ACE-Step 1.5...
-    cd ACE-Step-1.5
-    git pull
-    cd "%SCRIPT_DIR%"
+REM Reinstall Python deps (in case ACE-Step-1.5 was updated)
+if exist "python\python.exe" (
     echo Updating ACE-Step Python deps...
     python\python.exe -m pip install -e ACE-Step-1.5/ --no-warn-script-location
 )

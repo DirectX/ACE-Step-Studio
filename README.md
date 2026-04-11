@@ -32,7 +32,6 @@ Portable music generation studio powered by [ACE-Step 1.5 XL](https://github.com
 ```bash
 git clone https://github.com/timoncool/ACE-Step-Studio.git
 cd ACE-Step-Studio
-git clone https://github.com/ace-step/ACE-Step-1.5.git
 ```
 
 ### 2. Install
@@ -71,14 +70,14 @@ Opens UI at http://localhost:3000. Three services start: Gradio pipeline (8001),
 
 ```
 ACE-Step-Studio/
-├── app/              # React + Express (ace-step-ui fork)
-├── ACE-Step-1.5/     # Python ML pipeline
-├── python/           # Portable Python 3.12
-├── node/             # Portable Node.js 22
-├── models/           # HuggingFace cache
+├── app/              # React + Express frontend & backend
+├── ACE-Step-1.5/     # Python ML pipeline (included in repo)
+├── python/           # Portable Python 3.12 (created by install.bat)
+├── node/             # Portable Node.js 22 (created by install.bat)
+├── models/           # HuggingFace cache (created at runtime)
 ├── install.bat       # One-click installer
 ├── run.bat           # Launcher (3 services)
-├── update.bat        # Git pull + deps update
+├── update.bat        # Update wrapper + deps
 └── download_model.bat # Model downloader
 ```
 
