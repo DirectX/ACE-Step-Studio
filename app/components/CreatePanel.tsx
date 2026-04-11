@@ -2018,15 +2018,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('styleOfMusic')}</span>
-                    {styleHistoryRef.current.length > 0 && (
-                      <button
-                        className="p-0.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-                        title="Undo"
-                        onClick={undoStyle}
-                      >
-                        <Undo2 size={12} />
-                      </button>
-                    )}
                     <button
                       onClick={() => setEnhance(!enhance)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${enhance ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
@@ -2038,20 +2029,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {styleHistoryRef.current.length > 0 && (
+                    <button
+                      className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                      title="Undo"
+                      onClick={undoStyle}
+                    >
+                      <Undo2 size={14} />
+                    </button>
+                  )}
                   <button
-                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors text-zinc-500 hover:text-black dark:hover:text-white"
-                    title={t('refreshGenres')}
-                    onClick={refreshMusicTags}
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
+                    title={t('hintAiFormat') || 'AI Format'}
+                    onClick={() => handleFormat('style')}
+                    disabled={isFormattingStyle || !style.trim()}
                   >
-                    <Dices size={14} />
-                  </button>
-                  <button
-                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${styleHistoryRef.current.length > 0 ? 'text-zinc-500 hover:text-black dark:hover:text-white' : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed'}`}
-                    title="Undo (Ctrl+Z)"
-                    onClick={undoStyle}
-                    disabled={styleHistoryRef.current.length === 0}
-                  >
-                    <Undo2 size={14} />
+                    {isFormattingStyle ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   </button>
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
@@ -2060,12 +2053,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     <Trash2 size={14} />
                   </button>
                   <button
-                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title={t('hintAiFormat') || 'AI Format - Enhance style & auto-fill parameters'}
-                    onClick={() => handleFormat('style')}
-                    disabled={isFormattingStyle || !style.trim()}
+                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors text-zinc-500 hover:text-black dark:hover:text-white"
+                    title={t('refreshGenres')}
+                    onClick={refreshMusicTags}
                   >
-                    {isFormattingStyle ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    <Dices size={14} />
                   </button>
                 </div>
               </div>
