@@ -1408,7 +1408,7 @@ function AppContent() {
             <div
               className={`
                 ${mobileShowList ? 'hidden md:block' : 'w-full'}
-                md:block flex-shrink-0 h-full border-r border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300
+                md:block flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300
               `}
               style={{ width: window.innerWidth >= 768 ? leftPanel.width : undefined }}
             >
@@ -1462,7 +1462,7 @@ function AppContent() {
               <>
               {rightPanel.handle}
               <div
-                className="hidden xl:block flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300"
+                className="hidden xl:block flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300"
                 style={{ width: rightPanel.width }}
               >
                 <RightSidebar
