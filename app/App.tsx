@@ -12,7 +12,63 @@ import { UserProfile } from './components/UserProfile';
 import { SettingsModal } from './components/SettingsModal';
 import { SongProfile } from './components/SongProfile';
 import { Song, GenerationParams, View, Playlist } from './types';
-// react-resizable-panels installed but needs proper integration (TODO)
+// Resizable panel hook
+function useResizablePanel(key: string, defaultWidth: number, min: number, max: number) {
+  const [width, setWidth] = React.useState(() => {
+    const saved = localStorage.getItem(`panel-${key}`);
+    return saved ? Number(saved) : defaultWidth;
+  });
+  const isDragging = React.useRef(false);
+  const startX = React.useRef(0);
+  const startW = React.useRef(0);
+
+  const onMouseDown = React.useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    startX.current = e.clientX;
+    startW.current = width;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!isDragging.current) return;
+      const delta = ev.clientX - startX.current;
+      const newW = Math.min(max, Math.max(min, startW.current + delta));
+      setWidth(newW);
+    };
+    const onMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      localStorage.setItem(`panel-${key}`, String(Math.min(max, Math.max(min, startW.current + 0))));
+    };
+    // Save on mouseup with final value
+    const onMouseUpFinal = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX.current;
+      const finalW = Math.min(max, Math.max(min, startW.current + delta));
+      localStorage.setItem(`panel-${key}`, String(finalW));
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUpFinal);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUpFinal);
+  }, [width, key, min, max]);
+
+  const handle = (
+    <div
+      onMouseDown={onMouseDown}
+      className="hidden md:flex w-1.5 flex-shrink-0 items-center justify-center hover:bg-pink-500/20 transition-colors cursor-col-resize group"
+    >
+      <div className="w-0.5 h-8 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-pink-500 transition-colors" />
+    </div>
+  );
+
+  return { width, handle };
+}
 import { generateApi, songsApi, playlistsApi, getAudioUrl } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { useResponsive } from './context/ResponsiveContext';
@@ -35,6 +91,8 @@ function AppContent() {
 
   // Auth
   const { user, token, isAuthenticated, isLoading: authLoading, setupUser, logout } = useAuth();
+  const leftPanel = useResizablePanel('create', 380, 280, 500);
+  const rightPanel = useResizablePanel('details', 360, 280, 500);
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   // Track multiple concurrent generation jobs
   const activeJobsRef = useRef<Map<string, { tempId: string; pollInterval: ReturnType<typeof setInterval> }>>(new Map());
@@ -1362,10 +1420,13 @@ function AppContent() {
         return (
           <div className="flex h-full overflow-hidden relative w-full">
             {/* Create Panel */}
-            <div className={`
-              ${mobileShowList ? 'hidden md:block' : 'w-full'}
-              md:w-[320px] lg:w-[380px] flex-shrink-0 h-full border-r border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300
-            `}>
+            <div
+              className={`
+                ${mobileShowList ? 'hidden md:block' : 'w-full'}
+                md:block flex-shrink-0 h-full border-r border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300
+              `}
+              style={{ width: window.innerWidth >= 768 ? leftPanel.width : undefined }}
+            >
               <CreatePanel
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
@@ -1376,6 +1437,7 @@ function AppContent() {
                 onAudioSelectionApplied={() => setPendingAudioSelection(null)}
               />
             </div>
+            {leftPanel.handle}
 
             {/* Song List */}
             <div className={`
@@ -1412,7 +1474,12 @@ function AppContent() {
 
             {/* Right Sidebar */}
             {showRightSidebar && selectedSong && (
-              <div className="hidden xl:block w-[360px] flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300">
+              <>
+              {rightPanel.handle}
+              <div
+                className="hidden xl:block flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300"
+                style={{ width: rightPanel.width }}
+              >
                 <RightSidebar
                   song={selectedSong}
                   onClose={() => setShowRightSidebar(false)}
@@ -1429,6 +1496,7 @@ function AppContent() {
                   currentSong={currentSong}
                 />
               </div>
+              </>
             )}
 
             {/* Mobile Toggle Button */}
