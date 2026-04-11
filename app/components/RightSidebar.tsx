@@ -503,6 +503,42 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                         </div>
                     </div>
 
+                    {/* Generation Metadata */}
+                    {(song.bpm || song.keyScale || song.timeSignature || (song.duration && typeof song.duration === 'string' && song.duration !== '0:00')) && (
+                        <div className="flex flex-wrap gap-2 text-[11px]">
+                            {song.bpm > 0 && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    BPM: {song.bpm}
+                                </span>
+                            )}
+                            {song.keyScale && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.keyScale}
+                                </span>
+                            )}
+                            {song.timeSignature && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.timeSignature}
+                                </span>
+                            )}
+                            {song.duration && song.duration !== '0:00' && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.duration}
+                                </span>
+                            )}
+                            {song.ditModel && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.ditModel.replace('acestep-v15-', '')}
+                                </span>
+                            )}
+                            {song.lmModel && (
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    LM: {song.lmModel.replace('acestep-5Hz-lm-', '')}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
                     {/* Lyrics Section */}
                     <div className="bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
                         <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between bg-zinc-50 dark:bg-white/5">

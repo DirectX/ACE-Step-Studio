@@ -370,6 +370,9 @@ function AppContent() {
           ditModel: s.ditModel,
           lmModel: s.lmModel,
           lmBackend: s.lmBackend,
+          bpm: s.bpm || (s as any).bpm || 0,
+          keyScale: s.key_scale || (s as any).keyScale || '',
+          timeSignature: s.time_signature || (s as any).timeSignature || '',
           generationParams: (() => {
             try {
               if (!s.generation_params) return undefined;
@@ -711,6 +714,9 @@ function AppContent() {
         ditModel: s.ditModel,
         lmModel: s.lmModel,
         lmBackend: s.lmBackend,
+        bpm: s.bpm || (s as any).bpm || 0,
+        keyScale: s.key_scale || (s as any).keyScale || '',
+        timeSignature: s.time_signature || (s as any).timeSignature || '',
         generationParams: (() => {
           try {
             if (!s.generation_params) return undefined;

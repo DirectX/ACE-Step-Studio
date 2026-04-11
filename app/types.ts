@@ -22,6 +22,9 @@ export interface Song {
   ditModel?: string;
   lmModel?: string;
   lmBackend?: string;
+  bpm?: number;
+  keyScale?: string;
+  timeSignature?: string;
 }
 
 export interface Playlist {
