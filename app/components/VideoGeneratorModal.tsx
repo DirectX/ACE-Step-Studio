@@ -2677,12 +2677,13 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   onWheel={handleCanvasWheel}
                />
 
+               {/* Hints — above playback controls */}
+               <div className="absolute bottom-28 left-0 right-0 text-center text-[10px] text-zinc-500 pointer-events-none z-10">
+                 🖱 {t('dragToMove')}  ⚙ {t('scrollToResize')}
+               </div>
+
                {/* Playback Controls */}
                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
-                 {/* Hints — top of controls area, right under video */}
-                 <div className="text-center mb-2 text-[10px] text-zinc-500">
-                   🖱 {t('dragToMove')}  ⚙ {t('scrollToResize')}
-                 </div>
                  {/* Timeline */}
                  <div className="flex items-center gap-3 mb-3 px-2">
                    <span className="text-[11px] text-zinc-400 font-mono w-12 text-right">
