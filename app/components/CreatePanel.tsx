@@ -1968,9 +1968,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   >
                     <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${instrumental ? 'translate-x-0.5' : 'translate-x-4'}`} />
                   </button>
-                  <span className={`text-[10px] font-medium ${instrumental ? 'text-zinc-500 line-through' : 'text-green-500'}`}>
-                    {instrumental ? t('instrumental') : t('vocal')}
-                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   {lyricsHistoryRef.current.length > 0 && (
