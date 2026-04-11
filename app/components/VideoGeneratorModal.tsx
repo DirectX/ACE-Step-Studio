@@ -608,11 +608,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const startRecording = async () => {
     if (!canvasRef.current || !song) return;
 
-    // Load FFmpeg if not loaded
-    if (!ffmpegRef.current) {
-      await loadFFmpeg();
-      if (!ffmpegRef.current) return;
-    }
+    // Server-side ffmpeg — no WASM loading needed
 
     setIsExporting(true);
     setExportStage('capturing');
@@ -787,6 +783,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     const currentEffects = effectsRef.current;
     const currentIntensities = intensitiesRef.current;
     const currentTexts = textLayersRef.current;
+    const capturedFrames: string[] = [];
 
     for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
       const time = frameIndex / fps;
@@ -1052,11 +1049,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.fillRect(0, height - barHeight, width, barHeight);
       }
 
-      // Capture frame
+      // Capture frame as base64
       const frameData = canvas.toDataURL('image/jpeg', 0.85);
-      const base64Data = frameData.split(',')[1];
-      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      await ffmpeg.writeFile(`frame${String(frameIndex).padStart(6, '0')}.jpg`, binaryData);
+      capturedFrames.push(frameData.split(',')[1]);
 
       // Update progress (15-70% for frame rendering)
       if (frameIndex % 10 === 0) {
@@ -1067,38 +1062,27 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     setExportStage('encoding');
     setExportProgress(70);
 
-    // Write audio file
-    console.log('[Video] Writing audio file...');
-    await ffmpeg.writeFile('audio.mp3', new Uint8Array(audioDataCopy));
+    // Send frames to server for encoding with local ffmpeg (GPU accelerated)
+    console.log(`[Video] Sending ${capturedFrames.length} frames to server for encoding...`);
 
-    setExportProgress(75);
+    const response = await fetch('/api/render-video/encode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        frames: capturedFrames,
+        audioUrl: song.audioUrl || song.audio_url || '',
+        fps,
+      }),
+    });
 
-    // Encode video - use ultrafast preset for browser performance
-    console.log(`[Video] Encoding ${totalFrames} frames at ${fps}fps...`);
-    console.log('[Video] This may take a while in the browser. Please wait...');
-
-    const encodeResult = await ffmpeg.exec([
-      '-framerate', String(fps),
-      '-i', 'frame%06d.jpg',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-preset', 'ultrafast',  // Fastest encoding
-      '-tune', 'fastdecode',   // Optimize for fast decoding
-      '-crf', '28',            // Slightly lower quality but much faster
-      '-pix_fmt', 'yuv420p',
-      '-c:a', 'aac',
-      '-b:a', '128k',          // Lower bitrate audio
-      '-shortest',
-      '-movflags', '+faststart',
-      'output.mp4'
-    ]);
-    console.log('[Video] FFmpeg encode result:', encodeResult);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Encoding failed' }));
+      throw new Error(err.error || `Server encoding failed: ${response.status}`);
+    }
 
     setExportProgress(95);
 
-    // Read and download output
-    console.log('[Video] Reading output file...');
-    const outputData = await ffmpeg.readFile('output.mp4');
+    const outputData = new Uint8Array(await response.arrayBuffer());
     console.log('[Video] Output file size:', outputData.length, 'bytes');
 
     if (outputData.length === 0) {
