@@ -2543,18 +2543,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                             </div>
                                         </div>
 
-                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('position') || 'Position'}</label>
-                                            <div className="grid grid-cols-3 gap-1">
-                                                {(['top', 'center', 'bottom'] as const).map(pos => (
-                                                    <button
-                                                        key={pos}
-                                                        onClick={() => setLyricsPosition(pos)}
-                                                        className={`px-2 py-1 rounded text-[10px] font-medium ${lyricsPosition === pos ? 'bg-pink-600 text-white' : 'bg-white/5 text-zinc-400'}`}
-                                                    >
-                                                        {t(`pos${pos.charAt(0).toUpperCase() + pos.slice(1)}`) || pos}
-                                                    </button>
-                                                ))}
-                                            </div>
                                         </div>
 
                                         {/* Lines visible — only for 'lines' style */}
