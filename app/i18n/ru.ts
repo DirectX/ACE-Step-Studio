@@ -110,6 +110,7 @@ export const ru = {
     lyricsTextColor: 'Текст',
     lyricsHighlight: 'Выделение',
     lyricsBgOpacity: 'Подложка',
+    opacity: 'Прозрачность',
     dragToMove: 'Перетащите для перемещения',
     scrollToResize: 'Прокрутка для изменения размера',
     generationFailed: 'Генерация не удалась. Попробуйте ещё раз.',

@@ -108,6 +108,7 @@ export const ko = {
     lyricsTextColor: '텍스트',
     lyricsHighlight: '하이라이트',
     lyricsBgOpacity: '배경',
+    opacity: '불투명도',
     dragToMove: '드래그하여 이동',
     scrollToResize: '스크롤하여 크기 조절',
     generationFailed: '생성에 실패했습니다. 다시 시도해주세요.',

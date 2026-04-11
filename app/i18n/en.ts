@@ -110,6 +110,7 @@ export const en = {
     lyricsTextColor: 'Text',
     lyricsHighlight: 'Highlight',
     lyricsBgOpacity: 'Background',
+    opacity: 'Opacity',
     dragToMove: 'Drag to move',
     scrollToResize: 'Scroll to resize',
     generationFailed: 'Generation failed. Please try again.',

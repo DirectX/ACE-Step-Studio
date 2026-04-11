@@ -2588,6 +2588,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                             <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
                                             <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
                                             <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
+                                            <span className="text-[10px] text-zinc-500">{t('opacity') || 'Opacity'}</span>
                                             <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer min-w-[60px]" />
                                             <span className="text-[10px] text-zinc-400">{lyricsBgOpacity}%</span>
                                         </div>

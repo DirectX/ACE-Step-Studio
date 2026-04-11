@@ -108,6 +108,7 @@ export const zh = {
     lyricsTextColor: '文字',
     lyricsHighlight: '高亮',
     lyricsBgOpacity: '背景',
+    opacity: '透明度',
     dragToMove: '拖动移动',
     scrollToResize: '滚动调整大小',
     generationFailed: '生成失败，请重试。',
