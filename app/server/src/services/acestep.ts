@@ -614,39 +614,8 @@ async function processGenerationViaGradio(
 
   job.stage = 'Generating...';
 
-  // Use submit() with async iteration for real-time progress from Gradio
-  const submission = client.submit('/generation_wrapper', args);
-  let data: unknown[] = [];
-
-  for await (const event of submission) {
-    if (event.type === 'status') {
-      const status = event as any;
-      if (status.stage === 'error') {
-        throw new Error(status.message || 'Gradio generation error');
-      }
-      if (status.stage === 'pending') {
-        job.stage = 'Preparing...';
-      }
-      if (status.stage === 'generating') {
-        const progress = status.progress_data;
-        if (progress && Array.isArray(progress) && progress.length > 0) {
-          const p = progress[0];
-          if (p.index !== null && p.length) {
-            job.progress = p.index / p.length;
-          }
-          if (p.desc) {
-            job.stage = p.desc;
-          }
-        }
-      }
-      if (status.stage === 'complete') {
-        job.stage = 'Saving...';
-      }
-    }
-    if (event.type === 'data') {
-      data = (event as any).data || [];
-    }
-  }
+  const result = await client.predict('/generation_wrapper', args);
+  const data = result.data as unknown[];
 
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error(`Gradio returned unexpected data format: ${typeof data}`);
