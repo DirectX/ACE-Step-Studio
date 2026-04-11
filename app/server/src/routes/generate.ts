@@ -1067,7 +1067,7 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
     const { getGradioClient } = await import('../services/gradio-client.js');
     const client = await getGradioClient();
 
-    console.log('[CreateSample] Calling Gradio /create_sample...');
+    console.log('[CreateSample] Input:', { query, instrumental, vocalLanguage });
     const result = await client.predict('/create_sample', [
       query,
       instrumental ?? false,
@@ -1085,6 +1085,8 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
       res.status(500).json({ error: 'Unexpected response from create_sample' });
       return;
     }
+
+    console.log('[CreateSample] Output:', { caption: String(data[0]).slice(0, 80), lyrics: String(data[1]).slice(0, 80), bpm: data[2], duration: data[3], key: data[4], lang: data[5], timeSig: data[7] });
 
     res.json({
       caption: data[0] || '',

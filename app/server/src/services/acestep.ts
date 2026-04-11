@@ -134,9 +134,9 @@ async function prepareAudioFile(audioUrl: string | undefined): Promise<unknown> 
 }
 
 /**
- * Build the 60 positional arguments for the Gradio /generation_wrapper endpoint.
- * Order MUST match generation_run_wiring.py inputs[] exactly (positions 0-59).
- * Positions 60-63 are Gradio state variables — NOT passed via client.predict().
+ * Build the 59 positional arguments for the Gradio /generation_wrapper endpoint.
+ * Order MUST match generation_run_wiring.py inputs[] (visible components only).
+ * is_format_caption_state + 4 batch state vars are hidden Gradio State — NOT passed.
  */
 async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
   const caption = params.style || 'pop music';
@@ -157,6 +157,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
 
   // CoT features are gated by enhance OR thinking (either enables LLM enrichment)
   const useCot = isEnhance || isThinking;
+  const isTurbo = (params.ditModel || '').includes('turbo');
 
   return [
     prompt,                                                       //  0: captions
@@ -165,7 +166,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.keyScale || '',                                        //  3: key_scale
     params.timeSignature || '',                                   //  4: time_signature
     params.vocalLanguage || 'en',                                 //  5: vocal_language
-    params.inferenceSteps ?? 8,                                   //  6: inference_steps
+    Math.min(params.inferenceSteps ?? 8, isTurbo ? 20 : 200),     //  6: inference_steps (clamped to model max)
     params.guidanceScale ?? 7.0,                                  //  7: guidance_scale
     params.randomSeed !== false,                                  //  8: random_seed_checkbox
     String(params.seed ?? -1),                                    //  9: seed
@@ -201,24 +202,24 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     useCot ? (params.useCotMetas ?? true) : false,                // 39: use_cot_metas
     useCot ? (params.useCotCaption ?? true) : false,              // 40: use_cot_caption
     useCot ? (params.useCotLanguage ?? true) : false,             // 41: use_cot_language
-    params.isFormatCaption ?? false,                              // 42: is_format_caption_state
-    params.constrainedDecodingDebug ?? false,                     // 43: constrained_decoding_debug
-    params.allowLmBatch ?? true,                                  // 44: allow_lm_batch
-    params.getScores ?? false,                                    // 45: auto_score
-    params.getLrc ?? false,                                       // 46: auto_lrc
-    params.scoreScale ?? 0.5,                                     // 47: score_scale
-    params.lmBatchChunkSize ?? 8,                                 // 48: lm_batch_chunk_size
-    params.trackName || null,                                     // 49: track_name
-    params.completeTrackClasses || [],                            // 50: complete_track_classes
-    params.enableNormalization ?? true,                              // 51: enable_normalization
-    params.normalizationDb ?? -1.0,                                 // 52: normalization_db
-    params.fadeInDuration ?? 0.0,                                   // 53: fade_in_duration
-    params.fadeOutDuration ?? 0.0,                                  // 54: fade_out_duration
-    params.latentShift ?? 0.0,                                      // 55: latent_shift
-    params.latentRescale ?? 1.0,                                    // 56: latent_rescale
-    params.repaintMode || 'balanced',                               // 57: repaint_mode (conservative/balanced/aggressive)
-    params.repaintStrength ?? 0.5,                                  // 58: repaint_strength
-    params.autogen ?? false,                                      // 59: autogen_checkbox
+    // is_format_caption_state is a hidden Gradio State — NOT passed via client.predict()
+    params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
+    params.allowLmBatch ?? true,                                  // 43: allow_lm_batch
+    params.getScores ?? false,                                    // 44: auto_score
+    params.getLrc ?? false,                                       // 45: auto_lrc
+    params.scoreScale ?? 0.5,                                     // 46: score_scale
+    params.lmBatchChunkSize ?? 8,                                 // 47: lm_batch_chunk_size
+    params.trackName || null,                                     // 48: track_name
+    params.completeTrackClasses || [],                            // 49: complete_track_classes
+    params.enableNormalization ?? true,                            // 50: enable_normalization
+    params.normalizationDb ?? -1.0,                               // 51: normalization_db
+    params.fadeInDuration ?? 0.0,                                 // 52: fade_in_duration
+    params.fadeOutDuration ?? 0.0,                                // 53: fade_out_duration
+    params.latentShift ?? 0.0,                                    // 54: latent_shift
+    params.latentRescale ?? 1.0,                                  // 55: latent_rescale
+    params.repaintMode || 'balanced',                             // 56: repaint_mode
+    params.repaintStrength ?? 0.5,                                // 57: repaint_strength
+    params.autogen ?? false,                                      // 58: autogen_checkbox
     // Positions 60-63: current_batch_index, total_batches, batch_queue, generation_params_state
     // are hidden Gradio state variables — NOT passed via client.predict()
   ];
@@ -606,6 +607,13 @@ async function processGenerationViaGradio(
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
+
+  // Log all args for debugging
+  console.log(`Job ${jobId}: buildGradioArgs produced ${args.length} args`);
+  args.forEach((a, i) => {
+    const val = typeof a === 'string' ? a.slice(0, 40) : a;
+    console.log(`  [${i}] ${typeof a} = ${val}`);
+  });
 
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
