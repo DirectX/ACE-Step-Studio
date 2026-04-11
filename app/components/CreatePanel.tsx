@@ -1959,19 +1959,26 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               style={{ height: 'auto' }}
             >
               <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-50 dark:bg-white/5 border-b border-zinc-100 dark:border-white/5 flex-shrink-0">
-                <div>
+                <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('leaveLyricsEmpty')}>{t('lyrics')}</span>
+                  {lyricsHistoryRef.current.length > 0 && (
+                    <button
+                      className="p-0.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                      title="Undo"
+                      onClick={undoLyrics}
+                    >
+                      <Undo2 size={12} />
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setInstrumental(!instrumental)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
-                      instrumental
-                        ? 'bg-pink-600 text-white border-pink-500'
-                        : 'bg-white dark:bg-suno-card border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/10'
-                    }`}
+                    className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0"
+                    style={{ backgroundColor: instrumental ? '#ec4899' : '#3f3f46' }}
+                    title={instrumental ? t('instrumental') : t('vocal')}
                   >
-                    {instrumental ? t('instrumental') : t('vocal')}
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${instrumental ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </button>
                   <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
@@ -1980,14 +1987,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     disabled={isFormattingLyrics || !style.trim()}
                   >
                     {isFormattingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  </button>
-                  <button
-                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${lyricsHistoryRef.current.length > 0 ? 'text-zinc-500 hover:text-black dark:hover:text-white' : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed'}`}
-                    title="Undo (Ctrl+Z)"
-                    onClick={undoLyrics}
-                    disabled={lyricsHistoryRef.current.length === 0}
-                  >
-                    <Undo2 size={14} />
                   </button>
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
@@ -2020,6 +2019,15 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('styleOfMusic')}</span>
+                    {styleHistoryRef.current.length > 0 && (
+                      <button
+                        className="p-0.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                        title="Undo"
+                        onClick={undoStyle}
+                      >
+                        <Undo2 size={12} />
+                      </button>
+                    )}
                     <button
                       onClick={() => setEnhance(!enhance)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${enhance ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
