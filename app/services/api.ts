@@ -109,6 +109,7 @@ export interface Song {
   creator_avatar?: string;
   ditModel?: string;
   generationTime?: number;
+  lrcContent?: string;
   generation_params?: any;
 }
 
@@ -125,6 +126,7 @@ function transformSongs(songs: Song[]): Song[] {
       lmModel: (song as any).lm_model || (song as any).lmModel,
       lmBackend: (song as any).lm_backend || (song as any).lmBackend,
       generationTime: (song as any).generation_time || (song as any).generationTime,
+      lrcContent: (song as any).lrc_content || (song as any).lrcContent,
     };
   });
 }

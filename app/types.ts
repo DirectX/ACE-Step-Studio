@@ -23,6 +23,7 @@ export interface Song {
   lmModel?: string;
   lmBackend?: string;
   generationTime?: number;
+  lrcContent?: string;
   bpm?: number;
   keyScale?: string;
   timeSignature?: string;

@@ -502,11 +502,14 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                 await storage.upload(storageKey, buffer, `audio/${ext.slice(1)}`);
                 const storedPath = storage.getPublicUrl(storageKey);
 
+                // Get LRC for this specific audio track (by index)
+                const trackLrc = aceStatus.result.lrcData?.[i] || null;
+
                 await pool.query(
                   `INSERT INTO songs (id, user_id, title, lyrics, style, caption, audio_url,
                                       duration, bpm, key_scale, time_signature, tags, is_public, generation_params,
-                                      dit_model, lm_model, lm_backend, generation_time, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+                                      dit_model, lm_model, lm_backend, generation_time, lrc_content, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
                   [
                     songId,
                     req.user!.id,
@@ -525,6 +528,7 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                     params.lmModel || null,
                     params.lmBackend || null,
                     aceStatus.result.generationTime || null,
+                    trackLrc,
                   ]
                 );
 
@@ -532,11 +536,12 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
               } catch (downloadError) {
                 console.error(`Failed to download audio ${i + 1}:`, downloadError);
                 // Still create song record with remote URL
+                const trackLrcFallback = aceStatus.result.lrcData?.[i] || null;
                 await pool.query(
                   `INSERT INTO songs (id, user_id, title, lyrics, style, caption, audio_url,
                                       duration, bpm, key_scale, time_signature, tags, is_public, generation_params,
-                                      dit_model, lm_model, lm_backend, generation_time, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+                                      dit_model, lm_model, lm_backend, generation_time, lrc_content, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
                   [
                     songId,
                     req.user!.id,
@@ -555,6 +560,7 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
                     params.lmModel || null,
                     params.lmBackend || null,
                     aceStatus.result.generationTime || null,
+                    trackLrcFallback,
                   ]
                 );
                 localPaths.push(audioUrl);

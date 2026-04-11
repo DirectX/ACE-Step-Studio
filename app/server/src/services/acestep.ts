@@ -207,7 +207,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
     params.allowLmBatch ?? true,                                  // 43: allow_lm_batch
     params.getScores ?? false,                                    // 44: auto_score
-    params.getLrc ?? false,                                       // 45: auto_lrc
+    params.getLrc ?? true,                                        // 45: auto_lrc (enabled by default)
     params.scoreScale ?? 0.5,                                     // 46: score_scale
     params.lmBatchChunkSize ?? 8,                                 // 47: lm_batch_chunk_size
     params.trackName || null,                                     // 48: track_name
@@ -631,6 +631,11 @@ async function processGenerationViaGradio(
   const genDetails = data[9] as string | undefined;
   const genStatus = data[10] as string | undefined;
   const genSeed = data[11] as string | undefined;
+  // LRC data at indices 36-43 (lrc_display_1 through lrc_display_8)
+  const lrcData: string[] = [];
+  for (let i = 36; i < 44 && i < data.length; i++) {
+    lrcData.push(typeof data[i] === 'string' ? data[i] as string : '');
+  }
   console.log('[GEN] genDetails:', genDetails?.slice(0, 500));
   console.log('[GEN] all data indices 9-15:', Array.from({length: 7}, (_, i) => `[${i+9}]: ${typeof data[i+9] === 'string' ? (data[i+9] as string).slice(0, 100) : JSON.stringify(data[i+9])}`).join(' | '));
 
@@ -694,6 +699,7 @@ async function processGenerationViaGradio(
     keyScale: metas.keyScale || params.keyScale,
     timeSignature: metas.timeSignature || params.timeSignature,
     generationTime,
+    lrcData,
     status: 'succeeded',
   };
   job.rawResponse = { genDetails, genStatus };

@@ -153,6 +153,7 @@ function migrate(): void {
     try { db.exec('ALTER TABLE songs ADD COLUMN lm_backend TEXT'); } catch {}
     try { db.exec('ALTER TABLE users ADD COLUMN settings TEXT'); } catch {}
     try { db.exec('ALTER TABLE songs ADD COLUMN generation_time INTEGER'); } catch {}
+    try { db.exec('ALTER TABLE songs ADD COLUMN lrc_content TEXT'); } catch {}
     console.log('Migrations completed successfully!');
   } catch (error) {
     // Check if it's just "already exists" errors
