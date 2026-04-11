@@ -634,16 +634,16 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     // Get raw audio data from first channel
     const channelData = audioBuffer.getChannelData(0);
     const frequencyDataFrames: Uint8Array[] = [];
+    const smoothing = 0.8; // Match AnalyserNode default smoothingTimeConstant
+    let prevFrame = new Float32Array(frequencyBinCount);
 
-    // Simple FFT approximation using amplitude analysis
-    // For each frame, compute frequency-like data from audio samples
     for (let frame = 0; frame < totalFrames; frame++) {
       const startSample = frame * samplesPerFrame;
       const endSample = Math.min(startSample + fftSize, channelData.length);
 
       const frameData = new Uint8Array(frequencyBinCount);
+      const rawFrame = new Float32Array(frequencyBinCount);
 
-      // Compute amplitude spectrum approximation
       for (let bin = 0; bin < frequencyBinCount; bin++) {
         let sum = 0;
         const binSize = Math.max(1, Math.floor((endSample - startSample) / frequencyBinCount));
@@ -655,10 +655,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         }
 
         const avg = binSize > 0 ? sum / binSize : 0;
-        // Scale to 0-255 range with some amplification
-        frameData[bin] = Math.min(255, Math.floor(avg * 512));
+        // Apply exponential smoothing like AnalyserNode
+        rawFrame[bin] = smoothing * prevFrame[bin] + (1 - smoothing) * avg;
+        frameData[bin] = Math.min(255, Math.floor(rawFrame[bin] * 512));
       }
 
+      prevFrame = rawFrame;
       frequencyDataFrames.push(frameData);
     }
 
@@ -685,7 +687,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   };
 
   const renderOffline = async () => {
-    if (!song || !ffmpegRef.current) return;
+    if (!song) return;
 
     // Create a separate clean canvas to avoid tainted canvas issues
     const canvas = document.createElement('canvas');
@@ -695,7 +697,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const ffmpeg = ffmpegRef.current;
     const fps = 30;
     const width = canvas.width;
     const height = canvas.height;
@@ -1434,7 +1435,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     // --- 3.5 SYNCED LYRICS OVERLAY ---
     if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
-      const currentTime = (audioRef.current?.currentTime || 0) + lyricsOffsetRef.current;
+      const currentTime = (audioRef.current?.currentTime || time || 0) + lyricsOffsetRef.current;
       const lines = lrcLinesRef.current;
       const showSections = lyricsShowSectionsRef.current;
       const fontSize = lyricsFontSizeRef.current * (width / 1920);
