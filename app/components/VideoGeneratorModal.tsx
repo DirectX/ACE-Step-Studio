@@ -2664,24 +2664,24 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
         {/* Preview Area - Desktop only */}
         {!isMobile && (
-          <div className="flex-1 bg-black relative flex flex-col">
-               {/* WYSIWYG Hint — above video */}
-               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 bg-black/30 flex-shrink-0">
+          <div className="flex-1 bg-black flex flex-col justify-center">
+               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 flex-shrink-0">
                  <span>🖱 {t('dragToMove')}</span>
                  <span>⚙ {t('scrollToResize')}</span>
                </div>
-
-               <canvas
-                  ref={canvasRef}
-                  width={RESOLUTIONS[config.aspectRatio].width}
-                  height={RESOLUTIONS[config.aspectRatio].height}
-                  className="w-full h-full object-contain bg-[#0a0a0a] cursor-crosshair"
-                  onMouseDown={handleCanvasMouseDown}
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseUp={handleCanvasMouseUp}
-                  onMouseLeave={handleCanvasMouseUp}
-                onWheel={handleCanvasWheel}
-               />
+               <div className="relative flex-1 min-h-0">
+                 <canvas
+                    ref={canvasRef}
+                    width={RESOLUTIONS[config.aspectRatio].width}
+                    height={RESOLUTIONS[config.aspectRatio].height}
+                    className="w-full h-full object-contain bg-[#0a0a0a] cursor-crosshair"
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                    onMouseLeave={handleCanvasMouseUp}
+                    onWheel={handleCanvasWheel}
+                 />
+               </div>
 
                {/* Playback Controls */}
                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
