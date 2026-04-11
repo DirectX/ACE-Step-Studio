@@ -135,7 +135,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const [lyricsEnabled, setLyricsEnabled] = useState(true);
   const [lyricsStyle, setLyricsStyle] = useState<'lines' | 'scroll' | 'karaoke'>('karaoke');
   const [lyricsPosition, setLyricsPosition] = useState<'bottom' | 'center' | 'top'>('bottom');
-  const [lyricsFontSize, setLyricsFontSize] = useState(42);
+  const [lyricsFontSize, setLyricsFontSize] = useState(50);
   const [lyricsLines, setLyricsLines] = useState(2);
   const [lyricsShowSections, setLyricsShowSections] = useState(false);
   const [lyricsColor, setLyricsColor] = useState('#ffffff');
@@ -204,7 +204,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     visualizerY: 50,
     visualizerScale: 1.0,
     lyricsX: 50,
-    lyricsY: 15,
+    lyricsY: 10,
   });
 
   const [effects, setEffects] = useState<EffectConfig>({
