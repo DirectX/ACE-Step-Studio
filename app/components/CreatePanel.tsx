@@ -950,6 +950,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setReferenceAudioTitle(derivedTitle);
       setReferenceTime(0);
       setReferenceDuration(0);
+      // Auto-fill source if empty (so user doesn't need to upload twice)
+      if (!sourceAudioUrl) {
+        setSourceAudioUrl(url);
+        setSourceAudioTitle(derivedTitle);
+        setSourceTime(0);
+        setSourceDuration(0);
+      }
     } else {
       setSourceAudioUrl(url);
       setSourceAudioTitle(derivedTitle);
@@ -957,6 +964,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setSourceDuration(0);
       if (taskType === 'text2music') {
         setTaskType('cover');
+      }
+      // Auto-fill reference if empty
+      if (!referenceAudioUrl) {
+        setReferenceAudioUrl(url);
+        setReferenceAudioTitle(derivedTitle);
+        setReferenceTime(0);
+        setReferenceDuration(0);
       }
     }
   };
@@ -1715,13 +1729,30 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
                     </div>
                     {taskType === 'repaint' && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('repaintStrengthLabel') || 'Strength'}</span>
-                        <input type="range" min="0" max="1" step="0.05" value={repaintStrength}
-                          onChange={(e) => setRepaintStrength(Number(e.target.value))}
-                          className="flex-1 h-1 accent-purple-500 cursor-pointer" />
-                        <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
-                      </div>
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('strength') || 'Strength'}</span>
+                          <input type="range" min="0" max="1" step="0.05" value={repaintStrength}
+                            onChange={(e) => setRepaintStrength(Number(e.target.value))}
+                            className="flex-1 h-1 accent-purple-500 cursor-pointer" />
+                          <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('region') || 'Region'}</span>
+                          <div className="flex items-center gap-1 flex-1">
+                            <input type="number" step="0.1" min="0" placeholder="0s"
+                              value={repaintingStart || ''}
+                              onChange={(e) => setRepaintingStart(Number(e.target.value))}
+                              className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
+                            <span className="text-[10px] text-zinc-400">—</span>
+                            <input type="number" step="0.1" min="-1" placeholder={t('end') || 'end'}
+                              value={repaintingEnd === -1 ? '' : repaintingEnd}
+                              onChange={(e) => setRepaintingEnd(e.target.value === '' ? -1 : Number(e.target.value))}
+                              className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
+                            <span className="text-[10px] text-zinc-400">{t('seconds') || 'sec'}</span>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

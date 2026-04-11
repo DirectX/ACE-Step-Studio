@@ -56,6 +56,9 @@ export const translations = {
     modelDescBf16: '4B BF16, compact',
     inQueue: 'in queue',
     uploadForCover: 'Upload audio for Cover / Remix',
+    strength: 'Strength',
+    region: 'Region',
+    seconds: 'sec',
 
     // Common
     cancel: 'Cancel',
@@ -666,6 +669,9 @@ export const translations = {
     modelDescBf16: '4B BF16，紧凑',
     inQueue: '排队中',
     uploadForCover: '上传音频进行翻唱 / 混音',
+    strength: '强度',
+    region: '区域',
+    seconds: '秒',
 
     // Common
     cancel: '取消',
@@ -1276,6 +1282,9 @@ export const translations = {
     modelDescBf16: '4B BF16、コンパクト',
     inQueue: 'キュー内',
     uploadForCover: 'カバー / リミックス用にオーディオをアップロード',
+    strength: '強度',
+    region: '範囲',
+    seconds: '秒',
 
     // Common
     cancel: 'キャンセル',
@@ -1886,6 +1895,9 @@ export const translations = {
     modelDescBf16: '4B BF16, 컴팩트',
     inQueue: '대기 중',
     uploadForCover: '커버 / 리믹스를 위해 오디오 업로드',
+    strength: '강도',
+    region: '구간',
+    seconds: '초',
 
     // Common
     cancel: '취소',
@@ -2491,6 +2503,9 @@ export const translations = {
     modelDescBf16: '4B BF16, компактная',
     inQueue: 'в очереди',
     uploadForCover: 'Загрузить аудио для Cover / Remix',
+    strength: 'Сила',
+    region: 'Регион',
+    seconds: 'сек',
 
     // Common
     cancel: 'Отмена',
