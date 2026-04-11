@@ -203,7 +203,6 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     useCot ? (params.useCotMetas ?? true) : false,                // 39: use_cot_metas
     useCot ? (params.useCotCaption ?? true) : false,              // 40: use_cot_caption
     useCot ? (params.useCotLanguage ?? true) : false,             // 41: use_cot_language
-    // is_format_caption_state is a hidden Gradio State — NOT passed via client.predict()
     params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
     params.allowLmBatch ?? true,                                  // 43: allow_lm_batch
     params.getScores ?? false,                                    // 44: auto_score
@@ -221,8 +220,6 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.repaintMode || 'balanced',                             // 56: repaint_mode
     params.repaintStrength ?? 0.5,                                // 57: repaint_strength
     params.autogen ?? false,                                      // 58: autogen_checkbox
-    // Positions 60-63: current_batch_index, total_batches, batch_queue, generation_params_state
-    // are hidden Gradio state variables — NOT passed via client.predict()
   ];
 }
 
@@ -597,6 +594,7 @@ async function processGenerationViaGradio(
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
+  console.log(`[GEN] Total args: ${args.length}, auto_lrc at [45]=${args[45]}, auto_score at [44]=${args[44]}`);
 
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
@@ -629,12 +627,30 @@ async function processGenerationViaGradio(
       console.log(`[GEN] data[${i}]: (${val.length} chars) ${val.slice(0, 100)}`);
     }
   }
-  const lrcData: string[] = [];
-  // Search for LRC content — look for strings containing [mm:ss timestamps
+  // Log ALL data elements to find LRC
   for (let i = 12; i < data.length; i++) {
     const val = data[i];
+    const type = typeof val;
+    const preview = type === 'string' ? (val as string).slice(0, 80) :
+                    val === null ? 'null' :
+                    type === 'object' ? JSON.stringify(val).slice(0, 80) : String(val);
+    if (preview && preview !== '' && preview !== 'null' && preview !== '""') {
+      console.log(`[GEN] data[${i}] (${type}): ${preview}`);
+    }
+  }
+  const lrcData: string[] = [];
+  for (let i = 12; i < data.length; i++) {
+    const val = data[i];
+    // Check string
     if (typeof val === 'string' && /\[\d{2}:\d{2}/.test(val)) {
       lrcData.push(val);
+    }
+    // Check Gradio update object {value: "...", ...}
+    if (val && typeof val === 'object' && (val as any).value && typeof (val as any).value === 'string') {
+      const v = (val as any).value;
+      if (/\[\d{2}:\d{2}/.test(v)) {
+        lrcData.push(v);
+      }
     }
   }
   console.log(`[GEN] Found ${lrcData.length} LRC entries`);
