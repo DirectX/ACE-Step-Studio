@@ -82,7 +82,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '500mb' }));
 
 // Serve static audio files
 app.use('/audio', express.static(path.join(__dirname, '../public/audio')));
