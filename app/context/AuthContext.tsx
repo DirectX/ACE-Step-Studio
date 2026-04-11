@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         setToken(newToken);
         localStorage.setItem(TOKEN_KEY, newToken);
         localStorage.setItem(USER_KEY, JSON.stringify(userData));
+        setIsLoading(false);
       } catch (error: unknown) {
         const err = error as { message?: string };
         if (err.message?.startsWith('404:')) {
