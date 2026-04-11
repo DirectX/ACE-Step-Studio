@@ -20,6 +20,7 @@ import {
   resolvePythonPath,
 } from '../services/acestep.js';
 import { getStorageProvider } from '../services/storage/factory.js';
+import { tagMp3Buffer, fetchCoverImage } from '../services/id3-tagger.js';
 
 const router = Router();
 
@@ -476,8 +477,27 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
               const songId = generateUUID();
 
               try {
-                const { buffer } = await downloadAudioToBuffer(audioUrl);
+                let { buffer } = await downloadAudioToBuffer(audioUrl);
                 const ext = audioUrl.includes('.flac') ? '.flac' : '.mp3';
+
+                // Tag MP3 with ID3 metadata (title, artist, cover, lyrics)
+                if (ext === '.mp3') {
+                  try {
+                    const cover = await fetchCoverImage(songId);
+                    buffer = tagMp3Buffer(buffer, {
+                      title: songTitle,
+                      artist: req.user!.username || 'ACE-Step Studio',
+                      genre: params.style?.split(',')[0]?.trim(),
+                      lyrics: params.instrumental ? undefined : params.lyrics,
+                      bpm: aceStatus.result.bpm || params.bpm,
+                      coverBuffer: cover?.buffer,
+                      coverMimeType: cover?.mimeType,
+                    });
+                  } catch (tagErr) {
+                    console.warn('ID3 tagging failed, saving without tags:', tagErr);
+                  }
+                }
+
                 const storageKey = `${req.user!.id}/${songId}${ext}`;
                 await storage.upload(storageKey, buffer, `audio/${ext.slice(1)}`);
                 const storedPath = storage.getPublicUrl(storageKey);
