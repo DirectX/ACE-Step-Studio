@@ -13,50 +13,35 @@ import { SettingsModal } from './components/SettingsModal';
 import { SongProfile } from './components/SongProfile';
 import { Song, GenerationParams, View, Playlist } from './types';
 // Resizable panel hook
-function useResizablePanel(key: string, defaultWidth: number, min: number, max: number) {
+function useResizablePanel(key: string, defaultWidth: number, min: number, max: number, direction: 'left' | 'right' = 'left') {
   const [width, setWidth] = React.useState(() => {
     const saved = localStorage.getItem(`panel-${key}`);
     return saved ? Number(saved) : defaultWidth;
   });
-  const isDragging = React.useRef(false);
-  const startX = React.useRef(0);
-  const startW = React.useRef(0);
 
   const onMouseDown = React.useCallback((e: React.MouseEvent) => {
-    isDragging.current = true;
-    startX.current = e.clientX;
-    startW.current = width;
+    const startX = e.clientX;
+    const startW = width;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
 
     const onMouseMove = (ev: MouseEvent) => {
-      if (!isDragging.current) return;
-      const delta = ev.clientX - startX.current;
-      const newW = Math.min(max, Math.max(min, startW.current + delta));
+      const delta = ev.clientX - startX;
+      const newW = Math.min(max, Math.max(min, startW + (direction === 'left' ? delta : -delta)));
       setWidth(newW);
     };
-    const onMouseUp = () => {
-      isDragging.current = false;
+    const onMouseUp = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX;
+      const finalW = Math.min(max, Math.max(min, startW + (direction === 'left' ? delta : -delta)));
+      localStorage.setItem(`panel-${key}`, String(finalW));
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      localStorage.setItem(`panel-${key}`, String(Math.min(max, Math.max(min, startW.current + 0))));
-    };
-    // Save on mouseup with final value
-    const onMouseUpFinal = (ev: MouseEvent) => {
-      const delta = ev.clientX - startX.current;
-      const finalW = Math.min(max, Math.max(min, startW.current + delta));
-      localStorage.setItem(`panel-${key}`, String(finalW));
-      isDragging.current = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUpFinal);
     };
     document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUpFinal);
-  }, [width, key, min, max]);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [width, key, min, max, direction]);
 
   const handle = (
     <div
@@ -91,8 +76,8 @@ function AppContent() {
 
   // Auth
   const { user, token, isAuthenticated, isLoading: authLoading, setupUser, logout } = useAuth();
-  const leftPanel = useResizablePanel('create', 380, 280, 700);
-  const rightPanel = useResizablePanel('details', 360, 280, 700);
+  const leftPanel = useResizablePanel('create', 420, 320, 600);
+  const rightPanel = useResizablePanel('details', 400, 320, 600, 'right');
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   // Track multiple concurrent generation jobs
   const activeJobsRef = useRef<Map<string, { tempId: string; pollInterval: ReturnType<typeof setInterval> }>>(new Map());
