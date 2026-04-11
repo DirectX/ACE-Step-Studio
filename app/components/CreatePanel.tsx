@@ -1961,17 +1961,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-50 dark:bg-white/5 border-b border-zinc-100 dark:border-white/5 flex-shrink-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('leaveLyricsEmpty')}>{t('lyrics')}</span>
-                  {lyricsHistoryRef.current.length > 0 && (
-                    <button
-                      className="p-0.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-                      title="Undo"
-                      onClick={undoLyrics}
-                    >
-                      <Undo2 size={12} />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setInstrumental(!instrumental)}
                     className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0"
@@ -1980,6 +1969,17 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   >
                     <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${instrumental ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  {lyricsHistoryRef.current.length > 0 && (
+                    <button
+                      className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                      title="Undo"
+                      onClick={undoLyrics}
+                    >
+                      <Undo2 size={14} />
+                    </button>
+                  )}
                   <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                     title={t('hintAiFormat') || 'AI — generate or enhance lyrics'}
