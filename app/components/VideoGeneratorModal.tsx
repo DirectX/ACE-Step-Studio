@@ -270,9 +270,26 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
+    // Account for object-contain — canvas may have letterbox/pillarbox
+    const canvasAspect = canvas.width / canvas.height;
+    const rectAspect = rect.width / rect.height;
+    let renderW: number, renderH: number, offsetX: number, offsetY: number;
+    if (rectAspect > canvasAspect) {
+      // Pillarbox (bars on sides)
+      renderH = rect.height;
+      renderW = rect.height * canvasAspect;
+      offsetX = (rect.width - renderW) / 2;
+      offsetY = 0;
+    } else {
+      // Letterbox (bars top/bottom)
+      renderW = rect.width;
+      renderH = rect.width / canvasAspect;
+      offsetX = 0;
+      offsetY = (rect.height - renderH) / 2;
+    }
     return {
-      x: (e.clientX - rect.left) / rect.width * 100,
-      y: (e.clientY - rect.top) / rect.height * 100,
+      x: Math.max(0, Math.min(100, ((e.clientX - rect.left - offsetX) / renderW) * 100)),
+      y: Math.max(0, Math.min(100, ((e.clientY - rect.top - offsetY) / renderH) * 100)),
     };
   };
 
