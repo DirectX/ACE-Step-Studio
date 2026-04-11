@@ -91,8 +91,8 @@ function AppContent() {
 
   // Auth
   const { user, token, isAuthenticated, isLoading: authLoading, setupUser, logout } = useAuth();
-  const leftPanel = useResizablePanel('create', 380, 280, 500);
-  const rightPanel = useResizablePanel('details', 360, 280, 500);
+  const leftPanel = useResizablePanel('create', 380, 280, 700);
+  const rightPanel = useResizablePanel('details', 360, 280, 700);
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   // Track multiple concurrent generation jobs
   const activeJobsRef = useRef<Map<string, { tempId: string; pollInterval: ReturnType<typeof setInterval> }>>(new Map());
