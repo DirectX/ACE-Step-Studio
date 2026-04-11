@@ -950,6 +950,83 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
       ctx.restore();
 
+      // --- SYNCED LYRICS OVERLAY (export) ---
+      if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
+        const lrcTime = time + lyricsOffsetRef.current;
+        const lrcLines = lrcLinesRef.current;
+        const lrcStyle = lyricsStyleRef.current;
+        const lrcFontSize = lyricsFontSizeRef.current * (width / 1920);
+        const lrcMaxLines = lyricsLinesRef.current;
+        const lrcShowSections = lyricsShowSectionsRef.current;
+        const lrcX = (currentConfig.lyricsX / 100) * width;
+        const lrcY = (currentConfig.lyricsY / 100) * height;
+
+        let lrcIdx = -1;
+        for (let li = lrcLines.length - 1; li >= 0; li--) {
+          if (lrcTime >= lrcLines[li].time) { lrcIdx = li; break; }
+        }
+
+        if (lrcIdx >= 0) {
+          ctx.save();
+          ctx.font = `bold ${lrcFontSize}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          const lrcLine = lrcLines[lrcIdx];
+
+          if (lrcStyle === 'karaoke' && !(!lrcShowSections && lrcLine.isSection)) {
+            const nextT = lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5;
+            const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
+            const m = ctx.measureText(lrcLine.text);
+            const bx = lrcX - m.width / 2;
+            const pw = m.width + lrcFontSize * 0.8;
+            const ph = lrcFontSize * 1.3;
+            ctx.fillStyle = `rgba(${parseInt(lyricsBgColorRef.current.slice(1,3),16)},${parseInt(lyricsBgColorRef.current.slice(3,5),16)},${parseInt(lyricsBgColorRef.current.slice(5,7),16)}, ${lyricsBgOpacityRef.current/100})`;
+            ctx.beginPath(); ctx.roundRect(lrcX - pw/2, lrcY - lrcFontSize*0.15, pw, ph, ph/2); ctx.fill();
+            ctx.textAlign = 'left';
+            ctx.fillStyle = `${lyricsColorRef.current}4d`;
+            ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;
+            ctx.strokeText(lrcLine.text, bx, lrcY); ctx.fillText(lrcLine.text, bx, lrcY);
+            ctx.save();
+            ctx.beginPath(); ctx.rect(bx, lrcY - lrcFontSize*0.2, m.width * prog, lrcFontSize*1.4); ctx.clip();
+            ctx.fillStyle = lyricsHighlightColorRef.current;
+            ctx.strokeText(lrcLine.text, bx, lrcY); ctx.fillText(lrcLine.text, bx, lrcY);
+            ctx.restore();
+          } else if (lrcStyle === 'scroll' && !(!lrcShowSections && lrcLine.isSection)) {
+            const nextT = lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5;
+            const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
+            const m = ctx.measureText(lrcLine.text);
+            const scrollOff = prog * (m.width + width * 0.5);
+            ctx.fillStyle = `rgba(${parseInt(lyricsBgColorRef.current.slice(1,3),16)},${parseInt(lyricsBgColorRef.current.slice(3,5),16)},${parseInt(lyricsBgColorRef.current.slice(5,7),16)}, ${lyricsBgOpacityRef.current/100})`;
+            ctx.fillRect(0, lrcY - lrcFontSize*0.15, width, lrcFontSize*1.3);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = lyricsColorRef.current;
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 2;
+            ctx.strokeText(lrcLine.text, width - scrollOff, lrcY);
+            ctx.fillText(lrcLine.text, width - scrollOff, lrcY);
+          } else {
+            const lineH = lrcFontSize * 1.6;
+            const vis: {text:string; isCur:boolean}[] = [];
+            for (let o = 0; o < lrcMaxLines && lrcIdx + o < lrcLines.length; o++) {
+              const l = lrcLines[lrcIdx + o];
+              if (!lrcShowSections && l.isSection) continue;
+              vis.push({text: l.text, isCur: o === 0});
+            }
+            const bY = lrcY - (lineH * vis.length) / 2;
+            vis.forEach((v, vi) => {
+              const y = bY + vi * lineH;
+              const a = v.isCur ? 1.0 : 0.4;
+              const m = ctx.measureText(v.text);
+              ctx.fillStyle = `rgba(${parseInt(lyricsBgColorRef.current.slice(1,3),16)},${parseInt(lyricsBgColorRef.current.slice(3,5),16)},${parseInt(lyricsBgColorRef.current.slice(5,7),16)}, ${(lyricsBgOpacityRef.current/100)*a})`;
+              ctx.beginPath(); ctx.roundRect(lrcX - (m.width+lrcFontSize*0.8)/2, y-lrcFontSize*0.15, m.width+lrcFontSize*0.8, lrcFontSize*1.3, lrcFontSize*0.65); ctx.fill();
+              ctx.fillStyle = `rgba(${parseInt(lyricsColorRef.current.slice(1,3),16)},${parseInt(lyricsColorRef.current.slice(3,5),16)},${parseInt(lyricsColorRef.current.slice(5,7),16)}, ${a})`;
+              ctx.strokeStyle = `rgba(0,0,0,${0.8*a})`; ctx.lineWidth = 3;
+              ctx.strokeText(v.text, lrcX, y); ctx.fillText(v.text, lrcX, y);
+            });
+          }
+          ctx.restore();
+        }
+      }
+
       // Apply post-processing effects
       if (currentEffects.scanlines || currentEffects.cctv) {
         ctx.fillStyle = `rgba(0,0,0,${currentIntensities.scanlines * 0.8})`;
@@ -1091,7 +1168,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       body: JSON.stringify({ sessionId, audioUrl: song.audioUrl || song.audio_url || '', fps }),
     });
 
-    if (!response.ok) {
+    console.log('[Video] Server response:', response.status, response.headers.get('content-type'));
+
+    // Even if status is not 200, check if we got video data
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.ok && !contentType.includes('video')) {
       const err = await response.json().catch(() => ({ error: 'Encoding failed' }));
       throw new Error(err.error || `Server encoding failed: ${response.status}`);
     }
@@ -1125,13 +1206,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     console.log('[Video] Download triggered!');
 
-    // Cleanup FFmpeg filesystem
+    // Cleanup done server-side
     setExportProgress(98);
-    for (let i = 0; i < totalFrames; i++) {
-      await ffmpeg.deleteFile(`frame${String(i).padStart(6, '0')}.jpg`).catch(() => {});
-    }
-    await ffmpeg.deleteFile('audio.mp3').catch(() => {});
-    await ffmpeg.deleteFile('output.mp4').catch(() => {});
+    // Server cleanup already handled
     await audioCtx.close();
 
     setExportProgress(100);
