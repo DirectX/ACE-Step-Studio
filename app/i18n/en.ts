@@ -112,6 +112,8 @@ export const en = {
     lyricsBgOpacity: 'Background',
     opacity: 'Opacity',
     lyricsOffset: 'Offset',
+    aiGenerate: 'Generate from scratch',
+    aiFormat: 'Enhance existing',
     dragToMove: 'Drag to move',
     scrollToResize: 'Scroll to resize',
     generationFailed: 'Generation failed. Please try again.',

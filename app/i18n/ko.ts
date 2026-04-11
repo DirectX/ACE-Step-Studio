@@ -110,6 +110,8 @@ export const ko = {
     lyricsBgOpacity: '배경',
     opacity: '불투명도',
     lyricsOffset: '오프셋',
+    aiGenerate: '처음부터 생성',
+    aiFormat: '기존 개선',
     dragToMove: '드래그하여 이동',
     scrollToResize: '스크롤하여 크기 조절',
     generationFailed: '생성에 실패했습니다. 다시 시도해주세요.',

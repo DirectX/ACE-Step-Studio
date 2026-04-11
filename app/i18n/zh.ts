@@ -110,6 +110,8 @@ export const zh = {
     lyricsBgOpacity: '背景',
     opacity: '透明度',
     lyricsOffset: '偏移',
+    aiGenerate: '从头生成',
+    aiFormat: '优化现有',
     dragToMove: '拖动移动',
     scrollToResize: '滚动调整大小',
     generationFailed: '生成失败，请重试。',

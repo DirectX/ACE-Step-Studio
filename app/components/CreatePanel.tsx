@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3, Undo2 } from 'lucide-react';
+import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3, Undo2, Wand2 } from 'lucide-react';
 import { GenerationParams, Song } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -857,11 +857,47 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     e.target.value = '';
   };
 
-  // Format handler - uses LLM to enhance style/lyrics and auto-fill parameters
+  // Generate from scratch via createSample
+  const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false);
+  const [isGeneratingStyle, setIsGeneratingStyle] = useState(false);
+
+  const handleGenerate = async (target: 'style' | 'lyrics') => {
+    if (!token || !style.trim()) return;
+    if (target === 'lyrics') setIsGeneratingLyrics(true);
+    else setIsGeneratingStyle(true);
+    try {
+      const sample = await generateApi.createSample({
+        query: style,
+        instrumental: target === 'style' ? instrumental : false,
+        vocalLanguage: vocalLanguage || 'en',
+        lmTemperature,
+        lmTopK: lmTopK > 0 ? lmTopK : undefined,
+        lmTopP,
+      }, token);
+      if (target === 'lyrics') {
+        if (sample.lyrics) setLyrics(sample.lyrics);
+      } else {
+        if (sample.caption) setStyle(sample.caption);
+      }
+      if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
+      if (sample.duration && sample.duration > 0) setDuration(sample.duration);
+      if (sample.keyScale) setKeyScale(sample.keyScale);
+      if (sample.timeSignature) {
+        const ts = String(sample.timeSignature);
+        setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+      }
+    } catch (e) { console.error('Generate failed:', e); }
+    finally {
+      if (target === 'lyrics') setIsGeneratingLyrics(false);
+      else setIsGeneratingStyle(false);
+    }
+  };
+
+  // Format/enhance existing content via LLM
   const handleFormat = async (target: 'style' | 'lyrics') => {
     if (!token) return;
     if (target === 'style' && !style.trim()) return;
-    if (target === 'lyrics' && !style.trim()) return;
+    if (target === 'lyrics' && !lyrics.trim()) return;
     if (target === 'style') {
       setIsFormattingStyle(true);
     } else {
@@ -869,49 +905,27 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     }
     try {
       if (target === 'lyrics') {
-        if (lyrics.trim()) {
-          // Enhance existing lyrics via format endpoint
-          const result = await generateApi.formatInput({
-            caption: style,
-            lyrics: lyrics,
-            bpm: bpm > 0 ? bpm : undefined,
-            duration: duration > 0 ? duration : undefined,
-            keyScale: keyScale || undefined,
-            timeSignature: timeSignature || undefined,
-            temperature: lmTemperature,
-            topK: lmTopK > 0 ? lmTopK : undefined,
-            topP: lmTopP,
-            lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
-            lmBackend: lmBackend || 'pt',
-          }, token);
-          if (result.lyrics) setLyrics(result.lyrics);
-          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
-          if (result.duration && result.duration > 0) setDuration(result.duration);
-          if (result.keyScale) setKeyScale(result.keyScale);
-          if (result.timeSignature) {
-            const ts = String(result.timeSignature);
-            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
-          }
-        } else {
-          // No lyrics yet — generate from scratch via create_sample
-          const sample = await generateApi.createSample({
-            query: style,
-            instrumental: false,
-            vocalLanguage: vocalLanguage || 'en',
-            lmTemperature,
-            lmTopK: lmTopK > 0 ? lmTopK : undefined,
-            lmTopP,
-          }, token);
-          if (sample.lyrics) {
-            setLyrics(sample.lyrics);
-            if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
-            if (sample.duration && sample.duration > 0) setDuration(sample.duration);
-            if (sample.keyScale) setKeyScale(sample.keyScale);
-            if (sample.timeSignature) {
-              const ts = String(sample.timeSignature);
-              setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
-            }
-          }
+        // Enhance existing lyrics via format endpoint
+        const result = await generateApi.formatInput({
+          caption: style,
+          lyrics: lyrics,
+          bpm: bpm > 0 ? bpm : undefined,
+          duration: duration > 0 ? duration : undefined,
+          keyScale: keyScale || undefined,
+          timeSignature: timeSignature || undefined,
+          temperature: lmTemperature,
+          topK: lmTopK > 0 ? lmTopK : undefined,
+          topP: lmTopP,
+          lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
+          lmBackend: lmBackend || 'pt',
+        }, token);
+        if (result.lyrics) setLyrics(result.lyrics);
+        if (result.bpm && result.bpm > 0) setBpm(result.bpm);
+        if (result.duration && result.duration > 0) setDuration(result.duration);
+        if (result.keyScale) setKeyScale(result.keyScale);
+        if (result.timeSignature) {
+          const ts = String(result.timeSignature);
+          setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
         }
       } else {
         // Format existing content via /format endpoint
@@ -2013,10 +2027,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     <Trash2 size={14} />
                   </button>
                   <button
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isGeneratingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
+                    title={t('aiGenerate') || 'Generate lyrics from scratch'}
+                    onClick={() => handleGenerate('lyrics')}
+                    disabled={isGeneratingLyrics || isFormattingLyrics || !style.trim()}
+                  >
+                    {isGeneratingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                  </button>
+                  <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title={t('hintAiFormat') || 'AI — generate or enhance lyrics'}
+                    title={t('aiFormat') || 'Enhance existing lyrics'}
                     onClick={() => handleFormat('lyrics')}
-                    disabled={isFormattingLyrics || !style.trim()}
+                    disabled={isFormattingLyrics || isGeneratingLyrics || !lyrics.trim()}
                   >
                     {isFormattingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   </button>
@@ -2106,10 +2128,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     <Trash2 size={14} />
                   </button>
                   <button
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isGeneratingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
+                    title={t('aiGenerate') || 'Generate style from scratch'}
+                    onClick={() => handleGenerate('style')}
+                    disabled={isGeneratingStyle || isFormattingStyle || !style.trim()}
+                  >
+                    {isGeneratingStyle ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                  </button>
+                  <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title={t('hintAiFormat') || 'AI Format'}
+                    title={t('aiFormat') || 'Enhance existing style'}
                     onClick={() => handleFormat('style')}
-                    disabled={isFormattingStyle || !style.trim()}
+                    disabled={isFormattingStyle || isGeneratingStyle || !style.trim()}
                   >
                     {isFormattingStyle ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   </button>

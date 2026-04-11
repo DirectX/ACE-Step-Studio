@@ -110,6 +110,8 @@ export const ja = {
   lyricsBgOpacity: '背景',
   opacity: '不透明度',
   lyricsOffset: 'オフセット',
+  aiGenerate: 'ゼロから生成',
+  aiFormat: '既存を改善',
   dragToMove: 'ドラッグで移動',
   scrollToResize: 'スクロールでサイズ変更',
   generationFailed: '生成に失敗しました。もう一度お試しください。',
