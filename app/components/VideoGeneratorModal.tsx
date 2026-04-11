@@ -913,7 +913,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.imageSmoothingEnabled = true;
       }
 
-      // Draw text layers
+      ctx.restore(); // End visualizer scale context
+
+      // --- 3. CUSTOM TEXT LAYERS ---
+      ctx.save();
       ctx.shadowBlur = 10;
       ctx.shadowColor = 'black';
       ctx.textAlign = 'center';
@@ -1381,7 +1384,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.imageSmoothingEnabled = true;
     }
 
+    ctx.restore(); // End visualizer scale context
+
     // --- 3. CUSTOM TEXT LAYERS ---
+    ctx.save();
     ctx.shadowBlur = 10;
     ctx.shadowColor = 'black';
     ctx.textAlign = 'center';
