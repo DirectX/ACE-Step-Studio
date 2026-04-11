@@ -736,6 +736,13 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   const { resetGradioClient } = await import('../services/gradio-client.js');
   const ACESTEP_API = config.acestep.apiUrl;
 
+  // Show unloading state so frontend can display progress
+  modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
+  console.log(`[Model] Unloading current model: ${activeLoadedModel}`);
+
+  // Brief pause so frontend polling picks up the unloading state
+  await new Promise(r => setTimeout(r, 500));
+
   modelLoadingStatus = { state: 'loading', model };
   console.log(`[Model] Switching DiT to: ${model}${lmModel ? `, LM to: ${lmModel}` : ''}`);
 
