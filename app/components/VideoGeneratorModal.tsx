@@ -133,7 +133,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   // Lyrics overlay
   const lrcLinesRef = useRef<import('../services/lrc-parser').LrcLine[]>([]);
   const [lyricsEnabled, setLyricsEnabled] = useState(true);
-  const [lyricsStyle, setLyricsStyle] = useState<'lines' | 'scroll' | 'karaoke'>('lines');
+  const [lyricsStyle, setLyricsStyle] = useState<'lines' | 'scroll' | 'karaoke'>('karaoke');
   const [lyricsPosition, setLyricsPosition] = useState<'bottom' | 'center' | 'top'>('bottom');
   const [lyricsFontSize, setLyricsFontSize] = useState(42);
   const [lyricsLines, setLyricsLines] = useState(2);
