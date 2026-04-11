@@ -85,7 +85,7 @@ set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5"
 set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe"
 
 echo Starting Gradio pipeline with %DEFAULT_MODEL%...
-start "ACE-Step Gradio" cmd /c "cd /d "%SCRIPT_DIR%ACE-Step-1.5" && "%SCRIPT_DIR%python\python.exe" -m acestep.acestep_v15_pipeline --config_path %DEFAULT_MODEL% --port 8001 --init_service true --init_llm true"
+start "ACE-Step Gradio" cmd /k "cd /d %SCRIPT_DIR%ACE-Step-1.5 && %SCRIPT_DIR%python\python.exe -m acestep.acestep_v15_pipeline --config_path %DEFAULT_MODEL% --port 8001 --init_service true --init_llm true"
 
 REM Wait for Gradio to start loading
 echo Waiting for Gradio to initialize...
@@ -93,7 +93,7 @@ timeout /t 5 /nobreak >nul
 
 REM === Start Express backend ===
 echo Starting Express backend...
-start "ACE-Step Backend" cmd /c "cd /d "%SCRIPT_DIR%app\server" && set "ACESTEP_API_URL=http://localhost:8001" && set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5" && set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe" && "%SCRIPT_DIR%node\npx.cmd" tsx src/index.ts"
+start "ACE-Step Backend" cmd /k "cd /d %SCRIPT_DIR%app\server && set ACESTEP_API_URL=http://localhost:8001 && set ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5 && set PYTHON_PATH=%SCRIPT_DIR%python\python.exe && %SCRIPT_DIR%node\npx.cmd tsx src/index.ts"
 
 timeout /t 2 /nobreak >nul
 
@@ -106,8 +106,8 @@ echo   Close all windows to stop
 echo ========================================
 echo.
 
-cd app
-"%SCRIPT_DIR%node\npx.cmd" vite --open
+cd /d "%SCRIPT_DIR%app"
+%SCRIPT_DIR%node\npx.cmd vite --open
 
 if errorlevel 1 (
     echo.
