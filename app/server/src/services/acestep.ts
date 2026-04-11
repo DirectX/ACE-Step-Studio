@@ -625,11 +625,51 @@ async function processGenerationViaGradio(
     batchSize: params.batchSize,
   });
 
-  job.stage = 'Generating music via Gradio...';
+  job.stage = 'Sending to Gradio...';
 
-  // predict() blocks until generation is complete
-  const result = await client.predict('/generation_wrapper', args);
-  const data = result.data as unknown[];
+  // Use submit() instead of predict() to get progress events
+  const submission = client.submit('/generation_wrapper', args);
+  let data: unknown[] = [];
+
+  const result = await new Promise<{ data: unknown[] }>((resolve, reject) => {
+    submission.on('status', (status: any) => {
+      if (status.stage === 'error') {
+        reject(new Error(status.message || 'Gradio generation error'));
+      }
+      if (status.stage === 'pending') {
+        job.stage = 'Queued in Gradio...';
+      }
+      if (status.stage === 'generating') {
+        const progress = status.progress_data;
+        if (progress && Array.isArray(progress) && progress.length > 0) {
+          const p = progress[0];
+          const pct = p.index !== undefined && p.length ? Math.round((p.index / p.length) * 100) : null;
+          job.stage = p.desc || 'Generating...';
+          if (pct !== null) {
+            job.progress = pct / 100;
+            job.stage = `${p.desc || 'Generating'} ${pct}%`;
+          }
+        } else {
+          job.stage = 'Generating music...';
+        }
+      }
+      if (status.stage === 'complete') {
+        job.stage = 'Processing audio...';
+        resolve({ data: status.data || [] });
+      }
+    });
+    submission.on('data', (d: any) => {
+      if (d?.data) {
+        resolve({ data: d.data });
+      }
+    });
+    submission.on('error', (err: any) => {
+      reject(err);
+    });
+    // Timeout after 10 minutes
+    setTimeout(() => reject(new Error('Gradio generation timeout (10min)')), 600000);
+  });
+  data = result.data as unknown[];
 
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error(`Gradio returned unexpected data format: ${typeof data}`);
