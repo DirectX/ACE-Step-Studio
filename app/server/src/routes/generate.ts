@@ -1076,19 +1076,19 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
     // Gradio returns either plain values or {__type__: "update", value: ...} objects
     const unwrap = (v: any): any => (v && typeof v === 'object' && '__type__' in v) ? v.value : v;
 
-    const caption = unwrap(data[0]) || '';
-    const lyrics = unwrap(data[1]) || '';
-    const bpm = unwrap(data[2]) || 0;
-    const duration = unwrap(data[3]) || -1;
-    const keyScale = unwrap(data[4]) || '';
-    const vocalLanguage = unwrap(data[5]) || 'en';
-    const timeSignature = unwrap(data[7]) || '';
-    const instrumental = unwrap(data[8]) ?? false;
-    const status = unwrap(data[13]) || 'Sample created';
+    const outCaption = unwrap(data[0]) || '';
+    const outLyrics = unwrap(data[1]) || '';
+    const outBpm = unwrap(data[2]) || 0;
+    const outDuration = unwrap(data[3]) || -1;
+    const outKeyScale = unwrap(data[4]) || '';
+    const outVocalLang = unwrap(data[5]) || 'en';
+    const outTimeSig = unwrap(data[7]) || '';
+    const outInstrumental = unwrap(data[8]) ?? false;
+    const outStatus = unwrap(data[13]) || 'Sample created';
 
-    console.log('[CreateSample] Output:', { caption: String(caption).slice(0, 80), lyrics: String(lyrics).slice(0, 80), bpm, duration, key: keyScale, lang: vocalLanguage, timeSig: timeSignature });
+    console.log('[CreateSample] Output:', { caption: String(outCaption).slice(0, 80), lyrics: String(outLyrics).slice(0, 80), bpm: outBpm, duration: outDuration, key: outKeyScale, lang: outVocalLang, timeSig: outTimeSig });
 
-    res.json({ caption, lyrics, bpm, duration, keyScale, vocalLanguage, timeSignature, instrumental, status });
+    res.json({ caption: outCaption, lyrics: outLyrics, bpm: outBpm, duration: outDuration, keyScale: outKeyScale, vocalLanguage: outVocalLang, timeSignature: outTimeSig, instrumental: outInstrumental, status: outStatus });
   } catch (error) {
     console.error('[CreateSample] Error:', error);
     res.status(500).json({ error: (error as Error).message });
