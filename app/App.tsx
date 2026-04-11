@@ -828,8 +828,10 @@ function AppContent() {
             setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: String(sample.caption || '').slice(0, 50) || s.title, style: String(sample.caption || '') } : s));
           }
         } catch (err) {
-          // create_sample not available — generate with raw description
-          console.warn('[Simple] create_sample unavailable, generating with raw description');
+          // create_sample failed — notify user but still generate
+          console.warn('[Simple] create_sample failed:', err);
+          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: '(LLM unavailable) ' + (params.title || 'Generating...') } : s));
+          showToast('LLM enrichment failed — generating with basic settings. Try again if model is still loading.', 'error');
         }
       }
 
