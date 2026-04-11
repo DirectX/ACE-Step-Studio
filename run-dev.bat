@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo   ACE-Step Studio (Single Terminal)
+echo   ACE-Step Studio
 echo ========================================
 
 set "SCRIPT_DIR=%~dp0"
@@ -53,12 +53,8 @@ set PYTHONUNBUFFERED=1
 REM === Node.js in PATH ===
 set "PATH=%SCRIPT_DIR%node;%PATH%"
 
-REM === Pipeline config ===
-set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe"
-set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5"
+REM === Default model ===
 set "DEFAULT_MODEL=acestep-v15-xl-turbo"
-set "MANAGE_PIPELINE=true"
-
 if exist "cuda_version.txt" (
     set /p CUDA_VERSION=<cuda_version.txt
     echo GPU: !CUDA_VERSION!
@@ -77,33 +73,53 @@ if not exist "app\node_modules" (
     cd "%SCRIPT_DIR%"
 )
 
-REM === Build frontend if dist/ missing ===
-if not exist "app\dist" (
-    echo Building frontend...
-    cd app
-    "%SCRIPT_DIR%node\npx.cmd" vite build
-    cd "%SCRIPT_DIR%"
-)
-
 REM === Create output dirs ===
 if not exist "app\data" mkdir "app\data"
 if not exist "app\server\public\audio" mkdir "app\server\public\audio"
 
 echo.
+echo Starting 3 services:
+echo   [1] Gradio pipeline (port 8001)
+echo   [2] Express backend (port 3001)
+echo   [3] Vite frontend (port 3000)
+echo.
+
+REM === Start Gradio pipeline ===
+set "ACESTEP_API_URL=http://localhost:8001"
+set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5"
+set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe"
+
+echo Starting Gradio pipeline with %DEFAULT_MODEL%...
+start "ACE-Step Gradio" /D "%SCRIPT_DIR%ACE-Step-1.5" cmd /k %SCRIPT_DIR%python\python.exe -m acestep.acestep_v15_pipeline --config_path %DEFAULT_MODEL% --port 8001 --init_service true --init_llm true
+
+REM Wait for Gradio to start loading
+echo Waiting for Gradio to initialize...
+timeout /t 5 /nobreak >nul
+
+REM === Start Express backend ===
+echo Starting Express backend...
+start "ACE-Step Backend" /D "%SCRIPT_DIR%app\server" %SCRIPT_DIR%node\node.exe %SCRIPT_DIR%app\server\node_modules\tsx\dist\cli.mjs src/index.ts
+
+timeout /t 2 /nobreak >nul
+
+REM === Start Vite frontend ===
+echo Starting frontend...
+echo.
 echo ========================================
-echo   Single terminal mode
-echo   Express + Pipeline + Frontend
-echo   UI: http://localhost:3001
-echo   Close this window to stop all
+echo   UI will open at http://localhost:3000
+echo   Close all windows to stop
 echo ========================================
 echo.
 
-REM === Start Express (manages everything) ===
-"%SCRIPT_DIR%node\node.exe" "%SCRIPT_DIR%app\server\node_modules\tsx\dist\cli.mjs" "%SCRIPT_DIR%app\server\src\index.ts"
+cd /d "%SCRIPT_DIR%app"
+%SCRIPT_DIR%node\npx.cmd vite --open
 
 if errorlevel 1 (
     echo.
-    echo ERROR starting server!
+    echo ERROR starting frontend!
+    echo Possible causes:
+    echo 1. Dependencies not installed - run install.bat
+    echo 2. Port 3000 already in use
     pause
     exit /b 1
 )

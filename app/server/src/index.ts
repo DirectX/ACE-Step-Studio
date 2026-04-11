@@ -16,6 +16,7 @@ import { runCleanupJob, cleanupDeletedSongs } from './services/cleanup.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import { existsSync } from 'fs';
 import authRoutes from './routes/auth.js';
 import songsRoutes from './routes/songs.js';
 import generateRoutes from './routes/generate.js';
@@ -26,6 +27,8 @@ import referenceTrackRoutes from './routes/referenceTrack.js';
 import loraRoutes from './routes/lora.js';
 import trainingRoutes from './routes/training.js';
 import settingsRoutes from './routes/settings.js';
+import pipelineRoutes from './routes/pipeline.js';
+import { pipelineManager } from './services/pipeline-manager.js';
 import { pool } from './db/pool.js';
 import './db/migrate.js';
 
@@ -409,12 +412,29 @@ app.use('/api/reference-tracks', referenceTrackRoutes);
 app.use('/api/lora', loraRoutes);
 app.use('/api/training', trainingRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/pipeline', pipelineRoutes);
 
-// Error handler
+// Error handler (must be before static serving catch-all)
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
+
+// In production, serve Vite build output
+const distPath = path.join(__dirname, '../../dist');
+if (existsSync(distPath)) {
+  console.log(`[Server] Serving frontend from ${distPath}`);
+  app.use('/assets', express.static(path.join(distPath, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+  }));
+  app.use(express.static(distPath));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.resolve(distPath, 'index.html'));
+  });
+} else {
+  console.log('[Server] No dist/ found — frontend served by Vite dev server');
+}
 
 // Schedule cleanup job to run daily at 3 AM
 cron.schedule('0 3 * * *', async () => {
@@ -427,21 +447,54 @@ cron.schedule('0 3 * * *', async () => {
   }
 });
 
-// Start server on all interfaces for LAN access
-app.listen(config.port, '0.0.0.0', () => {
-  console.log(`ACE-Step UI Server running on http://localhost:${config.port}`);
-  console.log(`Environment: ${config.nodeEnv}`);
-  console.log(`ACE-Step API: ${config.acestep.apiUrl}`);
+// Start pipeline if managed mode
+const managePipeline = process.env.MANAGE_PIPELINE === 'true';
 
-  // Show LAN access info
-  import('os').then(os => {
-    const nets = os.networkInterfaces();
-    for (const name of Object.keys(nets)) {
-      for (const net of nets[name] || []) {
-        if (net.family === 'IPv4' && !net.internal) {
-          console.log(`LAN access: http://${net.address}:${config.port}`);
+async function startServer() {
+  if (managePipeline) {
+    console.log('[Server] Starting pipeline manager...');
+    pipelineManager.start().catch(err => {
+      console.error('[Server] Pipeline start error:', err.message);
+    });
+  }
+
+  app.listen(config.port, '0.0.0.0', () => {
+    console.log(`ACE-Step UI Server running on http://localhost:${config.port}`);
+    console.log(`Environment: ${config.nodeEnv}`);
+    if (managePipeline) {
+      console.log(`Pipeline: managed (port ${config.pipeline.port})`);
+    } else {
+      console.log(`ACE-Step API: ${config.acestep.apiUrl} (external)`);
+    }
+
+    import('os').then(os => {
+      const nets = os.networkInterfaces();
+      for (const name of Object.keys(nets)) {
+        for (const net of nets[name] || []) {
+          if (net.family === 'IPv4' && !net.internal) {
+            console.log(`LAN access: http://${net.address}:${config.port}`);
+          }
         }
       }
+    });
+  });
+
+  // Graceful shutdown
+  const shutdown = async () => {
+    console.log('\nShutting down...');
+    if (managePipeline) {
+      await pipelineManager.shutdown();
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  process.on('exit', () => {
+    if (managePipeline && pipelineManager.getStatus().state !== 'stopped') {
+      pipelineManager.shutdown();
     }
   });
-});
+}
+
+startServer();

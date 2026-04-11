@@ -11,6 +11,19 @@ export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
+  // Pipeline process management
+  pipeline: {
+    pythonPath: process.env.PYTHON_PATH || path.join(__dirname, '../../../../python/python.exe'),
+    aceStepDir: process.env.ACESTEP_PATH || path.join(__dirname, '../../../../ACE-Step-1.5'),
+    defaultModel: process.env.DEFAULT_MODEL || 'acestep-v15-xl-turbo',
+    port: parseInt(process.env.ACESTEP_PORT || '8001', 10),
+    healthCheckInterval: 10_000,  // 10 seconds
+    startupTimeout: 300_000,     // 5 minutes (model loading is slow)
+    maxRestarts: 10,
+    backoffBase: 500,            // ms, doubles each restart
+    backoffMax: 15_000,          // 15 seconds max
+  },
+
   // SQLite database
   database: {
     path: process.env.DATABASE_PATH || path.join(__dirname, '../../data/acestep.db'),
