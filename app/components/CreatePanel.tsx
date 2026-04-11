@@ -138,12 +138,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [customMode, setCustomMode] = useState(false);
 
   // Simple Mode
-  const [songDescription, setSongDescription] = useState('');
+  const [songDescription, setSongDescription] = useState(() => localStorage.getItem('ace-songDescription') || '');
 
   // Custom Mode
-  const [lyrics, setLyrics] = useState('');
-  const [style, setStyle] = useState('');
-  const [title, setTitle] = useState('');
+  const [lyrics, setLyrics] = useState(() => localStorage.getItem('ace-lyrics') || '');
+  const [style, setStyle] = useState(() => localStorage.getItem('ace-style') || '');
+  const [title, setTitle] = useState(() => localStorage.getItem('ace-title') || '');
 
   // Common
   const [instrumental, setInstrumental] = useState(false);
@@ -168,7 +168,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [audioFormat, setAudioFormat] = useState<'mp3' | 'flac'>('mp3');
   const [inferenceSteps, setInferenceSteps] = useState(12);
   const [inferMethod, setInferMethod] = useState<'ode' | 'sde'>('ode');
-  const [lmBackend] = useState<'pt' | 'vllm'>('pt'); // VLLM not supported on Windows
+  const [lmBackend, setLmBackend] = useState<'pt' | 'vllm'>('vllm');
   const [lmModel, setLmModel] = useState('acestep-5Hz-lm-4B');
   const [shift, setShift] = useState(3.0);
 
@@ -239,14 +239,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     saveTimerRef.current = setTimeout(() => {
       const settings: Record<string, unknown> = {
         customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
-        guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel,
+        guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
         shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
       settingsApi.save(settings, token).catch(() => {});
     }, 1000);
   }, [token, customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
-      guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel,
+      guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
       shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
       mp3Bitrate, mp3SampleRate]);
 
@@ -254,6 +254,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   React.useEffect(() => {
     saveSettingsToServer();
   }, [saveSettingsToServer]);
+
+  // Save input fields to localStorage
+  React.useEffect(() => { localStorage.setItem('ace-songDescription', songDescription); }, [songDescription]);
+  React.useEffect(() => { localStorage.setItem('ace-lyrics', lyrics); }, [lyrics]);
+  React.useEffect(() => { localStorage.setItem('ace-style', style); }, [style]);
+  React.useEffect(() => { localStorage.setItem('ace-title', title); }, [title]);
 
   // Load settings on mount
   React.useEffect(() => {
@@ -273,6 +279,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.inferenceSteps !== undefined) setInferenceSteps(s.inferenceSteps as number);
       if (s.inferMethod !== undefined) setInferMethod(s.inferMethod as 'ode' | 'sde');
       if (s.lmModel !== undefined) setLmModel(s.lmModel as string);
+      if (s.lmBackend !== undefined) setLmBackend(s.lmBackend as 'pt' | 'vllm');
       if (s.shift !== undefined) setShift(s.shift as number);
       if (s.lmTemperature !== undefined) setLmTemperature(s.lmTemperature as number);
       if (s.lmCfgScale !== undefined) setLmCfgScale(s.lmCfgScale as number);
@@ -2374,11 +2381,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </div>
             </div>
 
-            {/* LM Backend — hidden, always PT (VLLM not supported on Windows) */}
-            <div className="hidden">
-              <select value="pt" readOnly>
+            {/* LM Backend */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('lmBackendLabel') || 'LM Backend'}</label>
+              <select
+                value={lmBackend}
+                onChange={e => setLmBackend(e.target.value as 'pt' | 'vllm')}
+                className="w-full bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/5 rounded-md px-2 py-1.5 text-xs text-zinc-900 dark:text-white"
+              >
+                <option value="vllm">vLLM (faster)</option>
                 <option value="pt">PyTorch</option>
               </select>
+              <p className="text-[10px] text-zinc-500">{t('lmBackendHint') || 'vLLM uses CUDA graphs for faster LLM inference'}</p>
             </div>
 
             {/* LM Model */}
