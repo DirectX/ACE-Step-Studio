@@ -635,7 +635,7 @@ const SongItem: React.FC<SongItemProps> = ({
                                 {song.title || (song.isGenerating ? (song.queuePosition ? "Queued..." : "Creating...") : "Untitled")}
                             </h3>
                         )}
-                        <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm" title={`DiT model: ${song.ditModel || 'undefined'}`}>
+                        <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm" title={`DiT: ${song.ditModel || '?'} | LM: ${song.lmModel || '?'} (${song.lmBackend || '?'})`}>
                             {getModelDisplayName(song.ditModel)}
                         </span>
                         {song.isPublic === false && (

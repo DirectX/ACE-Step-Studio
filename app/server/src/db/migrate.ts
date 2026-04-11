@@ -149,6 +149,8 @@ function migrate(): void {
     db.exec(migrations);
     // Add dit_model column if not exists
     try { db.exec('ALTER TABLE songs ADD COLUMN dit_model TEXT'); } catch {}
+    try { db.exec('ALTER TABLE songs ADD COLUMN lm_model TEXT'); } catch {}
+    try { db.exec('ALTER TABLE songs ADD COLUMN lm_backend TEXT'); } catch {}
     console.log('Migrations completed successfully!');
   } catch (error) {
     // Check if it's just "already exists" errors

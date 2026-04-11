@@ -20,6 +20,8 @@ export interface Song {
   creator?: string;
   creator_avatar?: string;
   ditModel?: string;
+  lmModel?: string;
+  lmBackend?: string;
 }
 
 export interface Playlist {

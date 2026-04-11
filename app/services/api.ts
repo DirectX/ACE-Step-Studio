@@ -121,6 +121,8 @@ function transformSongs(songs: Song[]): Song[] {
       audio_url: resolvedUrl,
       audioUrl: resolvedUrl,
       ditModel: (song as any).dit_model || (song as any).ditModel,
+      lmModel: (song as any).lm_model || (song as any).lmModel,
+      lmBackend: (song as any).lm_backend || (song as any).lmBackend,
     };
   });
 }
@@ -190,6 +192,8 @@ export const songsApi = {
         creator: s.creator,
         creator_avatar: s.creator_avatar,
         ditModel: s.dit_model || s.ditModel,
+        lmModel: s.lm_model || s.lmModel,
+        lmBackend: s.lm_backend || s.lmBackend,
         isGenerating: s.isGenerating,
         queuePosition: s.queuePosition,
         bpm: s.bpm,
