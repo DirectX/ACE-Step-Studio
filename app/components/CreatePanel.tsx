@@ -2142,22 +2142,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
         {/* COMMON SETTINGS */}
         <div className="space-y-4">
-          {/* Instrumental Toggle (Simple Mode) */}
-          {!customMode && (
-            <div className="flex items-center justify-between px-1 py-2">
-              <div className="flex items-center gap-2">
-                <Music2 size={14} className="text-zinc-500" />
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('instrumental')}</span>
-              </div>
-              <button
-                onClick={() => setInstrumental(!instrumental)}
-                className={`w-11 h-6 rounded-full flex items-center transition-colors duration-200 px-1 border border-zinc-200 dark:border-white/5 ${instrumental ? 'bg-pink-600' : 'bg-zinc-300 dark:bg-black/40'}`}
-              >
-                <div className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 shadow-sm ${instrumental ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
-            </div>
-          )}
-
         </div>
 
         {/* LORA CONTROL PANEL */}
