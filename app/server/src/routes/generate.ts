@@ -721,10 +721,9 @@ router.get('/system-info', async (_req, res: Response) => {
   res.json(data);
 });
 
-// Restart Gradio pipeline with a different model
-let gradioProcess: any = null;
+// Hot-swap model via Gradio /v1/init API (no process restart)
 let activeLoadedModel: string = process.env.ACESTEP_DEFAULT_MODEL || 'acestep-v15-xl-turbo';
-let activeLmModel: string = 'acestep-5Hz-lm-1.7B';
+let activeLmModel: string = 'acestep-5Hz-lm-0.6B';
 let activeLmBackend: string = 'pt';
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -734,126 +733,50 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
     return;
   }
 
-  const ACESTEP_DIR = process.env.ACESTEP_PATH || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ACE-Step-1.5');
-  const pythonPath = resolvePythonPath(ACESTEP_DIR);
-  const { spawn } = await import('child_process');
   const { resetGradioClient } = await import('../services/gradio-client.js');
-
-  // Kill existing Gradio
-  if (gradioProcess && gradioProcess.pid) {
-    modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
-    console.log(`[Model] Killing Gradio process ${gradioProcess.pid}...`);
-    try {
-      const { execSync } = await import('child_process');
-      execSync(`taskkill /F /T /PID ${gradioProcess.pid}`, { stdio: 'ignore' });
-    } catch {
-      try { gradioProcess.kill(); } catch {}
-    }
-    gradioProcess = null;
-    resetGradioClient();
-    await new Promise(r => setTimeout(r, 3000));
-  }
-
-  // Also kill any python process on port 8001
-  try {
-    const { execSync } = await import('child_process');
-    if (process.platform === 'win32') {
-      execSync('powershell -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore' });
-    }
-    await new Promise(r => setTimeout(r, 2000));
-  } catch {}
-
-  // Auto-download LM model if needed
-  if (lmModel) {
-    const lmModelDir = path.join(ACESTEP_DIR, 'checkpoints', lmModel);
-    const hasSafetensors = existsSync(lmModelDir) &&
-      readdirSync(lmModelDir).some((f: string) => f.endsWith('.safetensors'));
-    if (!hasSafetensors) {
-      const LM_HF_REPOS: Record<string, string> = {
-        'acestep-5Hz-lm-0.6B': 'ACE-Step/acestep-5Hz-lm-0.6B',
-        'acestep-5Hz-lm-1.7B': 'ACE-Step/acestep-5Hz-lm-1.7B',
-        'acestep-5Hz-lm-4B': 'ACE-Step/acestep-5Hz-lm-4B',
-      };
-      const hfRepo = LM_HF_REPOS[lmModel];
-      if (hfRepo) {
-        console.log(`[Model] Auto-downloading LM model: ${lmModel}...`);
-        modelLoadingStatus = { state: 'loading', model: `Downloading ${lmModel}...` };
-        try {
-          const { execSync: execSyncDl } = await import('child_process');
-          execSyncDl(`"${pythonPath}" -m huggingface_hub.commands.huggingface_cli download ${hfRepo} --local-dir "${lmModelDir}"`, {
-            env: { ...process.env, PYTHONIOENCODING: 'utf-8', HF_HUB_ENABLE_HF_TRANSFER: '1', HF_HOME: path.resolve(ACESTEP_DIR, '../models') },
-            stdio: 'inherit',
-            timeout: 600000,
-          });
-          console.log(`[Model] LM model ${lmModel} downloaded`);
-        } catch (dlErr) {
-          console.error(`[Model] Failed to download LM model ${lmModel}:`, dlErr);
-        }
-      }
-    }
-  }
+  const ACESTEP_API = config.acestep.apiUrl;
 
   modelLoadingStatus = { state: 'loading', model };
-  console.log(`[Model] Starting Gradio with model: ${model}`);
+  console.log(`[Model] Switching DiT to: ${model}${lmModel ? `, LM to: ${lmModel}` : ''}`);
 
-  const spawnArgs = [
-    '-m', 'acestep.acestep_v15_pipeline',
-    '--config_path', model,
-    '--port', '8001',
-    '--init_service', 'true',
-    '--init_llm', 'true',
-  ];
-  if (lmBackend) spawnArgs.push('--backend', lmBackend);
-  if (lmModel) spawnArgs.push('--lm_model_path', lmModel);
+  try {
+    // Call Gradio's /v1/init — handles unload, download, and reload in-process
+    const initRes = await fetch(`${ACESTEP_API}/v1/init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        init_llm: !!lmModel,
+        lm_model_path: lmModel || undefined,
+      }),
+      signal: AbortSignal.timeout(300_000), // 5 min timeout for model download + load
+    });
 
-  console.log(`[Model] Spawn args:`, spawnArgs.join(' '));
-  gradioProcess = spawn(pythonPath, spawnArgs, {
-    cwd: ACESTEP_DIR,
-    env: {
-      ...process.env,
-      HF_HOME: path.resolve(ACESTEP_DIR, '../models'),
-      TORCH_HOME: path.resolve(ACESTEP_DIR, '../models/torch'),
-      PYTHONIOENCODING: 'utf-8',
-      PYTHONUNBUFFERED: '1',
-    },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+    if (!initRes.ok) {
+      const errText = await initRes.text().catch(() => '');
+      console.error(`[Model] /v1/init failed: ${initRes.status} ${errText}`);
+      modelLoadingStatus = { state: 'error', model: errText || `HTTP ${initRes.status}` };
+      res.status(500).json({ error: `Model switch failed: ${errText || initRes.status}` });
+      return;
+    }
 
-  gradioProcess.on('exit', (code: number) => {
-    console.log(`[Gradio] Process exited with code ${code}`);
-    gradioProcess = null;
-  });
+    const result = await initRes.json() as any;
+    console.log(`[Model] Switch result:`, JSON.stringify(result));
 
-  gradioProcess.stdout?.on('data', (d: Buffer) => {
-    const line = d.toString().trim();
-    if (line) console.log(`[Gradio] ${line}`);
-  });
-  gradioProcess.stderr?.on('data', (d: Buffer) => {
-    const line = d.toString().trim();
-    if (line) console.log(`[Gradio] ${line}`);
-  });
-
-  // Wait for Gradio to be ready
-  let ready = false;
-  for (let i = 0; i < 60; i++) {
-    await new Promise(r => setTimeout(r, 2000));
-    try {
-      const health = await fetch('http://localhost:8001/gradio_api/info', { signal: AbortSignal.timeout(2000) });
-      if (health.ok) { ready = true; break; }
-    } catch {}
-  }
-
-  if (ready) {
+    // Reset Gradio client to reconnect with new model state
     resetGradioClient();
+
     activeLoadedModel = model;
     if (lmModel) activeLmModel = lmModel;
     if (lmBackend) activeLmBackend = lmBackend;
     modelLoadingStatus = { state: 'ready', model };
-    console.log(`[Model] Gradio ready with model: ${model}`);
-    res.json({ success: true, model });
-  } else {
-    console.error(`[Model] Gradio failed to start with model: ${model}`);
-    res.status(500).json({ error: 'Failed to start Gradio with new model' });
+
+    console.log(`[Model] Switched to ${model} successfully (in-process, no restart)`);
+    res.json({ success: true, model, result: result?.data || result });
+  } catch (error: any) {
+    console.error(`[Model] Switch failed:`, error);
+    modelLoadingStatus = { state: 'error', model: error.message };
+    res.status(500).json({ error: `Model switch failed: ${error.message}` });
   }
 });
 
