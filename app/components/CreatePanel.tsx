@@ -294,7 +294,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [modelSwitchStatus, setModelSwitchStatus] = useState<string | null>(null);
   const [modelSwitchProgress, setModelSwitchProgress] = useState<number>(0);
-  const [modelLoadingState, setModelLoadingState] = useState<{ state: string; model: string; connected?: boolean; activeModel?: string }>({ state: 'ready', model: '', connected: false });
+  const [modelLoadingState, setModelLoadingState] = useState<{ state: string; model: string; connected?: boolean; activeModel?: string; backendDown?: boolean }>({ state: 'ready', model: '', connected: false, backendDown: true });
   const modelMenuRef = useRef<HTMLDivElement>(null);
   const previousModelRef = useRef<string>(selectedModel);
 
@@ -305,7 +305,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         const res = await fetch('/api/generate/model-status');
         if (res.ok) {
           const data = await res.json();
-          setModelLoadingState(data);
+          setModelLoadingState({ ...data, backendDown: false });
           // Sync selectedModel with real active model (only when ready + connected)
           // Don't override during model switch (user already selected the target)
           if (data.state === 'ready' && data.activeModel && data.connected && !modelSwitchStatus) {
@@ -328,7 +328,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             if (modelsData.models) setFetchedModels(modelsData.models);
           }
         }
-      } catch {}
+      } catch {
+        // Backend not reachable
+        setModelLoadingState(prev => ({ ...prev, connected: false, backendDown: true }));
+      }
     }, 2000);
     return () => clearInterval(poll);
   }, []);
@@ -1241,9 +1244,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         {/* Header Row 1 - ACE-Step + Model Selection */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${modelLoadingState.state === 'loading' || modelLoadingState.state === 'unloading' ? 'bg-orange-400 animate-pulse' : modelLoadingState.connected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <div className={`w-2 h-2 rounded-full ${
+              modelLoadingState.state === 'loading' || modelLoadingState.state === 'unloading' ? 'bg-orange-400 animate-pulse' :
+              modelLoadingState.backendDown ? 'bg-red-500' :
+              modelLoadingState.connected ? 'bg-green-500' :
+              'bg-yellow-500 animate-pulse'
+            }`}></div>
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              {modelLoadingState.state === 'loading' ? 'Загрузка...' : modelLoadingState.state === 'unloading' ? 'Выгрузка...' : modelLoadingState.connected ? 'ACE-Step v1.5' : 'Отключён'}
+              {modelLoadingState.backendDown ? t('backendOff') || 'Backend off' :
+               modelLoadingState.state === 'loading' ? t('modelLoading') || 'Loading model...' :
+               modelLoadingState.state === 'unloading' ? t('modelUnloading') || 'Unloading...' :
+               modelLoadingState.connected ? 'ACE-Step v1.5' :
+               t('gradioStarting') || 'Gradio starting...'}
             </span>
           </div>
 
