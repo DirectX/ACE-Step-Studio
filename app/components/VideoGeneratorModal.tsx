@@ -138,6 +138,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const [lyricsFontSize, setLyricsFontSize] = useState(42);
   const [lyricsLines, setLyricsLines] = useState(2);
   const [lyricsShowSections, setLyricsShowSections] = useState(false);
+  const [lyricsColor, setLyricsColor] = useState('#ffffff');
+  const [lyricsBgColor, setLyricsBgColor] = useState('#000000');
+  const [lyricsBgOpacity, setLyricsBgOpacity] = useState(50);
+  const [lyricsHighlightColor, setLyricsHighlightColor] = useState('#ec4899');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationRef = useRef<number>(0);
@@ -281,6 +285,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const lyricsFontSizeRef = useRef(lyricsFontSize);
   const lyricsLinesRef = useRef(lyricsLines);
   const lyricsShowSectionsRef = useRef(lyricsShowSections);
+  const lyricsColorRef = useRef(lyricsColor);
+  const lyricsBgColorRef = useRef(lyricsBgColor);
+  const lyricsBgOpacityRef = useRef(lyricsBgOpacity);
+  const lyricsHighlightColorRef = useRef(lyricsHighlightColor);
 
   // WYSIWYG drag state
   const dragRef = useRef<{ layerId: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -424,6 +432,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   useEffect(() => { lyricsFontSizeRef.current = lyricsFontSize; }, [lyricsFontSize]);
   useEffect(() => { lyricsLinesRef.current = lyricsLines; }, [lyricsLines]);
   useEffect(() => { lyricsShowSectionsRef.current = lyricsShowSections; }, [lyricsShowSections]);
+  useEffect(() => { lyricsColorRef.current = lyricsColor; }, [lyricsColor]);
+  useEffect(() => { lyricsBgColorRef.current = lyricsBgColor; }, [lyricsBgColor]);
+  useEffect(() => { lyricsBgOpacityRef.current = lyricsBgOpacity; }, [lyricsBgOpacity]);
+  useEffect(() => { lyricsHighlightColorRef.current = lyricsHighlightColor; }, [lyricsHighlightColor]);
 
   // Load FFmpeg
   const loadFFmpeg = useCallback(async () => {
@@ -1482,11 +1494,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             const scrollOffset = progress * (metrics.width + width * 0.5);
             const x = width - scrollOffset;
 
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillStyle = `rgba(${parseInt(lyricsBgColorRef.current.slice(1,3),16)},${parseInt(lyricsBgColorRef.current.slice(3,5),16)},${parseInt(lyricsBgColorRef.current.slice(5,7),16)}, ${lyricsBgOpacityRef.current/100})`;
             const pillH = fontSize * 1.3;
             ctx.fillRect(0, lyricsYPos - fontSize * 0.15, width, pillH);
 
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = lyricsColorRef.current;
             ctx.strokeStyle = 'rgba(0,0,0,0.8)';
             ctx.lineWidth = 2;
             ctx.textAlign = 'left';
@@ -1507,14 +1519,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             // Background pill
             const pillW = textW + fontSize * 0.8;
             const pillH = fontSize * 1.3;
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillStyle = `rgba(${parseInt(lyricsBgColorRef.current.slice(1,3),16)},${parseInt(lyricsBgColorRef.current.slice(3,5),16)},${parseInt(lyricsBgColorRef.current.slice(5,7),16)}, ${lyricsBgOpacityRef.current/100})`;
             ctx.beginPath();
             ctx.roundRect(lyricsXPos - pillW / 2, lyricsYPos - fontSize * 0.15, pillW, pillH, pillH / 2);
             ctx.fill();
 
             // Dim text (full line)
             ctx.textAlign = 'left';
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillStyle = `${lyricsColorRef.current}4d`;
             ctx.strokeStyle = 'rgba(0,0,0,0.6)';
             ctx.lineWidth = 2;
             ctx.strokeText(line.text, baseX, lyricsYPos);
@@ -1525,7 +1537,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             ctx.beginPath();
             ctx.rect(baseX, lyricsYPos - fontSize * 0.2, textW * progress, fontSize * 1.4);
             ctx.clip();
-            ctx.fillStyle = '#ec4899';
+            ctx.fillStyle = lyricsHighlightColorRef.current;
             ctx.strokeStyle = 'rgba(0,0,0,0.8)';
             ctx.lineWidth = 2;
             ctx.strokeText(line.text, baseX, lyricsYPos);
@@ -2568,6 +2580,30 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                                 <span className="text-[10px] text-zinc-400">{lyricsFontSize}px</span>
                                             </div>
                                             <input type="range" min={24} max={72} value={lyricsFontSize} onChange={e => setLyricsFontSize(Number(e.target.value))} className="w-full accent-pink-500" />
+                                        </div>
+
+                                        {/* Colors */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-[10px] text-zinc-500 block mb-1">{t('lyricsTextColor') || 'Text'}</label>
+                                                <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-full h-6 rounded cursor-pointer border-none bg-transparent" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-zinc-500 block mb-1">{t('lyricsHighlight') || 'Highlight'}</label>
+                                                <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-full h-6 rounded cursor-pointer border-none bg-transparent" />
+                                            </div>
+                                        </div>
+
+                                        {/* Background */}
+                                        <div>
+                                            <div className="flex justify-between">
+                                                <label className="text-[10px] text-zinc-500">{t('lyricsBgOpacity') || 'Background'}</label>
+                                                <span className="text-[10px] text-zinc-400">{lyricsBgOpacity}%</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent flex-shrink-0" />
+                                                <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500" />
+                                            </div>
                                         </div>
 
                                         {/* Show sections */}
