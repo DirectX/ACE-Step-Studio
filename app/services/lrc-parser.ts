@@ -26,7 +26,7 @@ export function parseLrc(lrcContent: string): LrcLine[] {
     if (!text) continue;
 
     const time = minutes * 60 + seconds + centiseconds / 100;
-    const isSection = /^\[(?:Verse|Chorus|Bridge|Intro|Outro|Pre-Chorus|Hook|Interlude|Instrumental|Spoken|Guitar|Piano|Break)/i.test(text);
+    const isSection = /^\[.*\]$/.test(text);
 
     lines.push({ time, text, isSection });
   }
