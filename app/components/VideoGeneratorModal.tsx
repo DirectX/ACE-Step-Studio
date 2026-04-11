@@ -2033,6 +2033,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
               </h2>
             </div>
 
+            {/* WYSIWYG Hint */}
+            <div className="flex items-center justify-center gap-3 py-1.5 bg-white/5 text-[10px] text-zinc-500">
+              <span>🖱 {t('dragToMove') || 'Drag to move'}</span>
+              <span>⚙ {t('scrollToResize') || 'Scroll to resize'}</span>
+            </div>
+
             {/* Canvas Preview */}
             <div className={`w-full ${config.aspectRatio === '1:1' ? 'aspect-square' : config.aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[60vh]' : 'aspect-video'}`}>
               <canvas
@@ -2655,15 +2661,54 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 onWheel={handleCanvasWheel}
                />
 
-               {/* Playback Controls Overlay */}
-               <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-center gap-6">
+               {/* WYSIWYG Hint */}
+               <div className="absolute top-0 left-0 right-0 flex items-center justify-center gap-3 py-1.5 bg-gradient-to-b from-black/60 to-transparent text-[10px] text-zinc-400 z-10">
+                 <span>🖱 {t('dragToMove') || 'Drag to move'}</span>
+                 <span>⚙ {t('scrollToResize') || 'Scroll to resize'}</span>
+               </div>
+
+               {/* Playback Controls */}
+               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                 {/* Timeline */}
+                 <div className="flex items-center gap-3 mb-3 px-2">
+                   <span className="text-[11px] text-zinc-400 font-mono w-12 text-right">
+                     {audioRef.current ? `${Math.floor(audioRef.current.currentTime / 60)}:${String(Math.floor(audioRef.current.currentTime % 60)).padStart(2, '0')}` : '0:00'}
+                   </span>
+                   <input
+                     type="range"
+                     min={0}
+                     max={audioRef.current?.duration || 100}
+                     value={audioRef.current?.currentTime || 0}
+                     onChange={(e) => { if (audioRef.current) audioRef.current.currentTime = Number(e.target.value); }}
+                     className="flex-1 h-1.5 accent-pink-500 cursor-pointer"
+                     step={0.1}
+                   />
+                   <span className="text-[11px] text-zinc-400 font-mono w-12">
+                     {audioRef.current ? `${Math.floor(audioRef.current.duration / 60)}:${String(Math.floor(audioRef.current.duration % 60)).padStart(2, '0')}` : '0:00'}
+                   </span>
+                 </div>
+                 {/* Play + Volume */}
+                 <div className="flex items-center justify-center gap-6">
                    <button
-                      onClick={togglePlay}
-                      disabled={isExporting}
-                      className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                     onClick={togglePlay}
+                     disabled={isExporting}
+                     className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shadow-lg disabled:opacity-50"
                    >
-                       {isPlaying ? <Pause fill="black" size={24} /> : <Play fill="black" className="ml-1" size={24} />}
+                     {isPlaying ? <Pause fill="black" size={20} /> : <Play fill="black" className="ml-0.5" size={20} />}
                    </button>
+                   <div className="flex items-center gap-2">
+                     <Music size={14} className="text-zinc-400" />
+                     <input
+                       type="range"
+                       min={0}
+                       max={1}
+                       step={0.01}
+                       value={audioRef.current?.volume ?? 1}
+                       onChange={(e) => { if (audioRef.current) audioRef.current.volume = Number(e.target.value); }}
+                       className="w-24 h-1.5 accent-pink-500 cursor-pointer"
+                     />
+                   </div>
+                 </div>
                </div>
           </div>
         )}

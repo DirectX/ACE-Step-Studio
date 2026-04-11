@@ -103,6 +103,8 @@ export const en = {
     visibleLines: 'Visible Lines',
     fontSize: 'Font Size',
     showSectionMarkers: 'Show section markers ([Verse], [Chorus])',
+    dragToMove: 'Drag to move',
+    scrollToResize: 'Scroll to resize',
     generationFailed: 'Generation failed. Please try again.',
     playlistCreated: 'Playlist created successfully!',
     failedToCreatePlaylist: 'Failed to create playlist',

@@ -101,6 +101,8 @@ export const zh = {
     visibleLines: '可见行数',
     fontSize: '字体大小',
     showSectionMarkers: '显示段落标记（[Verse], [Chorus]）',
+    dragToMove: '拖动移动',
+    scrollToResize: '滚动调整大小',
     generationFailed: '生成失败，请重试。',
     playlistCreated: '歌单创建成功！',
     failedToCreatePlaylist: '创建歌单失败',

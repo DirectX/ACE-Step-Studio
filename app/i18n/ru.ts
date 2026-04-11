@@ -103,6 +103,8 @@ export const ru = {
     visibleLines: 'Видимых строк',
     fontSize: 'Размер шрифта',
     showSectionMarkers: 'Показывать маркеры секций ([Куплет], [Припев])',
+    dragToMove: 'Перетащите для перемещения',
+    scrollToResize: 'Прокрутка для изменения размера',
     generationFailed: 'Генерация не удалась. Попробуйте ещё раз.',
     playlistCreated: 'Плейлист успешно создан!',
     failedToCreatePlaylist: 'Не удалось создать плейлист',

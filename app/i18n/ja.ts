@@ -101,6 +101,8 @@ export const ja = {
   visibleLines: '表示行数',
   fontSize: 'フォントサイズ',
   showSectionMarkers: 'セクションマーカーを表示（[Verse], [Chorus]）',
+  dragToMove: 'ドラッグで移動',
+  scrollToResize: 'スクロールでサイズ変更',
   generationFailed: '生成に失敗しました。もう一度お試しください。',
   playlistCreated: 'プレイリストを作成しました！',
   failedToCreatePlaylist: 'プレイリストの作成に失敗しました',
