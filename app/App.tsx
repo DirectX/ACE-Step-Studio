@@ -1445,6 +1445,17 @@ function AppContent() {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-zinc-950 text-white">
+        <div className="text-center space-y-4">
+          <div className="w-10 h-10 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-zinc-400">Connecting to server...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-suno-DEFAULT text-zinc-900 dark:text-white font-sans antialiased selection:bg-pink-500/30 transition-colors duration-300">
       <div className="flex-1 flex overflow-hidden">

@@ -36,22 +36,21 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         localStorage.setItem(TOKEN_KEY, newToken);
         localStorage.setItem(USER_KEY, JSON.stringify(userData));
       } catch (error: unknown) {
-        // No user in database (404) or server error - that's okay
-        // Clear any stale localStorage data
         const err = error as { message?: string };
         if (err.message?.startsWith('404:')) {
           // No user exists yet - frontend will show username setup
           console.log('No user in database, need to set up username');
+          setToken(null);
+          setUser(null);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          setIsLoading(false);
         } else {
-          console.warn('Auto-login failed:', error);
+          // Backend not reachable - retry every 2s
+          console.warn('Backend not ready, retrying...', error);
+          setTimeout(() => initAuth(), 2000);
+          return; // don't setIsLoading(false) — keep loading state
         }
-        // Clear stale data
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-      } finally {
-        setIsLoading(false);
       }
     }
 
