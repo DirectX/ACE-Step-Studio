@@ -625,26 +625,26 @@ async function processGenerationViaGradio(
     batchSize: params.batchSize,
   });
 
-  job.stage = 'Sending...';
+  job.stage = 'Generating...';
 
-  // Use submit() instead of predict() to get progress events
+  // Use submit() with async iteration for real-time progress from Gradio
   const submission = client.submit('/generation_wrapper', args);
   let data: unknown[] = [];
 
-  const result = await new Promise<{ data: unknown[] }>((resolve, reject) => {
-    submission.on('status', (status: any) => {
-      console.log(`[Gradio] Job ${jobId} status:`, JSON.stringify(status).slice(0, 300));
+  for await (const event of submission) {
+    if (event.type === 'status') {
+      const status = event as any;
       if (status.stage === 'error') {
-        reject(new Error(status.message || 'Gradio generation error'));
+        throw new Error(status.message || 'Gradio generation error');
       }
       if (status.stage === 'pending') {
-        job.stage = 'In queue';
+        job.stage = status.position ? `Queue #${status.position}` : 'In queue';
       }
       if (status.stage === 'generating') {
         const progress = status.progress_data;
         if (progress && Array.isArray(progress) && progress.length > 0) {
           const p = progress[0];
-          if (p.index !== undefined && p.length) {
+          if (p.index !== null && p.length) {
             job.progress = p.index / p.length;
           }
           if (p.desc) {
@@ -653,22 +653,13 @@ async function processGenerationViaGradio(
         }
       }
       if (status.stage === 'complete') {
-        job.stage = 'Saving audio...';
-        resolve({ data: status.data || [] });
+        job.stage = 'Saving...';
       }
-    });
-    submission.on('data', (d: any) => {
-      if (d?.data) {
-        resolve({ data: d.data });
-      }
-    });
-    submission.on('error', (err: any) => {
-      reject(err);
-    });
-    // Timeout after 10 minutes
-    setTimeout(() => reject(new Error('Gradio generation timeout (10min)')), 600000);
-  });
-  data = result.data as unknown[];
+    }
+    if (event.type === 'data') {
+      data = (event as any).data || [];
+    }
+  }
 
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error(`Gradio returned unexpected data format: ${typeof data}`);
