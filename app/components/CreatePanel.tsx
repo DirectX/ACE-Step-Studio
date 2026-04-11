@@ -642,11 +642,39 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   // Reuse Effect - must be after all state declarations
   useEffect(() => {
     if (initialData) {
+      const s = initialData.song;
+      const p = s.generationParams || {};
       setCustomMode(true);
-      setLyrics(initialData.song.lyrics);
-      setStyle(initialData.song.style);
-      setTitle(initialData.song.title);
-      setInstrumental(initialData.song.lyrics.length === 0);
+      setLyrics(s.lyrics || p.lyrics || '');
+      setStyle(s.style || p.style || '');
+      setTitle(s.title || '');
+      setInstrumental(p.instrumental ?? (s.lyrics?.length === 0));
+      // Restore ALL generation params
+      if (p.vocalLanguage) setVocalLanguage(p.vocalLanguage);
+      if (p.vocalGender) setVocalGender(p.vocalGender);
+      if (p.bpm && p.bpm > 0) { setBpmRaw(p.bpm); bpmManual.current = true; }
+      if (p.keyScale) { setKeyScaleRaw(p.keyScale); keyManual.current = true; }
+      if (p.timeSignature) { setTimeSignatureRaw(p.timeSignature); timeManual.current = true; }
+      if (p.duration && p.duration > 0) { setDurationRaw(p.duration); durationManual.current = true; }
+      if (p.inferenceSteps) setInferenceSteps(p.inferenceSteps);
+      if (p.guidanceScale !== undefined) setGuidanceScale(p.guidanceScale);
+      if (p.seed !== undefined && p.seed >= 0) { setSeed(p.seed); setRandomSeed(false); }
+      if (p.shift !== undefined) setShift(p.shift);
+      if (p.thinking !== undefined) setThinking(p.thinking);
+      if (p.enhance !== undefined) setEnhance(p.enhance);
+      if (p.audioFormat) setAudioFormat(p.audioFormat);
+      if (p.inferMethod) setInferMethod(p.inferMethod);
+      if (p.lmModel) setLmModel(p.lmModel);
+      if (p.lmBackend) setLmBackend(p.lmBackend);
+      if (p.ditModel) {
+        setSelectedModel(p.ditModel);
+        localStorage.setItem('ace-model', p.ditModel);
+      }
+      if (p.useAdg !== undefined) setUseAdg(p.useAdg);
+      if (p.lmTemperature !== undefined) setLmTemperature(p.lmTemperature);
+      if (p.lmCfgScale !== undefined) setLmCfgScale(p.lmCfgScale);
+      if (p.lmTopK !== undefined) setLmTopK(p.lmTopK);
+      if (p.lmTopP !== undefined) setLmTopP(p.lmTopP);
     }
   }, [initialData]);
 
