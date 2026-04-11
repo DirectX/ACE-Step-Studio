@@ -559,7 +559,7 @@ async function processGeneration(
   job: ActiveJob,
 ): Promise<void> {
   job.status = 'running';
-  job.stage = 'Starting generation...';
+  job.stage = 'Starting...';
 
   // Guard: cover/audio2audio requires a source or audio codes
   if ((params.taskType === 'cover' || params.taskType === 'audio2audio') && !params.sourceAudioUrl && !params.audioCodes) {
@@ -625,7 +625,7 @@ async function processGenerationViaGradio(
     batchSize: params.batchSize,
   });
 
-  job.stage = 'Sending to Gradio...';
+  job.stage = 'Sending...';
 
   // Use submit() instead of predict() to get progress events
   const submission = client.submit('/generation_wrapper', args);
@@ -637,7 +637,7 @@ async function processGenerationViaGradio(
         reject(new Error(status.message || 'Gradio generation error'));
       }
       if (status.stage === 'pending') {
-        job.stage = 'Queued in Gradio...';
+        job.stage = 'In queue';
       }
       if (status.stage === 'generating') {
         const progress = status.progress_data;
@@ -650,11 +650,11 @@ async function processGenerationViaGradio(
             job.stage = `${p.desc || 'Generating'} ${pct}%`;
           }
         } else {
-          job.stage = 'Generating music...';
+          job.stage = 'Generating...';
         }
       }
       if (status.stage === 'complete') {
-        job.stage = 'Processing audio...';
+        job.stage = 'Saving...';
         resolve({ data: status.data || [] });
       }
     });
