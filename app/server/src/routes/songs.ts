@@ -383,9 +383,16 @@ router.patch('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Resp
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
     values.push(req.params.id);
 
-    const result = await pool.query(
-      `UPDATE songs SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+    await pool.query(
+      `UPDATE songs SET ${updates.join(', ')} WHERE id = $${paramCount}`,
       values
+    );
+
+    // Return full song with creator JOIN
+    const result = await pool.query(
+      `SELECT s.*, COALESCE(u.username, 'Anonymous') as creator, u.avatar_url as creator_avatar
+       FROM songs s LEFT JOIN users u ON s.user_id = u.id WHERE s.id = $1`,
+      [req.params.id]
     );
 
     res.json({ song: result.rows[0] });

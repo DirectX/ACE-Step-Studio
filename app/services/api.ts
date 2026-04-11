@@ -199,6 +199,7 @@ export const songsApi = {
         lmModel: s.lm_model || s.lmModel,
         lmBackend: s.lm_backend || s.lmBackend,
         generationTime: s.generation_time || s.generationTime,
+        lrcContent: s.lrc_content || s.lrcContent,
         isGenerating: s.isGenerating,
         queuePosition: s.queuePosition,
         bpm: s.bpm,
