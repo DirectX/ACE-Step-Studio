@@ -1446,8 +1446,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     try {
                       const result = await generateApi.getRandomDescription(token);
                       setSongDescription(result.description);
-                      setInstrumental(result.instrumental);
-                      setVocalLanguage(result.vocalLanguage || 'unknown');
+                      // Don't override user's instrumental/language settings from random description
                     } catch (err) {
                       console.error('Failed to load random description:', err);
                     }
