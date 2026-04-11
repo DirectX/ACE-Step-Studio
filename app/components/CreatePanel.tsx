@@ -950,13 +950,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setReferenceAudioTitle(derivedTitle);
       setReferenceTime(0);
       setReferenceDuration(0);
-      // Auto-fill source if empty (so user doesn't need to upload twice)
-      if (!sourceAudioUrl) {
-        setSourceAudioUrl(url);
-        setSourceAudioTitle(derivedTitle);
-        setSourceTime(0);
-        setSourceDuration(0);
-      }
     } else {
       setSourceAudioUrl(url);
       setSourceAudioTitle(derivedTitle);
@@ -965,7 +958,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (taskType === 'text2music') {
         setTaskType('cover');
       }
-      // Auto-fill reference if empty
+      // Auto-fill reference if empty (source audio works as reference too)
       if (!referenceAudioUrl) {
         setReferenceAudioUrl(url);
         setReferenceAudioTitle(derivedTitle);
@@ -1078,16 +1071,16 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         lmTopK,
         lmTopP,
         lmNegativePrompt,
-        referenceAudioUrl: referenceAudioUrl.trim() || undefined,
-        sourceAudioUrl: sourceAudioUrl.trim() || undefined,
-        referenceAudioTitle: referenceAudioTitle.trim() || undefined,
-        sourceAudioTitle: sourceAudioTitle.trim() || undefined,
+        referenceAudioUrl: customMode ? (referenceAudioUrl.trim() || undefined) : undefined,
+        sourceAudioUrl: customMode ? (sourceAudioUrl.trim() || undefined) : undefined,
+        referenceAudioTitle: customMode ? (referenceAudioTitle.trim() || undefined) : undefined,
+        sourceAudioTitle: customMode ? (sourceAudioTitle.trim() || undefined) : undefined,
         audioCodes: audioCodes.trim() || undefined,
         repaintingStart,
         repaintingEnd,
         instruction,
         audioCoverStrength,
-        taskType,
+        taskType: customMode ? taskType : 'text2music',
         useAdg,
         cfgIntervalStart,
         cfgIntervalEnd,
