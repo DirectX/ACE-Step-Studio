@@ -1444,8 +1444,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     ctx.restore();
 
     // --- 3.5 SYNCED LYRICS OVERLAY ---
-    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0 && audioRef.current) {
-      const currentTime = audioRef.current.currentTime;
+    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
+      const currentTime = audioRef.current?.currentTime || 0;
       const lines = lrcLinesRef.current;
       const showSections = lyricsShowSectionsRef.current;
       const fontSize = lyricsFontSizeRef.current * (width / 1920); // scale with resolution
