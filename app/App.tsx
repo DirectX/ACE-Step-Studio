@@ -797,59 +797,30 @@ function AppContent() {
     setShowRightSidebar(true);
 
     try {
-      // Simple mode: use LLM to generate caption/lyrics/metadata from description
+      // Simple mode: LLM generates caption + lyrics + metadata from description
       let enrichedParams = { ...params };
       if (!params.customMode && params.songDescription && token) {
-        // Try create_sample first (full LLM enrichment: caption + lyrics + metadata)
-        let enriched = false;
-        try {
-          const sample = await generateApi.createSample({
-            query: params.songDescription,
-            instrumental: params.instrumental,
-            vocalLanguage: params.vocalLanguage,
-          }, token);
-          if (sample.caption) {
-            enrichedParams = {
-              ...enrichedParams,
-              customMode: true,
-              style: sample.caption,
-              lyrics: sample.lyrics || '',
-              instrumental: sample.instrumental,
-              vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
-              bpm: sample.bpm > 0 ? sample.bpm : undefined,
-              duration: sample.duration > 0 ? sample.duration : undefined,
-              keyScale: sample.keyScale || undefined,
-              timeSignature: sample.timeSignature || undefined,
-              thinking: true,
-              isFormatCaption: true,
-            };
-            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
-            enriched = true;
-          }
-        } catch (err) {
-          console.warn('[CreateSample] Failed, trying format_caption fallback:', err);
-        }
-
-        // Fallback: use format_caption to at least enrich the style description
-        if (!enriched) {
-          try {
-            const formatted = await generateApi.formatInput({
-              caption: params.songDescription,
-              lyrics: '',
-            }, token);
-            if (formatted.caption) {
-              enrichedParams = {
-                ...enrichedParams,
-                customMode: true,
-                style: formatted.caption,
-                thinking: true,
-                isFormatCaption: true,
-              };
-              setSongs(prev => prev.map(s => s.id === tempId ? { ...s, style: formatted.caption } : s));
-            }
-          } catch (err2) {
-            console.warn('[FormatCaption] Fallback also failed, using raw description:', err2);
-          }
+        const sample = await generateApi.createSample({
+          query: params.songDescription,
+          instrumental: params.instrumental,
+          vocalLanguage: params.vocalLanguage,
+        }, token);
+        if (sample.caption) {
+          enrichedParams = {
+            ...enrichedParams,
+            customMode: true,
+            style: sample.caption,
+            lyrics: sample.lyrics || '',
+            instrumental: sample.instrumental,
+            vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
+            bpm: sample.bpm > 0 ? sample.bpm : undefined,
+            duration: sample.duration > 0 ? sample.duration : undefined,
+            keyScale: sample.keyScale || undefined,
+            timeSignature: sample.timeSignature || undefined,
+            thinking: true,
+            isFormatCaption: true,
+          };
+          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
         }
       }
 
