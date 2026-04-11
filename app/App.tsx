@@ -809,7 +809,7 @@ function AppContent() {
 
   const buildTempSongFromParams = (params: GenerationParams, tempId: string, createdAt?: string) => ({
     id: tempId,
-    title: params.title || 'Generating...',
+    title: params.title || t('generating') || 'Generating...',
     lyrics: '',
     style: params.style || params.songDescription || '',
     coverUrl: 'https://picsum.photos/200/200?blur=10',
@@ -835,7 +835,7 @@ function AppContent() {
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const tempSong: Song = {
       id: tempId,
-      title: params.title || 'Generating...',
+      title: params.title || t('generating') || 'Generating...',
       lyrics: '',
       style: params.style,
       coverUrl: 'https://picsum.photos/200/200?blur=10',
@@ -855,7 +855,7 @@ function AppContent() {
       let enrichedParams = { ...params };
       if (!params.customMode && params.songDescription && token) {
         try {
-          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, stage: 'Writing lyrics & style...' } : s));
+          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, stage: t('writingLyricsAndStyle') || 'Writing lyrics & style...' } : s));
           const sample = await generateApi.createSample({
             query: params.songDescription,
             instrumental: params.instrumental,

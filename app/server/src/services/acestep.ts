@@ -559,7 +559,7 @@ async function processGeneration(
   job: ActiveJob,
 ): Promise<void> {
   job.status = 'running';
-  job.stage = 'Starting...';
+  job.stage = 'starting';
 
   // Guard: cover/audio2audio requires a source or audio codes
   if ((params.taskType === 'cover' || params.taskType === 'audio2audio') && !params.sourceAudioUrl && !params.audioCodes) {
@@ -612,7 +612,7 @@ async function processGenerationViaGradio(
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
 
-  job.stage = 'Generating...';
+  job.stage = 'generating';
 
   const result = await client.predict('/generation_wrapper', args);
   const data = result.data as unknown[];

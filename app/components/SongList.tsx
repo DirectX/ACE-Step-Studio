@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Song } from '../types';
-import { Play, MoreHorizontal, Heart, ThumbsDown, ListPlus, Pause, Search, Filter, Check, Globe, Lock, Loader2, ThumbsUp, Share2, Video, Info, Clock, Timer } from 'lucide-react';
+import { Play, MoreHorizontal, Heart, ThumbsDown, ListPlus, Pause, Search, Filter, Check, Globe, Lock, Loader2, ThumbsUp, Share2, Video, Info, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { SongDropdownMenu } from './SongDropdownMenu';
@@ -632,7 +632,7 @@ const SongItem: React.FC<SongItemProps> = ({
                                     }
                                 }}
                             >
-                                {song.title || (song.isGenerating ? (song.queuePosition ? "Queued..." : (song.stage || "Creating...")) : "Untitled")}
+                                {song.title || (song.isGenerating ? (song.queuePosition ? t('queued') || "Queued..." : (t(song.stage) || song.stage || t('creating') || "Creating...")) : t('untitled') || "Untitled")}
                             </h3>
                         )}
                         <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm" title={`DiT: ${song.ditModel || '?'} | LM: ${song.lmModel || '?'} (${song.lmBackend || '?'})`}>
@@ -640,7 +640,7 @@ const SongItem: React.FC<SongItemProps> = ({
                         </span>
                         {song.generationTime != null && song.generationTime > 0 && (
                             <span className="inline-flex items-center gap-0.5 text-[9px] text-zinc-400 dark:text-zinc-500" title="Generation time">
-                                <Timer size={10} />
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 {song.generationTime}s
                             </span>
                         )}
@@ -771,7 +771,7 @@ const SongItem: React.FC<SongItemProps> = ({
             <div className="text-xs font-mono text-zinc-500 dark:text-zinc-600 self-start pt-1">
                 {song.isGenerating ? (
                     <span className={song.queuePosition ? 'text-amber-500' : 'text-pink-500'}>
-                        {song.queuePosition ? `#${song.queuePosition}` : (song.stage || 'Creating...')}
+                        {song.queuePosition ? `#${song.queuePosition}` : (t(song.stage) || song.stage || t('creating') || 'Creating...')}
                     </span>
                 ) : song.duration}
             </div>
