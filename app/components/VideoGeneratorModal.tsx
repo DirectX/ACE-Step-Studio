@@ -133,6 +133,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   // Lyrics overlay
   const lrcLinesRef = useRef<import('../services/lrc-parser').LrcLine[]>([]);
   const [lyricsEnabled, setLyricsEnabled] = useState(true);
+  const [lyricsStyle, setLyricsStyle] = useState<'lines' | 'scroll' | 'karaoke'>('lines');
   const [lyricsPosition, setLyricsPosition] = useState<'bottom' | 'center' | 'top'>('bottom');
   const [lyricsFontSize, setLyricsFontSize] = useState(42);
   const [lyricsLines, setLyricsLines] = useState(2);
@@ -2664,6 +2665,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         {/* Preview Area - Desktop only */}
         {!isMobile && (
           <div className="flex-1 bg-black relative flex flex-col">
+               {/* WYSIWYG Hint — above video */}
+               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 bg-black/30 flex-shrink-0">
+                 <span>🖱 {t('dragToMove')}</span>
+                 <span>⚙ {t('scrollToResize')}</span>
+               </div>
+
                <canvas
                   ref={canvasRef}
                   width={RESOLUTIONS[config.aspectRatio].width}
@@ -2675,13 +2682,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   onMouseLeave={handleCanvasMouseUp}
                 onWheel={handleCanvasWheel}
                />
-
-               {/* WYSIWYG Hint */}
-               {/* WYSIWYG Hint — above video */}
-               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 bg-black/30">
-                 <span>🖱 {t('dragToMove')}</span>
-                 <span>⚙ {t('scrollToResize')}</span>
-               </div>
 
                {/* Playback Controls */}
                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
