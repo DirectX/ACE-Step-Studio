@@ -391,7 +391,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       [localJobId, req.user!.id, JSON.stringify(params)]
     );
 
-    console.log('[Generate] params.lmModel:', params.lmModel, 'params.lmBackend:', params.lmBackend, 'params.ditModel:', params.ditModel);
+    // Generation params logged
 
     // Start generation
     const { jobId: hfJobId } = await generateMusicViaAPI(params);
@@ -1102,7 +1102,7 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
     const { getGradioClient } = await import('../services/gradio-client.js');
     const client = await getGradioClient();
 
-    console.log('[CreateSample] Input:', { query, instrumental, vocalLanguage });
+    // CreateSample request
     const result = await client.predict('/create_sample', [
       query,
       instrumental ?? false,
@@ -1134,7 +1134,7 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
     const outInstrumental = unwrap(data[8]) ?? false;
     const outStatus = unwrap(data[13]) || 'Sample created';
 
-    console.log('[CreateSample] Output:', { caption: String(outCaption).slice(0, 80), lyrics: String(outLyrics).slice(0, 80), bpm: outBpm, duration: outDuration, key: outKeyScale, lang: outVocalLang, timeSig: outTimeSig });
+    // CreateSample response ready
 
     res.json({ caption: outCaption, lyrics: outLyrics, bpm: outBpm, duration: outDuration, keyScale: outKeyScale, vocalLanguage: outVocalLang, timeSignature: outTimeSig, instrumental: outInstrumental, status: outStatus });
   } catch (error) {

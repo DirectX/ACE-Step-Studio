@@ -541,7 +541,7 @@ export async function generateMusicViaAPI(params: GenerationParams): Promise<{ j
   activeJobs.set(jobId, job);
   jobQueue.push(jobId);
 
-  console.log(`Job ${jobId}: Queued at position ${job.queuePosition}`);
+  // Job queued
 
   // Start processing the queue (will be a no-op if already processing)
   processQueue().catch(err => console.error('Queue processing error:', err));
@@ -572,14 +572,14 @@ async function processGeneration(
   let gradioUp = await isGradioAvailable();
   if (!gradioUp) {
     job.stage = 'Ожидание загрузки модели...';
-    console.log(`Job ${jobId}: Gradio not available, waiting up to 120s...`);
+    // Gradio not available, waiting
     for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 2000));
       gradioUp = await isGradioAvailable();
       if (gradioUp) break;
     }
     if (!gradioUp) {
-      console.log(`Job ${jobId}: Gradio still not available after waiting, using Python fallback`);
+      // Gradio still not available, fallback to Python
     }
   }
 
@@ -609,21 +609,8 @@ async function processGenerationViaGradio(
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
 
-  // Log all args for debugging
-  console.log(`Job ${jobId}: buildGradioArgs produced ${args.length} args`);
-  args.forEach((a, i) => {
-    const val = typeof a === 'string' ? a.slice(0, 40) : a;
-    console.log(`  [${i}] ${typeof a} = ${val}`);
-  });
-
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
-
-  console.log(`Job ${jobId}: Using Gradio /generation_wrapper`, {
-    prompt: prompt.slice(0, 50),
-    duration: params.duration,
-    batchSize: params.batchSize,
-  });
 
   job.stage = 'Generating...';
 
@@ -735,7 +722,7 @@ async function processGenerationViaGradio(
     status: 'succeeded',
   };
   job.rawResponse = { genDetails, genStatus };
-  console.log(`Job ${jobId}: Completed via Gradio with ${audioUrls.length} audio files`);
+  // Completed via Gradio
 }
 
 function isAudioFile(name: string): boolean {
@@ -779,7 +766,7 @@ async function processGenerationViaPython(
   const prompt = params.customMode ? caption : (params.songDescription || caption);
   const lyrics = params.instrumental ? '' : (params.lyrics || '');
 
-  console.log(`Job ${jobId}: Using Python spawn (Gradio not available)`, {
+  console.log(`[Generate] Python fallback`, {
     prompt: prompt.slice(0, 50),
     lyricsPreview: lyrics.slice(0, 50),
     duration: params.duration,
@@ -892,7 +879,7 @@ async function processGenerationViaPython(
       status: 'succeeded',
     };
     job.rawResponse = result;
-    console.log(`Job ${jobId}: Completed via Python in ${result.elapsed_seconds?.toFixed(1)}s with ${audioUrls.length} audio files`);
+    // Completed via Python
 
   } catch (error) {
     console.error(`Job ${jobId}: Generation failed`, error);
