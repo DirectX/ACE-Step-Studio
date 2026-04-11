@@ -57,7 +57,7 @@ set "PATH=%SCRIPT_DIR%node;%PATH%"
 REM === Pipeline config ===
 set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe"
 set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5"
-set "DEFAULT_MODEL=acestep-v15-xl-turbo"
+set "DEFAULT_MODEL=marcorez8/acestep-v15-xl-turbo-bf16"
 set "MANAGE_PIPELINE=true"
 
 if exist "cuda_version.txt" (

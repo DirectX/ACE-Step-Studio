@@ -15,7 +15,7 @@ export const config = {
   pipeline: {
     pythonPath: process.env.PYTHON_PATH || path.join(__dirname, '../../../../python/python.exe'),
     aceStepDir: process.env.ACESTEP_PATH || path.join(__dirname, '../../../../ACE-Step-1.5'),
-    defaultModel: process.env.DEFAULT_MODEL || 'acestep-v15-xl-turbo',
+    defaultModel: process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16',
     port: parseInt(process.env.ACESTEP_PORT || '8001', 10),
     healthCheckInterval: 10_000,  // 10 seconds
     startupTimeout: 300_000,     // 5 minutes (model loading is slow)

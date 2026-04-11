@@ -655,7 +655,7 @@ router.get('/endpoints', authMiddleware, async (_req: AuthenticatedRequest, res:
 // Model loading status (real-time) - initialized after activeLoadedModel
 let modelLoadingStatus: { state: string; model: string; progress?: string } = {
   state: 'ready',
-  model: 'acestep-v15-xl-turbo',
+  model: 'marcorez8/acestep-v15-xl-turbo-bf16',
 };
 
 router.get('/model-status', async (_req, res: Response) => {
@@ -722,7 +722,7 @@ router.get('/system-info', async (_req, res: Response) => {
 });
 
 // Hot-swap model via Gradio /v1/init API (no process restart)
-let activeLoadedModel: string = process.env.ACESTEP_DEFAULT_MODEL || 'acestep-v15-xl-turbo';
+let activeLoadedModel: string = process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16';
 let activeLmModel: string = 'acestep-5Hz-lm-0.6B';
 let activeLmBackend: string = 'pt';
 

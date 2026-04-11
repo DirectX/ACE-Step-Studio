@@ -326,7 +326,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
   // Model selection
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('ace-model') || 'acestep-v15-xl-turbo';
+    return localStorage.getItem('ace-model') || 'marcorez8/acestep-v15-xl-turbo-bf16';
   });
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [modelSwitchStatus, setModelSwitchStatus] = useState<string | null>(null);
