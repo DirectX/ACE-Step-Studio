@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3 } from 'lucide-react';
 import { GenerationParams, Song } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -1330,7 +1330,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             </div>
         </div>
 
-        {/* Header Row 2 - Mode Toggle */}
+        {/* Header Row 2 - Simple / Custom toggle */}
         <div className="flex items-center bg-zinc-200 dark:bg-black/40 rounded-lg p-1 border border-zinc-300 dark:border-white/5">
           <button
             onClick={() => setCustomMode(false)}
@@ -1381,6 +1381,41 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 className="w-full h-32 bg-transparent p-3 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none"
               />
             </div>
+
+            {/* Upload Audio (Simple Mode - like Suno's upload button) */}
+            {!sourceAudioUrl ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomMode(true);
+                  setAudioTab('source');
+                  setTimeout(() => {
+                    sourceInputRef.current?.click();
+                  }, 100);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-zinc-300 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:border-pink-400 dark:hover:border-pink-500 hover:text-pink-500 transition-colors text-xs font-medium"
+              >
+                <Upload size={14} />
+                {t('uploadForCover') || 'Upload audio for Cover / Remix'}
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5">
+                <Disc3 size={14} className="text-pink-500 flex-shrink-0" />
+                <span className="text-xs text-zinc-700 dark:text-zinc-300 truncate flex-1">
+                  {sourceAudioTitle || 'Source audio'}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-500 font-medium">
+                  {taskType === 'repaint' ? 'Repaint' : 'Cover'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { setSourceAudioUrl(''); setSourceAudioTitle(''); setTaskType('text2music'); }}
+                  className="text-zinc-400 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            )}
 
             {/* Vocal Language (Simple) */}
             <div className="grid grid-cols-2 gap-3">
