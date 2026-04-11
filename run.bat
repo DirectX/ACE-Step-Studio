@@ -63,6 +63,11 @@ if exist "cuda_version.txt" (
 REM === Install npm deps if needed ===
 if not exist "app\node_modules" (
     echo Installing npm dependencies...
+    for /f "tokens=*" %%v in ('"%SCRIPT_DIR%node\node.exe" -v') do set "NODE_VER=%%v"
+    set "NODE_VER=!NODE_VER:~1!"
+    set "npm_config_target=!NODE_VER!"
+    set "npm_config_target_arch=x64"
+    set "npm_config_runtime=node"
     cd app
     "%SCRIPT_DIR%node\npm.cmd" install
     cd "%SCRIPT_DIR%"
@@ -85,7 +90,7 @@ set "ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5"
 set "PYTHON_PATH=%SCRIPT_DIR%python\python.exe"
 
 echo Starting Gradio pipeline with %DEFAULT_MODEL%...
-start "ACE-Step Gradio" cmd /k "cd /d %SCRIPT_DIR%ACE-Step-1.5 && %SCRIPT_DIR%python\python.exe -m acestep.acestep_v15_pipeline --config_path %DEFAULT_MODEL% --port 8001 --init_service true --init_llm true"
+start "ACE-Step Gradio" /D "%SCRIPT_DIR%ACE-Step-1.5" cmd /k %SCRIPT_DIR%python\python.exe -m acestep.acestep_v15_pipeline --config_path %DEFAULT_MODEL% --port 8001 --init_service true --init_llm true
 
 REM Wait for Gradio to start loading
 echo Waiting for Gradio to initialize...
@@ -93,7 +98,7 @@ timeout /t 5 /nobreak >nul
 
 REM === Start Express backend ===
 echo Starting Express backend...
-start "ACE-Step Backend" cmd /k "cd /d %SCRIPT_DIR%app\server && set ACESTEP_API_URL=http://localhost:8001 && set ACESTEP_PATH=%SCRIPT_DIR%ACE-Step-1.5 && set PYTHON_PATH=%SCRIPT_DIR%python\python.exe && %SCRIPT_DIR%node\npx.cmd tsx src/index.ts"
+start "ACE-Step Backend" /D "%SCRIPT_DIR%app\server" %SCRIPT_DIR%node\node.exe %SCRIPT_DIR%app\server\node_modules\tsx\dist\cli.mjs src/index.ts
 
 timeout /t 2 /nobreak >nul
 

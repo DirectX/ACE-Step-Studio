@@ -146,13 +146,13 @@ REM ============================================================
 if exist "node\node.exe" (
     echo [OK] Node.js already installed
 ) else (
-    echo [5/6] Downloading Node.js 22 LTS...
+    echo [5/6] Downloading Node.js 24...
     if not exist "node" mkdir node
-    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v22.15.0/node-v22.15.0-win-x64.zip' -OutFile 'downloads\node.zip'}"
+    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v24.11.0/node-v24.11.0-win-x64.zip' -OutFile 'downloads\node.zip'}"
     powershell -Command "& {Expand-Archive -Path 'downloads\node.zip' -DestinationPath 'downloads\node-extract' -Force}"
     powershell -Command "& {Get-ChildItem 'downloads\node-extract\node-*\*' | Move-Item -Destination 'node' -Force}"
     if exist "downloads\node-extract" rmdir /s /q "downloads\node-extract"
-    echo [OK] Node.js 22 LTS installed
+    echo [OK] Node.js 24 installed
 )
 
 REM ============================================================
@@ -160,6 +160,12 @@ REM  Step 7: npm dependencies
 REM ============================================================
 echo [6/6] Installing npm dependencies...
 set "PATH=%SCRIPT_DIR%node;%PATH%"
+REM Force native modules to build for portable node, not system node
+for /f "tokens=*" %%v in ('"%SCRIPT_DIR%node\node.exe" -v') do set "NODE_VER=%%v"
+set "NODE_VER=%NODE_VER:~1%"
+set "npm_config_target=%NODE_VER%"
+set "npm_config_target_arch=x64"
+set "npm_config_runtime=node"
 cd app
 "%SCRIPT_DIR%node\npm.cmd" install
 cd "%SCRIPT_DIR%"
