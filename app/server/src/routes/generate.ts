@@ -760,6 +760,36 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
     await new Promise(r => setTimeout(r, 2000));
   } catch {}
 
+  // Auto-download LM model if needed
+  if (lmModel) {
+    const lmModelDir = path.join(ACESTEP_DIR, 'checkpoints', lmModel);
+    const hasSafetensors = existsSync(lmModelDir) &&
+      require('fs').readdirSync(lmModelDir).some((f: string) => f.endsWith('.safetensors'));
+    if (!hasSafetensors) {
+      const LM_HF_REPOS: Record<string, string> = {
+        'acestep-5Hz-lm-0.6B': 'ACE-Step/acestep-5Hz-lm-0.6B',
+        'acestep-5Hz-lm-1.7B': 'ACE-Step/acestep-5Hz-lm-1.7B',
+        'acestep-5Hz-lm-4B': 'ACE-Step/acestep-5Hz-lm-4B',
+      };
+      const hfRepo = LM_HF_REPOS[lmModel];
+      if (hfRepo) {
+        console.log(`[Model] Auto-downloading LM model: ${lmModel}...`);
+        modelLoadingStatus = { state: 'loading', model: `Downloading ${lmModel}...` };
+        try {
+          const { execSync: execSyncDl } = await import('child_process');
+          execSyncDl(`"${pythonPath}" -m huggingface_hub.commands.huggingface_cli download ${hfRepo} --local-dir "${lmModelDir}"`, {
+            env: { ...process.env, PYTHONIOENCODING: 'utf-8', HF_HUB_ENABLE_HF_TRANSFER: '1', HF_HOME: path.resolve(ACESTEP_DIR, '../models') },
+            stdio: 'inherit',
+            timeout: 600000,
+          });
+          console.log(`[Model] LM model ${lmModel} downloaded`);
+        } catch (dlErr) {
+          console.error(`[Model] Failed to download LM model ${lmModel}:`, dlErr);
+        }
+      }
+    }
+  }
+
   modelLoadingStatus = { state: 'loading', model };
   console.log(`[Model] Starting Gradio with model: ${model}`);
 
