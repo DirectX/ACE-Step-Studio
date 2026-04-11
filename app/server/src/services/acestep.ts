@@ -1,5 +1,5 @@
 import { writeFile, mkdir, copyFile, rm, readFile } from 'fs/promises';
-import { spawn, execSync } from 'child_process';
+import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import { handle_file } from '@gradio/client';
@@ -550,7 +550,7 @@ export async function generateMusicViaAPI(params: GenerationParams): Promise<{ j
 }
 
 // ---------------------------------------------------------------------------
-// processGeneration — Gradio primary, Python spawn fallback
+// processGeneration — Gradio only
 // ---------------------------------------------------------------------------
 
 async function processGeneration(
@@ -572,30 +572,19 @@ async function processGeneration(
   let gradioUp = await isGradioAvailable();
   if (!gradioUp) {
     job.stage = 'Ожидание загрузки модели...';
-    // Gradio not available, waiting
     for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 2000));
       gradioUp = await isGradioAvailable();
       if (gradioUp) break;
     }
     if (!gradioUp) {
-      // Gradio still not available, fallback to Python
-    }
-  }
-
-  // Try Gradio first
-  if (gradioUp) {
-    try {
-      await processGenerationViaGradio(jobId, params, job);
+      job.status = 'failed';
+      job.error = 'Gradio pipeline not available after 2 minutes';
       return;
-    } catch (error) {
-      console.error(`Job ${jobId}: Gradio generation failed, trying Python spawn fallback`, error);
-      // Fall through to Python spawn
     }
   }
 
-  // Fallback: Python spawn
-  await processGenerationViaPython(jobId, params, job);
+  await processGenerationViaGradio(jobId, params, job);
 }
 
 async function processGenerationViaGradio(
@@ -748,222 +737,8 @@ function parseGenerationDetails(details: string | undefined): {
 }
 
 // ---------------------------------------------------------------------------
-// Python spawn fallback (kept from original for offline/fallback use)
+// Job status
 // ---------------------------------------------------------------------------
-
-async function processGenerationViaPython(
-  jobId: string,
-  params: GenerationParams,
-  job: ActiveJob,
-): Promise<void> {
-  const caption = params.style || 'pop music';
-  const prompt = params.customMode ? caption : (params.songDescription || caption);
-  const lyrics = params.instrumental ? '' : (params.lyrics || '');
-
-  console.log(`[Generate] Python fallback`, {
-    prompt: prompt.slice(0, 50),
-    lyricsPreview: lyrics.slice(0, 50),
-    duration: params.duration,
-    batchSize: params.batchSize,
-    ditModel: params.ditModel,
-  });
-
-  try {
-    const jobOutputDir = path.join(ACESTEP_DIR, 'output', jobId);
-    await mkdir(jobOutputDir, { recursive: true });
-
-    const durationToSend = params.duration && params.duration > 0 ? params.duration : 60;
-    const args = [
-      '--prompt', prompt,
-      '--duration', String(durationToSend),
-      '--batch-size', String(params.batchSize ?? 1),
-      '--infer-steps', String(params.inferenceSteps ?? 8),
-      '--guidance-scale', String(params.guidanceScale ?? 10.0),
-      '--audio-format', params.audioFormat ?? 'mp3',
-      '--output-dir', jobOutputDir,
-      '--json',
-    ];
-
-    if (lyrics) args.push('--lyrics', lyrics);
-    if (params.instrumental) args.push('--instrumental');
-    if (params.bpm && params.bpm > 0) args.push('--bpm', String(params.bpm));
-    if (params.keyScale) args.push('--key-scale', params.keyScale);
-    if (params.timeSignature) args.push('--time-signature', params.timeSignature);
-    if (params.vocalLanguage) args.push('--vocal-language', params.vocalLanguage);
-    if (params.seed !== undefined && params.seed >= 0 && !params.randomSeed) args.push('--seed', String(params.seed));
-    if (params.shift !== undefined) args.push('--shift', String(params.shift));
-    const resolvedTaskType = params.taskType === 'audio2audio' ? 'cover' : params.taskType;
-    if (resolvedTaskType && resolvedTaskType !== 'text2music') args.push('--task-type', resolvedTaskType);
-
-    if (params.referenceAudioUrl) {
-      args.push('--reference-audio', resolveAudioPath(params.referenceAudioUrl));
-    }
-    if (params.sourceAudioUrl) {
-      args.push('--src-audio', resolveAudioPath(params.sourceAudioUrl));
-    }
-    if (params.audioCodes) args.push('--audio-codes', params.audioCodes);
-    if (params.repaintingStart !== undefined && params.repaintingStart > 0) args.push('--repainting-start', String(params.repaintingStart));
-    if (params.repaintingEnd !== undefined && params.repaintingEnd > 0) args.push('--repainting-end', String(params.repaintingEnd));
-    if (params.taskType === 'cover' || params.taskType === 'repaint' || params.sourceAudioUrl) {
-      args.push('--audio-cover-strength', String(params.audioCoverStrength ?? 1.0));
-    } else if (params.audioCoverStrength !== undefined && params.audioCoverStrength !== 1.0) {
-      args.push('--audio-cover-strength', String(params.audioCoverStrength));
-    }
-    if (params.ditModel) {
-      await ensureModelDownloaded(params.ditModel);
-      args.push('--config-path', params.ditModel);
-    }
-    if (params.instruction) args.push('--instruction', params.instruction);
-    if (params.thinking) args.push('--thinking');
-    if (params.lmTemperature !== undefined) args.push('--lm-temperature', String(params.lmTemperature));
-    if (params.lmCfgScale !== undefined) args.push('--lm-cfg-scale', String(params.lmCfgScale));
-    if (params.lmTopK !== undefined && params.lmTopK > 0) args.push('--lm-top-k', String(params.lmTopK));
-    if (params.lmTopP !== undefined) args.push('--lm-top-p', String(params.lmTopP));
-    if (params.lmNegativePrompt) args.push('--lm-negative-prompt', params.lmNegativePrompt);
-    // Note: --lm-backend and --lm-model are not supported by simple_generate.py
-    if (params.useCotMetas === false) args.push('--no-cot-metas');
-    if (params.useCotCaption === false) args.push('--no-cot-caption');
-    if (params.useCotLanguage === false) args.push('--no-cot-language');
-    if (params.useAdg) args.push('--use-adg');
-    if (params.cfgIntervalStart !== undefined && params.cfgIntervalStart > 0) args.push('--cfg-interval-start', String(params.cfgIntervalStart));
-    if (params.cfgIntervalEnd !== undefined && params.cfgIntervalEnd < 1.0) args.push('--cfg-interval-end', String(params.cfgIntervalEnd));
-
-    const result = await runPythonGeneration(args);
-
-    if (!result.success) {
-      throw new Error(result.error || 'Generation failed');
-    }
-
-    if (!result.audio_paths || result.audio_paths.length === 0) {
-      throw new Error('No audio files generated');
-    }
-
-    const audioUrls: string[] = [];
-    let actualDuration = 0;
-    for (const srcPath of result.audio_paths) {
-      const ext = srcPath.includes('.flac') ? '.flac' : '.mp3';
-      const filename = `${jobId}_${audioUrls.length}${ext}`;
-      const destPath = path.join(AUDIO_DIR, filename);
-
-      await mkdir(AUDIO_DIR, { recursive: true });
-      await copyFile(srcPath, destPath);
-
-      if (audioUrls.length === 0) {
-        actualDuration = getAudioDuration(destPath);
-      }
-
-      audioUrls.push(`/audio/${filename}`);
-    }
-
-    try {
-      await rm(jobOutputDir, { recursive: true, force: true });
-    } catch (cleanupError) {
-      console.warn(`Job ${jobId}: Failed to cleanup output dir`, cleanupError);
-    }
-
-    const finalDuration = actualDuration > 0 ? actualDuration : (params.duration && params.duration > 0 ? params.duration : 0);
-
-    const generationTime = Math.round((Date.now() - job.startTime) / 1000);
-
-    job.status = 'succeeded';
-    job.result = {
-      audioUrls,
-      duration: finalDuration,
-      bpm: params.bpm,
-      keyScale: params.keyScale,
-      timeSignature: params.timeSignature,
-      generationTime,
-      status: 'succeeded',
-    };
-    job.rawResponse = result;
-    // Completed via Python
-
-  } catch (error) {
-    console.error(`Job ${jobId}: Generation failed`, error);
-    job.status = 'failed';
-    job.error = error instanceof Error ? error.message : 'Generation failed';
-
-    try {
-      const jobOutputDir = path.join(ACESTEP_DIR, 'output', jobId);
-      await rm(jobOutputDir, { recursive: true, force: true });
-    } catch { /* ignore cleanup errors */ }
-  }
-}
-
-interface PythonResult {
-  success: boolean;
-  audio_paths?: string[];
-  elapsed_seconds?: number;
-  error?: string;
-}
-
-function runPythonGeneration(scriptArgs: string[], timeoutMs = 600000): Promise<PythonResult> {
-  return new Promise((resolve) => {
-    const pythonPath = resolvePythonPath(ACESTEP_DIR);
-    const args = [PYTHON_SCRIPT, ...scriptArgs];
-
-    const proc = spawn(pythonPath, args, {
-      cwd: ACESTEP_DIR,
-      env: {
-        ...process.env,
-        ACESTEP_PATH: ACESTEP_DIR,
-      },
-    });
-
-    // Kill process after timeout (default 10 minutes)
-    const timer = setTimeout(() => {
-      proc.kill('SIGTERM');
-      setTimeout(() => { if (!proc.killed) proc.kill('SIGKILL'); }, 5000);
-      resolve({ success: false, error: `Generation timed out after ${timeoutMs / 1000}s` });
-    }, timeoutMs);
-
-    let stdout = '';
-    let stderr = '';
-
-    proc.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    proc.stderr.on('data', (data) => {
-      stderr += data.toString();
-      const lines = data.toString().split('\n');
-      for (const line of lines) {
-        if (line.trim()) {
-          console.log(`[ACE-Step] ${line}`);
-        }
-      }
-    });
-
-    proc.on('close', (code) => {
-      clearTimeout(timer);
-      if (code !== 0) {
-        resolve({ success: false, error: stderr || `Process exited with code ${code}` });
-        return;
-      }
-
-      const lines = stdout.split('\n').filter(l => l.trim());
-      const jsonLine = lines.find(l => l.startsWith('{'));
-
-      if (!jsonLine) {
-        resolve({ success: false, error: 'No JSON output from generation script' });
-        return;
-      }
-
-      try {
-        const result = JSON.parse(jsonLine);
-        resolve(result);
-      } catch {
-        resolve({ success: false, error: 'Invalid JSON from generation script' });
-      }
-    });
-
-    proc.on('error', (err) => {
-      clearTimeout(timer);
-      resolve({ success: false, error: err.message });
-    });
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Job status (simplified — no more REST polling for progress)
 // ---------------------------------------------------------------------------
