@@ -663,6 +663,8 @@ function AppContent() {
         userId: s.user_id,
         creator: s.creator,
         ditModel: s.ditModel,
+        lmModel: s.lmModel,
+        lmBackend: s.lmBackend,
         generationParams: (() => {
           try {
             if (!s.generation_params) return undefined;
