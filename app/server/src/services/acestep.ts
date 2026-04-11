@@ -601,11 +601,8 @@ async function processGenerationViaGradio(
   params: GenerationParams,
   job: ActiveJob,
 ): Promise<void> {
-  // Switch DiT model if a specific one was requested
-  if (params.ditModel) {
-    job.stage = `Loading model ${params.ditModel}...`;
-    await switchModelIfNeeded(params.ditModel);
-  }
+  // Note: model switching is handled via /switch-model endpoint (Gradio pipeline restart).
+  // The /v1/init API is only available in FastAPI mode (acestep-api), not Gradio pipeline.
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
