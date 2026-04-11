@@ -1992,22 +1992,15 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
                     {t('vocalGender')}
                   </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setVocalGender(vocalGender === 'male' ? '' : 'male')}
-                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'male' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                    >
-                      {t('male')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVocalGender(vocalGender === 'female' ? '' : 'female')}
-                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                    >
-                      {t('female')}
-                    </button>
-                  </div>
+                  <select
+                    value={vocalGender}
+                    onChange={(e) => setVocalGender(e.target.value as 'male' | 'female' | '')}
+                    className="w-full bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
+                  >
+                    <option value="">Auto</option>
+                    <option value="male">{t('male')}</option>
+                    <option value="female">{t('female')}</option>
+                  </select>
                 </div>
               </div>
             )}
