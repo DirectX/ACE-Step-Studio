@@ -1211,10 +1211,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         ditModel: selectedModel,
         instrumental,
         vocalLanguage,
-        bpm: bpmManual.current ? bpm : 0,
-        keyScale: keyManual.current ? keyScale : '',
-        timeSignature: timeManual.current ? timeSignature : '',
-        duration: durationManual.current ? duration : -1,
+        bpm,
+        keyScale,
+        timeSignature,
+        duration,
         inferenceSteps,
         guidanceScale,
         batchSize,
@@ -1275,6 +1275,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         loraLoaded,
       });
     }
+
+    // Reset AI-filled values to auto for next generation (unless user set them manually)
+    if (!bpmManual.current) setBpmRaw(0);
+    if (!keyManual.current) setKeyScaleRaw('');
+    if (!timeManual.current) setTimeSignatureRaw('');
+    if (!durationManual.current) setDurationRaw(-1);
 
     // Reset bulk count after generation
     if (bulkCount > 1) {
