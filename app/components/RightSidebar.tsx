@@ -504,25 +504,37 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                     </div>
 
                     {/* Generation Metadata */}
-                    {(song.bpm || song.keyScale || song.ditModel) && (
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/5 px-4 py-3">
+                    {(song.bpm || song.keyScale || song.timeSignature || (song.duration && typeof song.duration === 'string' && song.duration !== '0:00')) && (
+                        <div className="flex flex-wrap gap-2 text-[11px]">
                             {song.bpm > 0 && (
-                                <div><span className="text-zinc-400">BPM</span> <span className="text-zinc-200 font-medium ml-1">{song.bpm}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    BPM: {song.bpm}
+                                </span>
                             )}
                             {song.keyScale && (
-                                <div><span className="text-zinc-400">{t('keyScale') || 'Key'}</span> <span className="text-zinc-200 font-medium ml-1">{song.keyScale}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.keyScale}
+                                </span>
                             )}
                             {song.timeSignature && (
-                                <div><span className="text-zinc-400">{t('timeSignature') || 'Time'}</span> <span className="text-zinc-200 font-medium ml-1">{song.timeSignature}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.timeSignature}
+                                </span>
                             )}
                             {song.duration && song.duration !== '0:00' && (
-                                <div><span className="text-zinc-400">{t('duration') || 'Duration'}</span> <span className="text-zinc-200 font-medium ml-1">{song.duration}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.duration}
+                                </span>
                             )}
                             {song.ditModel && (
-                                <div><span className="text-zinc-400">DiT</span> <span className="text-zinc-200 font-medium ml-1">{song.ditModel.replace('acestep-v15-', '')}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    {song.ditModel.replace('acestep-v15-', '')}
+                                </span>
                             )}
                             {song.lmModel && (
-                                <div><span className="text-zinc-400">LM</span> <span className="text-zinc-200 font-medium ml-1">{song.lmModel.replace('acestep-5Hz-lm-', '')}</span></div>
+                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
+                                    LM: {song.lmModel.replace('acestep-5Hz-lm-', '')}
+                                </span>
                             )}
                         </div>
                     )}
