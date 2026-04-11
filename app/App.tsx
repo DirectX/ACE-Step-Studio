@@ -815,6 +815,7 @@ function AppContent() {
         randomSeed: params.randomSeed,
         seed: params.seed,
         thinking: params.thinking,
+        enhance: params.enhance,
         audioFormat: params.audioFormat,
         inferMethod: params.inferMethod,
         shift: params.shift,
@@ -852,6 +853,20 @@ function AppContent() {
         trackName: params.trackName,
         completeTrackClasses: params.completeTrackClasses,
         isFormatCaption: params.isFormatCaption,
+        coverNoiseStrength: params.coverNoiseStrength,
+        samplerMode: params.samplerMode,
+        velocityNormThreshold: params.velocityNormThreshold,
+        velocityEmaFactor: params.velocityEmaFactor,
+        mp3Bitrate: params.mp3Bitrate,
+        mp3SampleRate: params.mp3SampleRate,
+        enableNormalization: params.enableNormalization,
+        normalizationDb: params.normalizationDb,
+        fadeInDuration: params.fadeInDuration,
+        fadeOutDuration: params.fadeOutDuration,
+        latentShift: params.latentShift,
+        latentRescale: params.latentRescale,
+        repaintMode: params.repaintMode,
+        repaintStrength: params.repaintStrength,
         ditModel: params.ditModel,
       }, token);
 
@@ -1312,6 +1327,7 @@ function AppContent() {
               <CreatePanel
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
+                activeJobCount={activeJobCount}
                 initialData={reuseData}
                 createdSongs={songs}
                 pendingAudioSelection={pendingAudioSelection}

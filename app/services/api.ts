@@ -267,6 +267,7 @@ export interface GenerationParams {
   randomSeed?: boolean;
   seed?: number;
   thinking?: boolean;
+  enhance?: boolean;
   audioFormat?: 'mp3' | 'flac';
   inferMethod?: 'ode' | 'sde';
   shift?: number;
@@ -308,6 +309,23 @@ export interface GenerationParams {
   trackName?: string;
   completeTrackClasses?: string[];
   isFormatCaption?: boolean;
+
+  // v1.5 XL parameters
+  coverNoiseStrength?: number;
+  samplerMode?: 'euler' | 'heun';
+  velocityNormThreshold?: number;
+  velocityEmaFactor?: number;
+  mp3Bitrate?: string;
+  mp3SampleRate?: number;
+  enableNormalization?: boolean;
+  normalizationDb?: number;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  latentShift?: number;
+  latentRescale?: number;
+  repaintMode?: 'conservative' | 'balanced' | 'aggressive';
+  repaintStrength?: number;
+
   loraLoaded?: boolean;
 }
 

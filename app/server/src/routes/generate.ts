@@ -108,6 +108,7 @@ interface GenerateBody {
   randomSeed?: boolean;
   seed?: number;
   thinking?: boolean;
+  enhance?: boolean;
   audioFormat?: 'mp3' | 'flac';
   inferMethod?: 'ode' | 'sde';
   shift?: number;
@@ -149,6 +150,22 @@ interface GenerateBody {
   trackName?: string;
   completeTrackClasses?: string[];
   isFormatCaption?: boolean;
+
+  // v1.5 XL parameters
+  coverNoiseStrength?: number;
+  samplerMode?: 'euler' | 'heun';
+  velocityNormThreshold?: number;
+  velocityEmaFactor?: number;
+  mp3Bitrate?: string;
+  mp3SampleRate?: number;
+  enableNormalization?: boolean;
+  normalizationDb?: number;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  latentShift?: number;
+  latentRescale?: number;
+  repaintMode?: 'conservative' | 'balanced' | 'aggressive';
+  repaintStrength?: number;
 
   // Model selection
   ditModel?: string;
@@ -227,6 +244,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       randomSeed,
       seed,
       thinking,
+      enhance,
       audioFormat,
       inferMethod,
       shift,
@@ -264,6 +282,20 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       trackName,
       completeTrackClasses,
       isFormatCaption,
+      coverNoiseStrength,
+      samplerMode,
+      velocityNormThreshold,
+      velocityEmaFactor,
+      mp3Bitrate,
+      mp3SampleRate,
+      enableNormalization,
+      normalizationDb,
+      fadeInDuration,
+      fadeOutDuration,
+      latentShift,
+      latentRescale,
+      repaintMode,
+      repaintStrength,
       ditModel,
     } = req.body as GenerateBody;
 
@@ -295,6 +327,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       randomSeed,
       seed,
       thinking,
+      enhance,
       audioFormat,
       inferMethod,
       shift,
@@ -332,6 +365,20 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       trackName,
       completeTrackClasses,
       isFormatCaption,
+      coverNoiseStrength,
+      samplerMode,
+      velocityNormThreshold,
+      velocityEmaFactor,
+      mp3Bitrate,
+      mp3SampleRate,
+      enableNormalization,
+      normalizationDb,
+      fadeInDuration,
+      fadeOutDuration,
+      latentShift,
+      latentRescale,
+      repaintMode,
+      repaintStrength,
       ditModel,
     };
 
@@ -619,8 +666,15 @@ router.get('/model-status', async (_req, res: Response) => {
   });
 });
 
-// GPU/System info endpoint - uses nvidia-smi for real data
+// GPU/System info endpoint - uses nvidia-smi for real data (cached 2s)
+let systemInfoCache: { data: any; ts: number } = { data: null, ts: 0 };
 router.get('/system-info', async (_req, res: Response) => {
+  const now = Date.now();
+  if (systemInfoCache.data && now - systemInfoCache.ts < 2000) {
+    res.json(systemInfoCache.data);
+    return;
+  }
+
   const { execSync } = await import('child_process');
   const os = await import('os');
 
@@ -649,11 +703,13 @@ router.get('/system-info', async (_req, res: Response) => {
     return sum + (1 - cpu.times.idle / total);
   }, 0) / cpuCount * 100;
 
-  res.json({
+  const data = {
     gpu, vram_total, vram_used, gpu_util, gpu_temp,
     ram_total: totalMem, ram_used: usedMem,
     cpu_cores: cpuCount, cpu_util: Math.round(cpuLoad),
-  });
+  };
+  systemInfoCache = { data, ts: now };
+  res.json(data);
 });
 
 // Restart Gradio pipeline with a different model
@@ -668,7 +724,7 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   }
 
   const ACESTEP_DIR = process.env.ACESTEP_PATH || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ACE-Step-1.5');
-  const pythonPath = process.env.PYTHON_PATH || 'python';
+  const pythonPath = resolvePythonPath(ACESTEP_DIR);
   const { spawn } = await import('child_process');
   const { resetGradioClient } = await import('../services/gradio-client.js');
 
@@ -788,7 +844,8 @@ router.get('/download-model', authMiddleware, async (req: AuthenticatedRequest, 
   send({ status: 'downloading', model, message: `Downloading ${model}...` });
 
   const { spawn } = await import('child_process');
-  const pythonPath = process.env.PYTHON_PATH || 'python';
+  const ACESTEP_DIR = process.env.ACESTEP_PATH || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ACE-Step-1.5');
+  const pythonPath = resolvePythonPath(ACESTEP_DIR);
   const proc = spawn(pythonPath, [
     '-m', 'huggingface_hub.commands.huggingface_cli', 'download', hfRepo, '--local-dir', modelDir
   ], {

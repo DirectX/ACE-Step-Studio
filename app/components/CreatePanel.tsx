@@ -21,6 +21,7 @@ interface ReferenceTrack {
 interface CreatePanelProps {
   onGenerate: (params: GenerationParams) => void;
   isGenerating: boolean;
+  activeJobCount?: number;
   initialData?: { song: Song, timestamp: number } | null;
   createdSongs?: Song[];
   pendingAudioSelection?: { target: 'reference' | 'source'; url: string; title?: string } | null;
@@ -112,6 +113,7 @@ const VOCAL_LANGUAGE_KEYS = [
 export const CreatePanel: React.FC<CreatePanelProps> = ({
   onGenerate,
   isGenerating,
+  activeJobCount = 0,
   initialData,
   createdSongs = [],
   pendingAudioSelection,
@@ -214,6 +216,16 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [trackName, setTrackName] = useState('');
   const [completeTrackClasses, setCompleteTrackClasses] = useState('');
   const [isFormatCaption, setIsFormatCaption] = useState(false);
+
+  // v1.5 XL parameters
+  const [samplerMode, setSamplerMode] = useState<'euler' | 'heun'>('euler');
+  const [mp3Bitrate, setMp3Bitrate] = useState('128k');
+  const [mp3SampleRate, setMp3SampleRate] = useState(48000);
+  const [fadeInDuration, setFadeInDuration] = useState(0.0);
+  const [fadeOutDuration, setFadeOutDuration] = useState(0.0);
+  const [repaintMode, setRepaintMode] = useState<'conservative' | 'balanced' | 'aggressive'>('balanced');
+  const [repaintStrength, setRepaintStrength] = useState(0.5);
+
   const [maxDurationWithLm, setMaxDurationWithLm] = useState(240);
   const [maxDurationWithoutLm, setMaxDurationWithoutLm] = useState(240);
 
@@ -286,10 +298,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   }, [fetchedModels]);
 
   // Model metadata
-  const MODEL_INFO: Record<string, { size: string; steps: number; desc: string }> = {
-    'acestep-v15-xl-turbo': { size: '18.8 GB', steps: 8, desc: '4B, быстрая' },
-    'acestep-v15-xl-sft': { size: '18.8 GB', steps: 50, desc: '4B, макс. качество' },
-    'marcorez8/acestep-v15-xl-turbo-bf16': { size: '7.5 GB', steps: 8, desc: '4B BF16, компактная' },
+  const MODEL_INFO: Record<string, { size: string; steps: number; descKey: string; descFallback: string }> = {
+    'acestep-v15-xl-turbo': { size: '18.8 GB', steps: 8, descKey: 'modelDescTurbo', descFallback: '4B, fast' },
+    'acestep-v15-xl-sft': { size: '18.8 GB', steps: 50, descKey: 'modelDescSft', descFallback: '4B, max quality' },
+    'marcorez8/acestep-v15-xl-turbo-bf16': { size: '7.5 GB', steps: 8, descKey: 'modelDescBf16', descFallback: '4B BF16, compact' },
   };
 
   // Map model ID to short display name
@@ -1085,6 +1097,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           return parsed.length ? parsed : undefined;
         })(),
         isFormatCaption,
+        samplerMode,
+        mp3Bitrate,
+        mp3SampleRate,
+        fadeInDuration: fadeInDuration > 0 ? fadeInDuration : undefined,
+        fadeOutDuration: fadeOutDuration > 0 ? fadeOutDuration : undefined,
+        repaintMode: taskType === 'repaint' ? repaintMode : undefined,
+        repaintStrength: taskType === 'repaint' ? repaintStrength : undefined,
         loraLoaded,
       });
     }
@@ -1200,12 +1219,16 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                           localStorage.setItem('ace-model', model.id);
                           setShowModelMenu(false);
 
-                          // Auto-adjust parameters
+                          // Auto-adjust parameters for model type
                           if (!isTurboModel(model.id)) {
+                            // SFT: more steps, enable CFG + ADG
                             setInferenceSteps(50);
+                            setGuidanceScale(7.0);
                             setUseAdg(true);
                           } else {
+                            // Turbo: few steps, CFG not needed
                             setInferenceSteps(8);
+                            setGuidanceScale(0.0);
                             setUseAdg(false);
                           }
 
@@ -1297,7 +1320,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                           )}
                         </div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {MODEL_INFO[model.id] ? `${MODEL_INFO[model.id].size} · ${MODEL_INFO[model.id].steps} шагов · ${MODEL_INFO[model.id].desc}` : model.id}
+                          {MODEL_INFO[model.id] ? `${MODEL_INFO[model.id].size} · ${MODEL_INFO[model.id].steps} ${t('steps') || 'steps'} · ${t(MODEL_INFO[model.id].descKey) || MODEL_INFO[model.id].descFallback}` : model.id}
                         </p>
                       </button>
                     ))}
@@ -2100,8 +2123,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               title="How strongly the model follows the prompt. Higher = stricter, lower = freer."
             />
 
-            {/* Audio Format & Inference Method */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Audio Format, Inference Method, Sampler */}
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('audioFormat')}</label>
                 <select
@@ -2114,7 +2137,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Deterministic is more repeatable; stochastic adds randomness.">{t('inferMethod')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('inferMethod')}</label>
                 <select
                   value={inferMethod}
                   onChange={(e) => setInferMethod(e.target.value as 'ode' | 'sde')}
@@ -2123,6 +2146,70 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <option value="ode">{t('odeDeterministic')}</option>
                   <option value="sde">{t('sdeStochastic')}</option>
                 </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('samplerMode') || 'Sampler'}</label>
+                <select
+                  value={samplerMode}
+                  onChange={(e) => setSamplerMode(e.target.value as 'euler' | 'heun')}
+                  className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
+                >
+                  <option value="euler">Euler</option>
+                  <option value="heun">Heun (2nd order)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* MP3 Quality (only when mp3 format selected) */}
+            {audioFormat === 'mp3' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('mp3BitrateLabel') || 'MP3 Bitrate'}</label>
+                  <select
+                    value={mp3Bitrate}
+                    onChange={(e) => setMp3Bitrate(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800"
+                  >
+                    <option value="64k">64 kbps</option>
+                    <option value="128k">128 kbps</option>
+                    <option value="192k">192 kbps</option>
+                    <option value="256k">256 kbps</option>
+                    <option value="320k">320 kbps</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('mp3SampleRateLabel') || 'Sample Rate'}</label>
+                  <select
+                    value={mp3SampleRate}
+                    onChange={(e) => setMp3SampleRate(Number(e.target.value))}
+                    className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800"
+                  >
+                    <option value="44100">44.1 kHz</option>
+                    <option value="48000">48 kHz</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Fade In/Out */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('fadeInLabel') || 'Fade In (s)'}</label>
+                <input
+                  type="number" step="0.1" min="0" max="10"
+                  value={fadeInDuration}
+                  onChange={(e) => setFadeInDuration(Number(e.target.value))}
+                  className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('fadeOutLabel') || 'Fade Out (s)'}</label>
+                <input
+                  type="number" step="0.1" min="0" max="10"
+                  value={fadeOutDuration}
+                  onChange={(e) => setFadeOutDuration(Number(e.target.value))}
+                  className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 transition-colors"
+                />
               </div>
             </div>
 
@@ -2365,6 +2452,33 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 />
               </div>
             </div>
+
+            {/* Repaint Mode & Strength (only for repaint task) */}
+            {taskType === 'repaint' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('repaintModeLabel') || 'Repaint Mode'}</label>
+                  <select
+                    value={repaintMode}
+                    onChange={(e) => setRepaintMode(e.target.value as 'conservative' | 'balanced' | 'aggressive')}
+                    className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800"
+                  >
+                    <option value="conservative">{t('repaintConservative') || 'Conservative'}</option>
+                    <option value="balanced">{t('repaintBalanced') || 'Balanced'}</option>
+                    <option value="aggressive">{t('repaintAggressive') || 'Aggressive'}</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('repaintStrengthLabel') || 'Repaint Strength'}</label>
+                  <input
+                    type="number" step="0.05" min="0" max="1"
+                    value={repaintStrength}
+                    onChange={(e) => setRepaintStrength(Number(e.target.value))}
+                    className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -2890,17 +3004,20 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         <button
           onClick={handleGenerate}
           className="w-full h-12 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] bg-gradient-to-r from-orange-500 to-pink-600 text-white shadow-lg hover:brightness-110"
-          disabled={isGenerating || !isAuthenticated}
+          disabled={!isAuthenticated || activeJobCount >= 10}
         >
           <Sparkles size={18} />
           <span>
-            {isGenerating 
-              ? t('generating')
-              : bulkCount > 1
-                ? `${t('createButton')} ${bulkCount} ${t('jobs')} (${bulkCount * batchSize} ${t('variations')})`
-                : `${t('createButton')}${batchSize > 1 ? ` (${batchSize} ${t('variations')})` : ''}`
+            {bulkCount > 1
+              ? `${t('createButton')} ${bulkCount} ${t('jobs')} (${bulkCount * batchSize} ${t('variations')})`
+              : `${t('createButton')}${batchSize > 1 ? ` (${batchSize} ${t('variations')})` : ''}`
             }
           </span>
+          {activeJobCount > 0 && (
+            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs tabular-nums ${activeJobCount >= 10 ? 'bg-red-500/30' : 'bg-white/20'}`}>
+              {activeJobCount}/10
+            </span>
+          )}
         </button>
       </div>
     </div>

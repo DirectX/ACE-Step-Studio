@@ -17,6 +17,7 @@ interface SidebarProps {
 }
 
 const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
+  const { t } = useI18n();
   const [info, setInfo] = useState<any>({});
   const [hidden, setHidden] = useState(() => localStorage.getItem('hide-system-widget') === '1');
 
@@ -46,7 +47,7 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
       <button onClick={() => { setHidden(!hidden); localStorage.setItem('hide-system-widget', hidden ? '0' : '1'); }}
         className="flex flex-col items-center gap-1 py-2 w-full hover:bg-white/5 rounded-lg transition-colors"
         title={`${info.gpu || 'GPU'} | VRAM ${vramPct}% | ${modelShort}`}>
-        <div className={`w-2 h-2 rounded-full ${info.connected ? 'bg-zinc-500' : 'bg-red-500/60'}`}></div>
+        <div className={`w-2 h-2 rounded-full ${info.connected ? 'bg-green-600' : 'bg-red-500/60'}`}></div>
         <div className="w-6 h-1 bg-zinc-700 rounded-full overflow-hidden">
           <div className="h-full bg-zinc-500 rounded-full" style={{ width: `${vramPct}%` }}></div>
         </div>
@@ -58,7 +59,7 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
     return (
       <button onClick={() => { setHidden(false); localStorage.setItem('hide-system-widget', '0'); }}
         className="px-3 py-1.5 text-[9px] text-zinc-600 hover:text-zinc-400 transition-colors">
-        Мониторинг
+        {t('monitoring') || 'Monitoring'}
       </button>
     );
   }
@@ -109,7 +110,7 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
       <div className="flex items-center justify-between text-zinc-600 pt-1 border-t border-zinc-800">
         <span className="flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${info.connected ? 'bg-green-600' : 'bg-red-500/60 animate-pulse'}`}></span>
-          <span className="text-[9px]">{info.connected ? 'подключён' : 'отключён'}</span>
+          <span className="text-[9px]">{info.connected ? (t('connected') || 'connected') : (t('disconnected') || 'disconnected')}</span>
         </span>
         <span className="truncate text-zinc-500">{modelShort || '—'}</span>
       </div>
@@ -117,7 +118,7 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
       {/* Hide button */}
       <button onClick={() => { setHidden(true); localStorage.setItem('hide-system-widget', '1'); }}
         className="w-full text-center text-[8px] text-zinc-700 hover:text-zinc-500 transition-colors pt-0.5 opacity-50 hover:opacity-100">
-        скрыть
+        {t('hide') || 'hide'}
       </button>
     </div>
   );
