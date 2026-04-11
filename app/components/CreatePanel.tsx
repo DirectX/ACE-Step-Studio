@@ -135,7 +135,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   }, []);
 
   // Mode
-  const [customMode, setCustomMode] = useState(true);
+  const [customMode, setCustomMode] = useState(false);
 
   // Simple Mode
   const [songDescription, setSongDescription] = useState('');
