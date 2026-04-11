@@ -821,7 +821,7 @@ function AppContent() {
               thinking: true,
               isFormatCaption: true,
             };
-            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
+            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: String(sample.caption || '').slice(0, 50) || s.title, style: String(sample.caption || '') } : s));
           }
         } catch (err) {
           // create_sample not available — generate with raw description
