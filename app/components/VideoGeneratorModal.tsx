@@ -1370,17 +1370,39 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     ctx.shadowColor = 'black';
     ctx.textAlign = 'center';
 
+    const activeLayerId = dragRef.current?.layerId || hoveredLayer;
+
     currentTexts.forEach(layer => {
         ctx.fillStyle = layer.color;
-        // Adjust font size by pulse for title-like layers if needed, here we do static or slight pulse
         const dynamicSize = layer.id === '1' && currentConfig.preset === 'Minimal' ? layer.size * pulse : layer.size;
         ctx.font = `bold ${dynamicSize}px ${layer.font}, sans-serif`;
-        
+
         const xPos = (layer.x / 100) * width;
         const yPos = (layer.y / 100) * height;
-        
+
         ctx.fillText(layer.text, xPos, yPos);
+
+        // Selection frame
+        if (activeLayerId === layer.id) {
+            const metrics = ctx.measureText(layer.text);
+            const pad = 8;
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(xPos - metrics.width / 2 - pad, yPos - dynamicSize - pad, metrics.width + pad * 2, dynamicSize * 1.3 + pad * 2);
+            ctx.setLineDash([]);
+        }
     });
+
+    // Visualizer selection frame
+    if (activeLayerId === '__visualizer__') {
+        const vRadius = Math.min(width, height) * 0.18;
+        ctx.strokeStyle = '#ec4899';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(centerX - vRadius, centerY - vRadius, vRadius * 2, vRadius * 2);
+        ctx.setLineDash([]);
+    }
 
     ctx.restore();
 
@@ -1442,6 +1464,22 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           ctx.strokeText(line.text, lyricsXPos, y);
           ctx.fillText(line.text, lyricsXPos, y);
         });
+
+        // Lyrics selection frame
+        if (activeLayerId === '__lyrics__') {
+            const totalH = lineHeight * visibleLines.length;
+            let maxW = 0;
+            visibleLines.forEach(line => {
+                const m = ctx.measureText(line.text);
+                if (m.width > maxW) maxW = m.width;
+            });
+            const pad = 10;
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(lyricsXPos - maxW / 2 - pad, baseY - pad, maxW + pad * 2, totalH + pad * 2);
+            ctx.setLineDash([]);
+        }
 
         ctx.restore();
       }
