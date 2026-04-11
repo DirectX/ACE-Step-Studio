@@ -2582,24 +2582,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                             <input type="range" min={24} max={72} value={lyricsFontSize} onChange={e => setLyricsFontSize(Number(e.target.value))} className="w-full accent-pink-500" />
                                         </div>
 
-                                        {/* Colors */}
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <label className="text-[10px] text-zinc-500">{t('lyricsTextColor') || 'Text'}</label>
-                                                <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <label className="text-[10px] text-zinc-500">{t('lyricsHighlight') || 'Highlight'}</label>
-                                                <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
-                                            </div>
-                                        </div>
-
-                                        {/* Background */}
-                                        <div className="flex items-center gap-2">
-                                            <label className="text-[10px] text-zinc-500 flex-shrink-0">{t('lyricsBgOpacity') || 'Background'}</label>
-                                            <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent flex-shrink-0" />
-                                            <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500" />
-                                            <span className="text-[10px] text-zinc-400 w-8 text-right">{lyricsBgOpacity}%</span>
+                                        {/* Colors — all in one row */}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-[10px] text-zinc-500">{t('color')}</span>
+                                            <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
+                                            <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
+                                            <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
+                                            <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500 min-w-[60px]" />
+                                            <span className="text-[10px] text-zinc-400">{lyricsBgOpacity}%</span>
                                         </div>
 
                                         {/* Show sections */}
