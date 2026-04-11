@@ -375,6 +375,25 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     dragRef.current = null;
   }, []);
 
+  const handleCanvasWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+    const { x, y } = getCanvasCoords(e as any);
+    const hitId = hitTestLayers(x, y);
+    if (!hitId) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -2 : 2; // scroll down = smaller, up = bigger
+
+    if (hitId === '__visualizer__') {
+      // No direct size control for visualizer yet
+    } else if (hitId === '__lyrics__') {
+      setLyricsFontSize(prev => Math.max(16, Math.min(96, prev + delta)));
+    } else {
+      setTextLayers(prev => prev.map(l =>
+        l.id === hitId ? { ...l, size: Math.max(12, Math.min(120, l.size + delta)) } : l
+      ));
+    }
+  }, [textLayers]);
+
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { effectsRef.current = effects; }, [effects]);
   useEffect(() => { intensitiesRef.current = intensities; }, [intensities]);
@@ -803,7 +822,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         }
 
         const zoom = 1.05 + (Math.sin(time * 0.5) * 0.05);
-        ctx.translate(centerX, centerY);
+        ctx.translate(width / 2, height / 2); // Background always zooms from screen center
         ctx.scale(zoom, zoom);
         drawImageCover(ctx, bgSource, 0, 0, width, height);
         ctx.restore();
@@ -1272,7 +1291,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         }
 
         const zoom = 1.05 + (Math.sin(time * 0.5) * 0.05);
-        ctx.translate(centerX, centerY);
+        ctx.translate(width / 2, height / 2); // Background always zooms from screen center
         ctx.scale(zoom, zoom);
         drawImageCover(ctx, bgSource, 0, 0, width, height);
         ctx.restore();
@@ -1965,6 +1984,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
                 onMouseLeave={handleCanvasMouseUp}
+                onWheel={handleCanvasWheel}
               />
             </div>
 
@@ -2525,6 +2545,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
                   onMouseLeave={handleCanvasMouseUp}
+                onWheel={handleCanvasWheel}
                />
 
                {/* Playback Controls Overlay */}
