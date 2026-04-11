@@ -807,12 +807,10 @@ function AppContent() {
             vocalLanguage: params.vocalLanguage,
           }, token);
           if (sample.caption) {
-            // Prepend user's original description to LLM caption for better theme adherence
-            const combinedCaption = `${params.songDescription}. ${sample.caption}`;
             enrichedParams = {
               ...enrichedParams,
               customMode: true,
-              style: combinedCaption,
+              style: sample.caption,
               lyrics: sample.lyrics || '',
               instrumental: sample.instrumental,
               vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
@@ -823,7 +821,7 @@ function AppContent() {
               thinking: true,
               isFormatCaption: true,
             };
-            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: params.songDescription?.slice(0, 50) || s.title, style: combinedCaption } : s));
+            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
           }
         } catch (err) {
           // create_sample not available — generate with raw description
