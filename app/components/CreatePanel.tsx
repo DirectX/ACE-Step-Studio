@@ -1911,47 +1911,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </div>
             </div>
 
-            {/* Vocal Language & Gender (Custom mode) */}
-            {customMode && !instrumental && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
-                    {t('vocalLanguage')}
-                  </label>
-                  <select
-                    value={vocalLanguage}
-                    onChange={(e) => setVocalLanguage(e.target.value)}
-                    className="w-full bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
-                  >
-                    {VOCAL_LANGUAGE_KEYS.map(lang => (
-                      <option key={lang.value} value={lang.value}>{t(lang.key)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
-                    {t('vocalGender')}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setVocalGender(vocalGender === 'male' ? '' : 'male')}
-                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'male' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                    >
-                      {t('male')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVocalGender(vocalGender === 'female' ? '' : 'female')}
-                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                    >
-                      {t('female')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Lyrics Input */}
             <div
               ref={lyricsRef}
@@ -2011,6 +1970,47 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 <div className="w-8 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
               </div>
             </div>
+
+            {/* Vocal Language & Gender (Custom mode) */}
+            {customMode && !instrumental && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
+                    {t('vocalLanguage')}
+                  </label>
+                  <select
+                    value={vocalLanguage}
+                    onChange={(e) => setVocalLanguage(e.target.value)}
+                    className="w-full bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
+                  >
+                    {VOCAL_LANGUAGE_KEYS.map(lang => (
+                      <option key={lang.value} value={lang.value}>{t(lang.key)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
+                    {t('vocalGender')}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setVocalGender(vocalGender === 'male' ? '' : 'male')}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'male' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
+                    >
+                      {t('male')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVocalGender(vocalGender === 'female' ? '' : 'female')}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
+                    >
+                      {t('female')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Style Input */}
             <div className="bg-white dark:bg-suno-card rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden transition-colors group focus-within:border-zinc-400 dark:focus-within:border-white/20">
