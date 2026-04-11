@@ -261,9 +261,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   React.useEffect(() => { localStorage.setItem('ace-style', style); }, [style]);
   React.useEffect(() => { localStorage.setItem('ace-title', title); }, [title]);
 
-  // Load settings on mount
+  // Load settings on mount (once)
+  const settingsLoadedOnceRef = useRef(false);
   React.useEffect(() => {
-    if (!token) return;
+    if (!token || settingsLoadedOnceRef.current) return;
+    settingsLoadedOnceRef.current = true;
     settingsApi.get(token).then(s => {
       if (s.customMode !== undefined) setCustomMode(s.customMode as boolean);
       if (s.instrumental !== undefined) setInstrumental(s.instrumental as boolean);
@@ -820,6 +822,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         topP: lmTopP,
         lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
         lmBackend: lmBackend || 'pt',
+        vocalLanguage: vocalLanguage || 'en',
       }, token);
 
       if (result.caption || result.lyrics || result.bpm || result.duration) {
@@ -833,7 +836,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           const ts = String(result.time_signature);
           setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
         }
-        if (result.vocal_language) setVocalLanguage(result.vocal_language);
+        // Don't override user's language choice from AI format
         if (target === 'style') setIsFormatCaption(true);
       } else {
         console.error('Format failed:', result.error || result.status_message);
@@ -1449,7 +1452,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       console.error('Failed to load random description:', err);
                     }
                   }}
-                  title="Load random description"
+                  title={t('hintLoadRandom') || 'Load random description'}
                   className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-white/10 transition-colors"
                 >
                   <Dices size={14} />
@@ -1853,6 +1856,47 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </div>
             </div>
 
+            {/* Vocal Language & Gender (Custom mode) */}
+            {customMode && !instrumental && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
+                    {t('vocalLanguage')}
+                  </label>
+                  <select
+                    value={vocalLanguage}
+                    onChange={(e) => setVocalLanguage(e.target.value)}
+                    className="w-full bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
+                  >
+                    {VOCAL_LANGUAGE_KEYS.map(lang => (
+                      <option key={lang.value} value={lang.value}>{t(lang.key)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
+                    {t('vocalGender')}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setVocalGender(vocalGender === 'male' ? '' : 'male')}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'male' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
+                    >
+                      {t('male')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVocalGender(vocalGender === 'female' ? '' : 'female')}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
+                    >
+                      {t('female')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Lyrics Input */}
             <div
               ref={lyricsRef}
@@ -1877,7 +1921,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </button>
                   <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title="AI Format - Enhance style & auto-fill parameters"
+                    title={t('hintAiFormat') || 'AI Format - Enhance style & auto-fill parameters'}
                     onClick={() => handleFormat('lyrics')}
                     disabled={isFormattingLyrics || !style.trim()}
                   >
@@ -1941,7 +1985,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </button>
                   <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title="AI Format - Enhance style & auto-fill parameters"
+                    title={t('hintAiFormat') || 'AI Format - Enhance style & auto-fill parameters'}
                     onClick={() => handleFormat('style')}
                     disabled={isFormattingStyle || !style.trim()}
                   >
@@ -2005,46 +2049,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             </div>
           )}
 
-          {/* Vocal Language (Custom mode) */}
-          {customMode && !instrumental && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
-                  {t('vocalLanguage')}
-                </label>
-                <select
-                  value={vocalLanguage}
-                  onChange={(e) => setVocalLanguage(e.target.value)}
-                  className="w-full bg-white dark:bg-suno-card border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
-                >
-                  {VOCAL_LANGUAGE_KEYS.map(lang => (
-                    <option key={lang.value} value={lang.value}>{t(lang.key)}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
-                  {t('vocalGender')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setVocalGender(vocalGender === 'male' ? '' : 'male')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'male' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                  >
-                    {t('male')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setVocalGender(vocalGender === 'female' ? '' : 'female')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${vocalGender === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20'}`}
-                  >
-                    {t('female')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* LORA CONTROL PANEL */}
@@ -2237,7 +2241,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               step={1}
               onChange={setBatchSize}
               helpText={t('numberOfVariations')}
-              title="Creates multiple variations in a single run. More variations = longer total time."
+              title={t('hintBatchVariations') || 'Creates multiple variations in a single run. More variations = longer total time.'}
             />
 
             {/* Bulk Generate */}
@@ -2275,7 +2279,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               step={1}
               onChange={setInferenceSteps}
               helpText={t('moreStepsBetterQuality')}
-              title="More steps usually improves quality but slows generation."
+              title={t('hintInferenceSteps') || 'More steps usually improves quality but slows generation.'}
             />
 
             {/* Guidance Scale */}
@@ -2288,7 +2292,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               onChange={setGuidanceScale}
               formatDisplay={(val) => val.toFixed(1)}
               helpText={t('howCloselyFollowPrompt')}
-              title="How strongly the model follows the prompt. Higher = stricter, lower = freer."
+              title={t('hintGuidanceScale') || 'How strongly the model follows the prompt. Higher = stricter, lower = freer.'}
             />
 
             {/* Audio Format, Inference Method, Sampler */}
@@ -2449,7 +2453,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Dices size={14} className="text-zinc-500" />
-                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Fixing the seed makes results repeatable. Random is recommended for variety.">{t('seed')}</span>
+                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintSeed') || 'Fixing the seed makes results repeatable. Random is recommended for variety.'}>{t('seed')}</span>
                 </div>
                 <button
                   onClick={() => setRandomSeed(!randomSeed)}
@@ -2474,7 +2478,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
             {/* Thinking Toggle */}
             <div className="flex items-center justify-between py-2 border-t border-zinc-100 dark:border-white/5">
-              <span className={`text-xs font-medium ${loraLoaded ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-600 dark:text-zinc-400'}`} title="Lets the lyric model reason about structure and metadata. Slightly slower.">{t('thinkingCot')}</span>
+              <span className={`text-xs font-medium ${loraLoaded ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-600 dark:text-zinc-400'}`} title={t('hintThinkingCot') || 'Lets the lyric model reason about structure and metadata. Slightly slower.'}>{t('thinkingCot')}</span>
               <button
                 onClick={() => !loraLoaded && setThinking(!thinking)}
                 disabled={loraLoaded}
@@ -2494,7 +2498,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               onChange={setShift}
               formatDisplay={(val) => val.toFixed(1)}
               helpText={t('timestepShiftForBase')}
-              title="Adjusts the diffusion schedule. Only affects base model."
+              title={t('hintShift') || 'Adjusts the diffusion schedule. Only affects base model.'}
             />
 
             {/* Divider */}
@@ -2514,7 +2518,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <div className="flex items-center gap-2">
                 <Music2 size={16} className="text-zinc-500" />
                 <div className="flex flex-col items-start">
-                  <span title="Controls the 5Hz lyric/caption model sampling behavior.">{t('lmParameters')}</span>
+                  <span title={t('hintLmParameters') || 'Controls the 5Hz lyric/caption model sampling behavior.'}>{t('lmParameters')}</span>
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-normal">{t('controlLyricGeneration')}</span>
                 </div>
               </div>
@@ -2533,7 +2537,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   onChange={setLmTemperature}
                   formatDisplay={(val) => val.toFixed(2)}
                   helpText={t('higherMoreRandom')}
-                  title="Higher temperature = more random word choices."
+                  title={t('hintLmTemperature') || 'Higher temperature = more random word choices.'}
                 />
 
                 {/* LM CFG Scale */}
@@ -2546,7 +2550,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   onChange={setLmCfgScale}
                   formatDisplay={(val) => val.toFixed(1)}
                   helpText={t('noCfgScale')}
-                  title="How strongly the lyric model follows the prompt."
+                  title={t('hintLmCfgScale') || 'How strongly the lyric model follows the prompt.'}
                 />
 
                 {/* LM Top-K & Top-P */}
@@ -2558,7 +2562,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     max={100}
                     step={1}
                     onChange={setLmTopK}
-                    title="Restricts choices to the K most likely tokens. 0 disables."
+                    title={t('hintTopK') || 'Restricts choices to the K most likely tokens. 0 disables.'}
                   />
                   <EditableSlider
                     label={t('topP')}
@@ -2568,13 +2572,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     step={0.01}
                     onChange={setLmTopP}
                     formatDisplay={(val) => val.toFixed(2)}
-                    title="Samples from the smallest set whose total probability is P."
+                    title={t('hintTopP') || 'Samples from the smallest set whose total probability is P.'}
                   />
                 </div>
 
                 {/* LM Negative Prompt */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Words or ideas to steer the lyric model away from.">{t('lmNegativePrompt')}</label>
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintLmNegativePrompt') || 'Words or ideas to steer the lyric model away from.'}>{t('lmNegativePrompt')}</label>
                   <textarea
                     value={lmNegativePrompt}
                     onChange={(e) => setLmNegativePrompt(e.target.value)}
@@ -2587,11 +2591,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             )}
 
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title="Controls how much the output follows the input audio.">{t('transform')}</h4>
+              <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('hintTransform') || 'Controls how much the output follows the input audio.'}>{t('transform')}</h4>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{t('controlSourceAudio')}</p>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Advanced: precomputed audio codes for conditioning.">{t('audioCodes')}</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintAudioCodes') || 'Advanced: precomputed audio codes for conditioning.'}>{t('audioCodes')}</label>
               <textarea
                 value={audioCodes}
                 onChange={(e) => setAudioCodes(e.target.value)}
@@ -2607,7 +2611,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     console.log('Convert to Codes: requires source audio upload. Use Gradio UI for this feature.');
                   }}
                   disabled={!sourceAudioUrl}
-                  title="Convert source audio to LM codes (requires source audio)"
+                  title={t('hintConvertToCodes') || 'Convert source audio to LM codes (requires source audio)'}
                   className="px-2 py-1 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Convert to Codes
@@ -2619,7 +2623,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     console.log('Transcribe: requires audio codes. Use Gradio UI for this feature.');
                   }}
                   disabled={!audioCodes.trim()}
-                  title="Transcribe audio codes to metadata (requires audio codes)"
+                  title={t('hintTranscribeCodes') || 'Transcribe audio codes to metadata (requires audio codes)'}
                   className="px-2 py-1 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Transcribe
@@ -2629,7 +2633,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Choose text-to-music or audio-based modes.">{t('taskType')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintTaskType') || 'Choose text-to-music or audio-based modes.'}>{t('taskType')}</label>
                 <select
                   value={taskType}
                   onChange={(e) => setTaskType(e.target.value)}
@@ -2642,7 +2646,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="How strongly the source audio shapes the result.">{t('audioCoverStrength')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintAudioCoverStrength') || 'How strongly the source audio shapes the result.'}>{t('audioCoverStrength')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -2684,7 +2688,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Start time for the region to repaint (seconds).">{t('repaintingStart')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintRepaintingStart') || 'Start time for the region to repaint (seconds).'}>{t('repaintingStart')}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -2694,7 +2698,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="End time for the region to repaint (seconds).">{t('repaintingEnd')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintRepaintingEnd') || 'End time for the region to repaint (seconds).'}>{t('repaintingEnd')}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -2706,7 +2710,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Additional directives to guide generation.">{t('instruction')}</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintInstruction') || 'Additional directives to guide generation.'}>{t('instruction')}</label>
               <textarea
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
@@ -2720,7 +2724,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Fraction of the diffusion process to start applying guidance.">{t('cfgIntervalStart')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintCfgIntervalStart') || 'Fraction of the diffusion process to start applying guidance.'}>{t('cfgIntervalStart')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -2732,7 +2736,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Fraction of the diffusion process to stop applying guidance.">{t('cfgIntervalEnd')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintCfgIntervalEnd') || 'Fraction of the diffusion process to stop applying guidance.'}>{t('cfgIntervalEnd')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -2746,7 +2750,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Override the default timestep schedule (advanced).">{t('customTimesteps')}</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintCustomTimesteps') || 'Override the default timestep schedule (advanced).'}>{t('customTimesteps')}</label>
               <input
                 type="text"
                 value={customTimesteps}
@@ -2758,7 +2762,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Scales score-based guidance (advanced).">{t('scoreScale')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintScoreScale') || 'Scales score-based guidance (advanced).'}>{t('scoreScale')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -2770,7 +2774,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Bigger chunks can be faster but use more memory.">{t('lmBatchChunkSize')}</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintLmBatchChunkSize') || 'Bigger chunks can be faster but use more memory.'}>{t('lmBatchChunkSize')}</label>
                 <input
                   type="number"
                   min="1"
@@ -2826,44 +2830,44 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <label
                 className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400"
-                title="Adaptive Dual Guidance: dynamically adjusts CFG for quality. Base model only; slower."
+                title={t('hintUseAdg') || 'Adaptive Dual Guidance: dynamically adjusts CFG for quality. Base model only; slower.'}
               >
                 <input type="checkbox" checked={useAdg} onChange={() => setUseAdg(!useAdg)} />
                 {t('useAdg')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Allow the LM to run in larger batches for speed (more VRAM).">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintAllowLmBatch') || 'Allow the LM to run in larger batches for speed (more VRAM).'}>
                 <input type="checkbox" checked={allowLmBatch} onChange={() => setAllowLmBatch(!allowLmBatch)} />
                 {t('allowLmBatch')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Let the LM reason about metadata like BPM, key, duration.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintUseCotMetas') || 'Let the LM reason about metadata like BPM, key, duration.'}>
                 <input type="checkbox" checked={useCotMetas} onChange={() => setUseCotMetas(!useCotMetas)} />
                 {t('useCotMetas')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Let the LM reason about the caption/style text.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintUseCotCaption') || 'Let the LM reason about the caption/style text.'}>
                 <input type="checkbox" checked={useCotCaption} onChange={() => setUseCotCaption(!useCotCaption)} />
                 {t('useCotCaption')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Let the LM reason about language selection.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintUseCotLanguage') || 'Let the LM reason about language selection.'}>
                 <input type="checkbox" checked={useCotLanguage} onChange={() => setUseCotLanguage(!useCotLanguage)} />
                 {t('useCotLanguage')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Auto-generate missing fields when possible.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintAutogen') || 'Auto-generate missing fields when possible.'}>
                 <input type="checkbox" checked={autogen} onChange={() => setAutogen(!autogen)} />
                 {t('autogen')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Include debug info for constrained decoding.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintConstrainedDecodingDebug') || 'Include debug info for constrained decoding.'}>
                 <input type="checkbox" checked={constrainedDecodingDebug} onChange={() => setConstrainedDecodingDebug(!constrainedDecodingDebug)} />
                 {t('constrainedDecodingDebug')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Use the formatted caption produced by the AI formatter.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintFormatCaption') || 'Use the formatted caption produced by the AI formatter.'}>
                 <input type="checkbox" checked={isFormatCaption} onChange={() => setIsFormatCaption(!isFormatCaption)} />
                 {t('formatCaption')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Return scorer outputs for diagnostics.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintGetScores') || 'Return scorer outputs for diagnostics.'}>
                 <input type="checkbox" checked={getScores} onChange={() => setGetScores(!getScores)} />
                 {t('getScores')}
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title="Return synced lyric (LRC) output when available.">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400" title={t('hintGetLrcLyrics') || 'Return synced lyric (LRC) output when available.'}>
                 <input type="checkbox" checked={getLrc} onChange={() => setGetLrc(!getLrc)} />
                 {t('getLrcLyrics')}
               </label>

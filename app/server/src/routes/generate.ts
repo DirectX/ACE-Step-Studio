@@ -1146,7 +1146,7 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
 // Format endpoint - uses LLM to enhance style/lyrics
 router.post('/format', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { caption, lyrics, bpm, duration, keyScale, timeSignature, temperature, topK, topP, lmModel, lmBackend } = req.body;
+    const { caption, lyrics, bpm, duration, keyScale, timeSignature, temperature, topK, topP, lmModel, lmBackend, vocalLanguage } = req.body;
 
     if (!caption) {
       res.status(400).json({ error: 'Caption/style is required' });
