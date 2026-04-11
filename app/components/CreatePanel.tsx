@@ -179,13 +179,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [vocalGender, setVocalGender] = useState<'male' | 'female' | ''>('');
 
   // Music Parameters
-  const [bpm, setBpm] = useState(0);
-  const [keyScale, setKeyScale] = useState('');
-  const [timeSignature, setTimeSignature] = useState('');
+  const [bpm, setBpmRaw] = useState(0);
+  const [keyScale, setKeyScaleRaw] = useState('');
+  const [timeSignature, setTimeSignatureRaw] = useState('');
+  const bpmManual = useRef(false);
+  const keyManual = useRef(false);
+  const timeManual = useRef(false);
+  const durationManual = useRef(false);
+  // User-triggered setters mark as manual
+  const setBpm = useCallback((v: number) => { bpmManual.current = true; setBpmRaw(v); }, []);
+  const setKeyScale = useCallback((v: string) => { keyManual.current = true; setKeyScaleRaw(v); }, []);
+  const setTimeSignature = useCallback((v: string) => { timeManual.current = true; setTimeSignatureRaw(v); }, []);
 
   // Advanced Settings
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [duration, setDuration] = useState(-1);
+  const [duration, setDurationRaw] = useState(-1);
+  const setDuration = useCallback((v: number) => { durationManual.current = true; setDurationRaw(v); }, []);
   const [batchSize, setBatchSize] = useState(1);
   const [bulkCount, setBulkCount] = useState(1);
   const [guidanceScale, setGuidanceScale] = useState(9.0);
@@ -855,7 +864,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         }, token);
         if (sample.lyrics) {
           setLyrics(sample.lyrics);
-          // Don't auto-fill BPM/Key/Duration — user sets these manually
+          // Show AI-suggested values but don't mark as manual
+          if (sample.bpm && sample.bpm > 0) setBpmRaw(sample.bpm);
+          if (sample.duration && sample.duration > 0) setDurationRaw(sample.duration);
+          if (sample.keyScale) setKeyScaleRaw(sample.keyScale);
+          if (sample.timeSignature) {
+            const ts = String(sample.timeSignature);
+            setTimeSignatureRaw(ts.includes('/') ? ts : `${ts}/4`);
+          }
         } else {
           alert('LLM did not generate lyrics. Try a more descriptive style.');
         }
@@ -876,10 +892,17 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           vocalLanguage: vocalLanguage || 'en',
         }, token);
 
-        if (result.caption || result.lyrics) {
+        if (result.caption || result.lyrics || result.bpm || result.duration) {
           if (target === 'style' && result.caption) setStyle(result.caption);
           if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
-          // Don't auto-fill BPM/Key/Duration — user sets these manually
+          // Show AI-suggested values but don't mark as manual
+          if (result.bpm && result.bpm > 0) setBpmRaw(result.bpm);
+          if (result.duration && result.duration > 0) setDurationRaw(result.duration);
+          if (result.key_scale) setKeyScaleRaw(result.key_scale);
+          if (result.time_signature) {
+            const ts = String(result.time_signature);
+            setTimeSignatureRaw(ts.includes('/') ? ts : `${ts}/4`);
+          }
           if (target === 'style') setIsFormatCaption(true);
         } else {
           console.error('Format failed:', result.error || result.status_message);
@@ -1162,10 +1185,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         ditModel: selectedModel,
         instrumental,
         vocalLanguage,
-        bpm,
-        keyScale,
-        timeSignature,
-        duration,
+        bpm: bpmManual.current ? bpm : 0,
+        keyScale: keyManual.current ? keyScale : '',
+        timeSignature: timeManual.current ? timeSignature : '',
+        duration: durationManual.current ? duration : -1,
         inferenceSteps,
         guidanceScale,
         batchSize,
