@@ -703,6 +703,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     const fps = 30;
     const width = canvas.width;
     const height = canvas.height;
+    const currentConfig = configRef.current;
     const centerX = (currentConfig.visualizerX / 100) * width;
     const centerY = (currentConfig.visualizerY / 100) * height;
 
@@ -783,7 +784,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     setExportProgress(15);
 
     // Render all frames
-    const currentConfig = configRef.current;
     const currentEffects = effectsRef.current;
     const currentIntensities = intensitiesRef.current;
     const currentTexts = textLayersRef.current;
