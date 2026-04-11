@@ -80,17 +80,17 @@ interface PexelsVideo {
   user: { name: string };
 }
 
-const PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
-  { id: 'NCS Circle', label: 'Classic NCS', icon: <Circle size={16} /> },
-  { id: 'Linear Bars', label: 'Spectrum', icon: <BarChart2 size={16} /> },
-  { id: 'Dual Mirror', label: 'Mirror', icon: <ColumnsIcon /> },
-  { id: 'Center Wave', label: 'Shockwave', icon: <Waves size={16} /> },
-  { id: 'Orbital', label: 'Orbital', icon: <Disc size={16} /> },
-  { id: 'Hexagon', label: 'Hex Core', icon: <Box size={16} /> },
-  { id: 'Oscilloscope', label: 'Analog', icon: <Activity size={16} /> },
-  { id: 'Digital Rain', label: 'Matrix', icon: <Grid size={16} /> },
-  { id: 'Shockwave', label: 'Pulse', icon: <Aperture size={16} /> },
-  { id: 'Minimal', label: 'Clean', icon: <Type size={16} /> },
+const PRESETS: { id: PresetType; labelKey: string; icon: React.ReactNode }[] = [
+  { id: 'NCS Circle', labelKey: 'presetClassicNcs', icon: <Circle size={16} /> },
+  { id: 'Linear Bars', labelKey: 'presetSpectrum', icon: <BarChart2 size={16} /> },
+  { id: 'Dual Mirror', labelKey: 'presetMirror', icon: <ColumnsIcon /> },
+  { id: 'Center Wave', labelKey: 'presetShockwave', icon: <Waves size={16} /> },
+  { id: 'Orbital', labelKey: 'presetOrbital', icon: <Disc size={16} /> },
+  { id: 'Hexagon', labelKey: 'presetHexCore', icon: <Box size={16} /> },
+  { id: 'Oscilloscope', labelKey: 'presetAnalog', icon: <Activity size={16} /> },
+  { id: 'Digital Rain', labelKey: 'presetMatrix', icon: <Grid size={16} /> },
+  { id: 'Shockwave', labelKey: 'presetPulse', icon: <Aperture size={16} /> },
+  { id: 'Minimal', labelKey: 'presetClean', icon: <Type size={16} /> },
 ];
 
 function ColumnsIcon() {
@@ -1679,7 +1679,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const addTextLayer = () => {
       const newLayer: TextLayer = {
           id: Date.now().toString(),
-          text: 'New Text',
+          text: t('newText'),
           x: 50,
           y: 50,
           size: 40,
@@ -1716,7 +1716,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             <div className="absolute top-0 left-0 right-0 z-10 p-3 bg-gradient-to-b from-black/80 to-transparent">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Video className="text-pink-500" size={18} />
-                Video Studio
+                {t('videoStudio')}
               </h2>
             </div>
 
@@ -1752,17 +1752,17 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                       <Video className="text-pink-500" size={20} />
                       Video Studio
                   </h2>
-                  <p className="text-zinc-500 text-xs">Create professional visualizers.</p>
+                  <p className="text-zinc-500 text-xs">{t('createProfessionalVisualizers')}</p>
               </div>
             )}
 
             {/* Tabs */}
             <div className="flex border-b border-white/5">
                 {[
-                    { id: 'presets', label: 'Presets', icon: <Grid size={14} /> },
-                    { id: 'style', label: 'Style', icon: <Palette size={14} /> },
-                    { id: 'text', label: 'Text', icon: <Type size={14} /> },
-                    { id: 'effects', label: 'FX', icon: <Zap size={14} /> }
+                    { id: 'presets', label: t('tabPresets'), icon: <Grid size={14} /> },
+                    { id: 'style', label: t('tabStyle'), icon: <Palette size={14} /> },
+                    { id: 'text', label: t('tabText'), icon: <Type size={14} /> },
+                    { id: 'effects', label: t('tabFx'), icon: <Zap size={14} /> }
                 ].map(tab => (
                     <button 
                         key={tab.id}
@@ -1789,7 +1789,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                 <div className={`p-2 rounded-full ${config.preset === preset.id ? 'bg-pink-500 text-white' : 'bg-black/40 text-zinc-500'}`}>
                                     {preset.icon}
                                 </div>
-                                <span className="text-xs font-medium">{preset.label}</span>
+                                <span className="text-xs font-medium">{t(preset.labelKey)}</span>
                             </button>
                         ))}
                     </div>
@@ -1899,7 +1899,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
                                 <div>
                                     <div className="flex justify-between text-sm text-zinc-300 mb-2">
-                                        <span>Dimming</span>
+                                        <span>{t('dimming')}</span>
                                         <span>{Math.round(config.bgDim * 100)}%</span>
                                     </div>
                                     <input
@@ -1914,7 +1914,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
                          {/* Colors */}
                          <div className="space-y-3">
-                             <label className="text-xs font-bold text-zinc-500 uppercase">Color Presets</label>
+                             <label className="text-xs font-bold text-zinc-500 uppercase">{t('colorPresets')}</label>
                              <div className="grid grid-cols-5 gap-2">
                                  {[
                                      { name: 'Neon Pink', primary: '#ec4899', secondary: '#8b5cf6' },
@@ -1948,17 +1948,17 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                          </div>
 
                          <div className="space-y-3">
-                             <label className="text-xs font-bold text-zinc-500 uppercase">Custom Colors</label>
+                             <label className="text-xs font-bold text-zinc-500 uppercase">{t('customColors')}</label>
                              <div className="grid grid-cols-2 gap-4">
                                  <div>
-                                     <span className="text-[10px] text-zinc-400 mb-1 block">Primary</span>
+                                     <span className="text-[10px] text-zinc-400 mb-1 block">{t('primary')}</span>
                                      <div className="flex items-center gap-2 bg-black/20 p-2 rounded border border-white/5">
                                          <input type="color" value={config.primaryColor} onChange={(e) => setConfig({...config, primaryColor: e.target.value})} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
                                          <span className="text-xs text-zinc-300 font-mono">{config.primaryColor}</span>
                                      </div>
                                  </div>
                                  <div>
-                                     <span className="text-[10px] text-zinc-400 mb-1 block">Secondary</span>
+                                     <span className="text-[10px] text-zinc-400 mb-1 block">{t('secondary')}</span>
                                       <div className="flex items-center gap-2 bg-black/20 p-2 rounded border border-white/5">
                                          <input type="color" value={config.secondaryColor} onChange={(e) => setConfig({...config, secondaryColor: e.target.value})} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
                                          <span className="text-xs text-zinc-300 font-mono">{config.secondaryColor}</span>
@@ -1970,7 +1970,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                          {/* Particles */}
                          <div className="space-y-3">
                             <div className="flex justify-between text-xs font-bold text-zinc-500 uppercase">
-                                <span>Particles</span>
+                                <span>{t('particles')}</span>
                                 <span>{config.particleCount}</span>
                             </div>
                             <input
@@ -1981,9 +1981,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                             />
                         </div>
 
-                        {/* Center Image (Album Art) */}
+                        {/* {t('centerImage')} (Album Art) */}
                         <div className="space-y-3">
-                            <label className="text-xs font-bold text-zinc-500 uppercase">Center Image</label>
+                            <label className="text-xs font-bold text-zinc-500 uppercase">{t('centerImage')}</label>
                             <div className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
                                 <div className="flex items-center gap-3">
                                     {/* Preview */}
@@ -2038,14 +2038,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                             onClick={addTextLayer}
                             className="w-full py-2 bg-pink-600 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold hover:bg-pink-700"
                         >
-                            <Plus size={14} /> Add Text Layer
+                            <Plus size={14} /> {t('addTextLayer')}
                         </button>
                         
                         <div className="space-y-3">
                             {textLayers.map((layer, index) => (
                                 <div key={layer.id} className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-zinc-500">Layer {index + 1}</span>
+                                        <span className="text-xs font-bold text-zinc-500">{t('layer')} {index + 1}</span>
                                         <button onClick={() => removeTextLayer(layer.id)} className="text-zinc-500 hover:text-red-500">
                                             <Trash2 size={14} />
                                         </button>
@@ -2059,21 +2059,21 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                     />
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">X Position</label>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('xPosition')}</label>
                                             <input type="range" min="0" max="100" value={layer.x} onChange={(e) => updateTextLayer(layer.id, { x: parseInt(e.target.value) })} className="w-full accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Y Position</label>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('yPosition')}</label>
                                             <input type="range" min="0" max="100" value={layer.y} onChange={(e) => updateTextLayer(layer.id, { y: parseInt(e.target.value) })} className="w-full accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Size</label>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('size')}</label>
                                             <input type="number" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5" />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Color</label>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('color')}</label>
                                             <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-8 h-6 rounded cursor-pointer border-none bg-transparent" />
                                         </div>
                                     </div>
@@ -2127,7 +2127,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                     {isActive && (
                                         <div className="px-3 pb-3 pt-0 animate-in fade-in slide-in-from-top-2">
                                             <div className="flex justify-between text-[10px] text-zinc-400 mb-1">
-                                                <span>Intensity</span>
+                                                <span>{t('intensity')}</span>
                                                 <span>{Math.round(intensity * 100)}%</span>
                                             </div>
                                             <input 
@@ -2182,11 +2182,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                         className="w-full h-12 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
                     >
                         <Download size={18} />
-                        Render Video (MP4)
+                        {t('renderVideo')}
                     </button>
                  )}
                  <p className="text-[10px] text-zinc-600 text-center">
-                   {ffmpegLoaded ? 'Encoder ready • ' : ''}Offline rendering - faster than real-time.
+                   {ffmpegLoaded ? `${t('encoderReady')} • ` : ''}{t('offlineRendering')}
                  </p>
             </div>
         </div>
@@ -2228,7 +2228,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 </div>
                 <div>
                   <h3 className="text-white font-bold">
-                    {pexelsTarget === 'albumArt' ? 'Select Center Image' : 'Select Background'}
+                    {pexelsTarget === 'albumArt' ? t('selectCenterImage') : t('selectBackground')}
                   </h3>
                   <p className="text-zinc-500 text-xs">
                     {pexelsTarget === 'albumArt' ? 'Choose an image for the center circle' : 'Free stock photos & videos'}
@@ -2253,7 +2253,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             {showPexelsApiKeyInput && (
               <div className="p-4 bg-zinc-800/50 border-b border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-zinc-300">Pexels API Key</label>
+                  <label className="text-sm font-medium text-zinc-300">{t('pexelsApiKey')}</label>
                   <a
                     href="https://www.pexels.com/api/new/"
                     target="_blank"
@@ -2278,7 +2278,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     Save
                   </button>
                 </div>
-                <p className="text-xs text-zinc-500">Your API key is stored locally in your browser.</p>
+                <p className="text-xs text-zinc-500">{t('apiKeyStoredLocally')}</p>
               </div>
             )}
 
@@ -2395,17 +2395,17 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
               )}
 
               {!pexelsLoading && pexelsPhotos.length === 0 && pexelsTab === 'photos' && (
-                <p className="text-center text-zinc-500 py-8">No photos found. Try a different search term.</p>
+                <p className="text-center text-zinc-500 py-8">{t('noPhotosFound')}</p>
               )}
               {!pexelsLoading && pexelsVideos.length === 0 && pexelsTab === 'videos' && (
-                <p className="text-center text-zinc-500 py-8">No videos found. Try a different search term.</p>
+                <p className="text-center text-zinc-500 py-8">{t('noVideosFound')}</p>
               )}
             </div>
 
             {/* Footer */}
             <div className="p-3 border-t border-white/10 bg-zinc-800/50">
               <p className="text-[10px] text-zinc-500 text-center">
-                Photos and videos provided by <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">Pexels</a>. Free for commercial use.
+                {t('pexelsAttribution')}
               </p>
             </div>
           </div>
