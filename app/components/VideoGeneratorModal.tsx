@@ -2665,6 +2665,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         {/* Preview Area - Desktop only */}
         {!isMobile && (
           <div className="flex-1 bg-black relative flex flex-col">
+               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 flex-shrink-0">
+                 <span>🖱 {t('dragToMove')}</span>
+                 <span>⚙ {t('scrollToResize')}</span>
+               </div>
                <canvas
                   ref={canvasRef}
                   width={RESOLUTIONS[config.aspectRatio].width}
