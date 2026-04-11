@@ -1963,7 +1963,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('leaveLyricsEmpty')}>{t('lyrics')}</span>
                   <button
                     onClick={() => setInstrumental(!instrumental)}
-                    className={`relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0 ${instrumental ? 'bg-zinc-600 dark:bg-zinc-600' : 'bg-green-500'}`}
+                    className={`relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0 ${instrumental ? 'bg-zinc-600 dark:bg-zinc-600' : 'bg-zinc-400 dark:bg-zinc-500'}`}
                     title={instrumental ? t('instrumental') : t('vocal')}
                   >
                     <span className={`absolute top-[3px] w-3 h-3 rounded-full bg-white shadow-sm transition-transform ${instrumental ? 'left-[3px]' : 'left-[17px]'}`} />
