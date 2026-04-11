@@ -32,6 +32,10 @@ interface VisualizerConfig {
   bgDim: number;
   particleCount: number;
   aspectRatio: AspectRatio;
+  visualizerX: number; // 0-100%
+  visualizerY: number; // 0-100%
+  lyricsX: number;     // 0-100%
+  lyricsY: number;     // 0-100%
 }
 
 interface EffectConfig {
@@ -186,6 +190,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     bgDim: 0.6,
     particleCount: 50,
     aspectRatio: '16:9' as AspectRatio,
+    visualizerX: 50,
+    visualizerY: 50,
+    lyricsX: 50,
+    lyricsY: 80,
   });
 
   const [effects, setEffects] = useState<EffectConfig>({
@@ -256,48 +264,95 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const lyricsShowSectionsRef = useRef(lyricsShowSections);
 
   // WYSIWYG drag state
-  const dragRef = useRef<{ layerId: string; offsetX: number; offsetY: number } | null>(null);
+  const dragRef = useRef<{ layerId: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const [hoveredLayer, setHoveredLayer] = useState<string | null>(null);
 
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX;
-    const my = (e.clientY - rect.top) * scaleY;
+    return {
+      x: (e.clientX - rect.left) / rect.width * 100,
+      y: (e.clientY - rect.top) / rect.height * 100,
+    };
+  };
+
+  const hitTestLayers = (px: number, py: number): string | null => {
+    const cfg = configRef.current;
+
+    // Hit test visualizer (center circle area ~20% radius)
+    const vDist = Math.sqrt((px - cfg.visualizerX) ** 2 + (py - cfg.visualizerY) ** 2);
+    if (vDist < 15) return '__visualizer__';
+
+    // Hit test lyrics area
+    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
+      const lDist = Math.abs(py - cfg.lyricsY);
+      const lDistX = Math.abs(px - cfg.lyricsX);
+      if (lDist < 8 && lDistX < 30) return '__lyrics__';
+    }
 
     // Hit test text layers (reverse order = top layer first)
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) return null;
     for (let i = textLayers.length - 1; i >= 0; i--) {
       const layer = textLayers[i];
-      ctx.font = `bold ${layer.size}px ${layer.font}, sans-serif`;
+      ctx.font = `bold ${layer.size * (canvas.width / 1920)}px ${layer.font}, sans-serif`;
       const metrics = ctx.measureText(layer.text);
-      const lx = (layer.x / 100) * canvas.width;
-      const ly = (layer.y / 100) * canvas.height;
-      const halfW = metrics.width / 2;
-      const halfH = layer.size / 2;
-      if (mx >= lx - halfW && mx <= lx + halfW && my >= ly - halfH && my <= ly + halfH) {
-        dragRef.current = { layerId: layer.id, offsetX: mx - lx, offsetY: my - ly };
-        e.preventDefault();
-        return;
+      const textW = (metrics.width / canvas.width) * 100;
+      const textH = (layer.size * (canvas.width / 1920) * 1.3 / canvas.height) * 100;
+      const pad = 3;
+      if (px >= layer.x - textW / 2 - pad && px <= layer.x + textW / 2 + pad &&
+          py >= layer.y - textH - pad && py <= layer.y + pad) {
+        return layer.id;
       }
     }
-  }, [textLayers]);
+    return null;
+  };
+
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+    const { x, y } = getCanvasCoords(e);
+    const hitId = hitTestLayers(x, y);
+    if (hitId) {
+      let origX: number, origY: number;
+      if (hitId === '__visualizer__') {
+        origX = config.visualizerX; origY = config.visualizerY;
+      } else if (hitId === '__lyrics__') {
+        origX = config.lyricsX; origY = config.lyricsY;
+      } else {
+        const layer = textLayers.find(l => l.id === hitId);
+        if (!layer) return;
+        origX = layer.x; origY = layer.y;
+      }
+      dragRef.current = { layerId: hitId, startX: x, startY: y, origX, origY };
+      e.preventDefault();
+    }
+  }, [textLayers, config]);
 
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!dragRef.current || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX - dragRef.current.offsetX;
-    const my = (e.clientY - rect.top) * scaleY - dragRef.current.offsetY;
-    const newX = Math.max(0, Math.min(100, (mx / canvas.width) * 100));
-    const newY = Math.max(0, Math.min(100, (my / canvas.height) * 100));
-    setTextLayers(prev => prev.map(l => l.id === dragRef.current!.layerId ? { ...l, x: newX, y: newY } : l));
-  }, []);
+    if (!canvasRef.current) return;
+    const { x, y } = getCanvasCoords(e);
+
+    if (dragRef.current) {
+      const dx = x - dragRef.current.startX;
+      const dy = y - dragRef.current.startY;
+      const newX = Math.max(5, Math.min(95, dragRef.current.origX + dx));
+      const newY = Math.max(5, Math.min(95, dragRef.current.origY + dy));
+      const id = dragRef.current.layerId;
+      if (id === '__visualizer__') {
+        setConfig(prev => ({ ...prev, visualizerX: newX, visualizerY: newY }));
+      } else if (id === '__lyrics__') {
+        setConfig(prev => ({ ...prev, lyricsX: newX, lyricsY: newY }));
+      } else {
+        setTextLayers(prev => prev.map(l => l.id === id ? { ...l, x: newX, y: newY } : l));
+      }
+    } else {
+      // Hover detection for cursor
+      const hitId = hitTestLayers(x, y);
+      setHoveredLayer(hitId);
+    }
+  }, [textLayers]);
 
   const handleCanvasMouseUp = useCallback(() => {
     dragRef.current = null;
@@ -589,8 +644,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     const fps = 30;
     const width = canvas.width;
     const height = canvas.height;
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const centerX = (currentConfig.visualizerX / 100) * width;
+    const centerY = (currentConfig.visualizerY / 100) * height;
 
     setExportProgress(1);
 
@@ -1158,8 +1213,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     const width = canvas.width;
     const height = canvas.height;
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const centerX = (currentConfig.visualizerX / 100) * width;
+    const centerY = (currentConfig.visualizerY / 100) * height;
     const time = Date.now() / 1000;
 
     // Data
@@ -1317,12 +1372,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           visibleLines.push({ text: line.text, isCurrent: offset === 0 });
         }
 
-        // Calculate Y position
+        // Calculate position from config (draggable)
         const lineHeight = fontSize * 1.6;
-        let baseY: number;
-        if (position === 'bottom') baseY = height - lineHeight * maxLines - height * 0.08;
-        else if (position === 'top') baseY = height * 0.12;
-        else baseY = (height - lineHeight * visibleLines.length) / 2;
+        const lyricsXPos = (currentConfig.lyricsX / 100) * width;
+        const lyricsYPos = (currentConfig.lyricsY / 100) * height;
+        const baseY = lyricsYPos - (lineHeight * visibleLines.length) / 2;
 
         ctx.save();
         ctx.textAlign = 'center';
@@ -1340,7 +1394,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * alpha})`;
           ctx.beginPath();
           const pillRadius = pillHeight / 2;
-          const pillX = width / 2 - pillWidth / 2;
+          const pillX = lyricsXPos - pillWidth / 2;
           const pillY = y - fontSize * 0.15;
           ctx.roundRect(pillX, pillY, pillWidth, pillHeight, pillRadius);
           ctx.fill();
@@ -1349,8 +1403,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.strokeStyle = `rgba(0, 0, 0, ${0.8 * alpha})`;
           ctx.lineWidth = 3;
-          ctx.strokeText(line.text, width / 2, y);
-          ctx.fillText(line.text, width / 2, y);
+          ctx.strokeText(line.text, lyricsXPos, y);
+          ctx.fillText(line.text, lyricsXPos, y);
         });
 
         ctx.restore();
@@ -1889,7 +1943,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 ref={canvasRef}
                 width={RESOLUTIONS[config.aspectRatio].width}
                 height={RESOLUTIONS[config.aspectRatio].height}
-                className="w-full h-full object-contain bg-[#0a0a0a] cursor-grab active:cursor-grabbing"
+                className="w-full h-full object-contain bg-[#0a0a0a] cursor-crosshair"
                 onMouseDown={handleCanvasMouseDown}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
@@ -2449,7 +2503,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   ref={canvasRef}
                   width={RESOLUTIONS[config.aspectRatio].width}
                   height={RESOLUTIONS[config.aspectRatio].height}
-                  className="w-full h-full object-contain bg-[#0a0a0a] cursor-grab active:cursor-grabbing"
+                  className="w-full h-full object-contain bg-[#0a0a0a] cursor-crosshair"
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
