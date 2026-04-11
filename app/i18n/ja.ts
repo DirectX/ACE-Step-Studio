@@ -109,6 +109,7 @@ export const ja = {
   lyricsHighlight: 'ハイライト',
   lyricsBgOpacity: '背景',
   opacity: '不透明度',
+  lyricsOffset: 'オフセット',
   dragToMove: 'ドラッグで移動',
   scrollToResize: 'スクロールでサイズ変更',
   generationFailed: '生成に失敗しました。もう一度お試しください。',

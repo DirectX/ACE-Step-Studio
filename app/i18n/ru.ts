@@ -111,6 +111,7 @@ export const ru = {
     lyricsHighlight: 'Выделение',
     lyricsBgOpacity: 'Подложка',
     opacity: 'Прозрачность',
+    lyricsOffset: 'Сдвиг',
     dragToMove: 'Перетащите для перемещения',
     scrollToResize: 'Прокрутка для изменения размера',
     generationFailed: 'Генерация не удалась. Попробуйте ещё раз.',

@@ -142,6 +142,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const [lyricsBgColor, setLyricsBgColor] = useState('#000000');
   const [lyricsBgOpacity, setLyricsBgOpacity] = useState(50);
   const [lyricsHighlightColor, setLyricsHighlightColor] = useState('#ec4899');
+  const [lyricsOffset, setLyricsOffset] = useState(0); // seconds, negative = later
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationRef = useRef<number>(0);
@@ -289,6 +290,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const lyricsBgColorRef = useRef(lyricsBgColor);
   const lyricsBgOpacityRef = useRef(lyricsBgOpacity);
   const lyricsHighlightColorRef = useRef(lyricsHighlightColor);
+  const lyricsOffsetRef = useRef(lyricsOffset);
 
   // WYSIWYG drag state
   const dragRef = useRef<{ layerId: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -436,6 +438,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   useEffect(() => { lyricsBgColorRef.current = lyricsBgColor; }, [lyricsBgColor]);
   useEffect(() => { lyricsBgOpacityRef.current = lyricsBgOpacity; }, [lyricsBgOpacity]);
   useEffect(() => { lyricsHighlightColorRef.current = lyricsHighlightColor; }, [lyricsHighlightColor]);
+  useEffect(() => { lyricsOffsetRef.current = lyricsOffset; }, [lyricsOffset]);
 
   // Load FFmpeg
   const loadFFmpeg = useCallback(async () => {
@@ -1460,7 +1463,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     // --- 3.5 SYNCED LYRICS OVERLAY ---
     if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
-      const currentTime = audioRef.current?.currentTime || 0;
+      const currentTime = (audioRef.current?.currentTime || 0) + lyricsOffsetRef.current;
       const lines = lrcLinesRef.current;
       const showSections = lyricsShowSectionsRef.current;
       const fontSize = lyricsFontSizeRef.current * (width / 1920);
@@ -2582,6 +2585,13 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         </div>
 
                                         {/* Show sections */}
+                                        {/* Timing offset */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] text-zinc-500">{t('lyricsOffset') || 'Offset'}</span>
+                                            <input type="range" min={-3} max={3} step={0.1} value={lyricsOffset} onChange={e => setLyricsOffset(Number(e.target.value))} className="flex-1 accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
+                                            <span className="text-[10px] text-zinc-400 w-10 text-right">{lyricsOffset > 0 ? '+' : ''}{lyricsOffset.toFixed(1)}s</span>
+                                        </div>
+
                                         <label className="flex items-center gap-2 text-[10px] text-zinc-400 cursor-pointer">
                                             <input type="checkbox" checked={lyricsShowSections} onChange={() => setLyricsShowSections(!lyricsShowSections)} className="accent-pink-500" />
                                             {t('showSectionMarkers') || 'Show section markers ([Verse], [Chorus])'}
