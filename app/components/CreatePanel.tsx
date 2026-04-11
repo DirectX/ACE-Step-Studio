@@ -1691,6 +1691,41 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </div>
                 )}
 
+                {/* Inline Cover/Repaint controls (shown when source audio loaded) */}
+                {audioTab === 'source' && sourceAudioUrl && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('mode') || 'Mode'}</span>
+                      <div className="flex items-center gap-1 bg-zinc-100 dark:bg-black/20 rounded-lg p-0.5 flex-1">
+                        <button type="button" onClick={() => setTaskType('cover')}
+                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'cover' || taskType === 'audio2audio' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>
+                          Cover
+                        </button>
+                        <button type="button" onClick={() => setTaskType('repaint')}
+                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'repaint' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>
+                          Repaint
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('audioCoverStrength') || 'Influence'}</span>
+                      <input type="range" min="0" max="1" step="0.05" value={audioCoverStrength}
+                        onChange={(e) => setAudioCoverStrength(Number(e.target.value))}
+                        className="flex-1 h-1 accent-pink-500 cursor-pointer" />
+                      <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
+                    </div>
+                    {taskType === 'repaint' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('repaintStrengthLabel') || 'Strength'}</span>
+                        <input type="range" min="0" max="1" step="0.05" value={repaintStrength}
+                          onChange={(e) => setRepaintStrength(Number(e.target.value))}
+                          className="flex-1 h-1 accent-purple-500 cursor-pointer" />
+                        <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Action buttons */}
                 <div className="flex gap-2">
                   <button
