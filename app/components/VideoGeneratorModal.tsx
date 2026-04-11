@@ -454,24 +454,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         }
       });
 
-      const cdnBases = [
-        'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm',
-        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm',
-      ];
-      let loaded = false;
-      for (const baseURL of cdnBases) {
-        try {
-          await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-          });
-          loaded = true;
-          break;
-        } catch {
-          console.warn(`FFmpeg load failed from ${baseURL}, trying next CDN...`);
-        }
-      }
-      if (!loaded) throw new Error('All CDN sources failed');
+      // Load FFmpeg from local files (no CDN dependency)
+      await ffmpeg.load({
+        coreURL: '/ffmpeg/ffmpeg-core.js',
+        wasmURL: '/ffmpeg/ffmpeg-core.wasm',
+      });
 
       ffmpegRef.current = ffmpeg;
       setFfmpegLoaded(true);
