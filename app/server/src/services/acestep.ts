@@ -168,7 +168,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.timeSignature || '',                                   //  4: time_signature
     params.vocalLanguage || 'en',                                 //  5: vocal_language
     Math.min(params.inferenceSteps ?? 8, isTurbo ? 20 : 200),     //  6: inference_steps (clamped to model max)
-    Math.max(params.guidanceScale ?? 7.0, 1.0),                    //  7: guidance_scale (Gradio slider min=1.0)
+    params.guidanceScale ?? 7.0,                                  //  7: guidance_scale
     params.randomSeed !== false,                                  //  8: random_seed_checkbox
     String(params.seed ?? -1),                                    //  9: seed
     referenceAudio,                                               // 10: reference_audio
@@ -185,7 +185,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.useAdg ?? false,                                       // 21: use_adg
     params.cfgIntervalStart ?? 0.0,                               // 22: cfg_interval_start
     params.cfgIntervalEnd ?? 1.0,                                 // 23: cfg_interval_end
-    Math.max(params.shift ?? 3.0, 1.0),                            // 24: shift (Gradio slider min=1.0)
+    params.shift ?? 3.0,                                          // 24: shift
     params.inferMethod || 'ode',                                  // 25: infer_method
     params.samplerMode || 'euler',                                  // 26: sampler_mode (euler/heun)
     params.velocityNormThreshold ?? 0.0,                            // 27: velocity_norm_threshold
@@ -196,7 +196,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.mp3SampleRate ?? 48000,                                  // 32: mp3_sample_rate
     params.lmTemperature ?? 0.85,                                 // 33: lm_temperature
     isThinking,                                                   // 34: think_checkbox
-    Math.max(params.lmCfgScale ?? 2.0, 1.0),                      // 35: lm_cfg_scale (Gradio slider min=1.0)
+    params.lmCfgScale ?? 2.0,                                    // 35: lm_cfg_scale
     params.lmTopK ?? 0,                                           // 36: lm_top_k
     params.lmTopP ?? 0.9,                                         // 37: lm_top_p
     params.lmNegativePrompt || 'NO USER INPUT',                   // 38: lm_negative_prompt
