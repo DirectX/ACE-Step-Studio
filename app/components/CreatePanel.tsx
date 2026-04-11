@@ -2387,10 +2387,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <select
                 value={lmBackend}
                 onChange={e => setLmBackend(e.target.value as 'pt' | 'vllm')}
-                className="w-full bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/5 rounded-md px-2 py-1.5 text-xs text-zinc-900 dark:text-white"
+                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
               >
-                <option value="vllm">vLLM (faster)</option>
-                <option value="pt">PyTorch</option>
+                <option value="vllm">{t('lmBackendVllm') || 'VLLM (~9.2 GB VRAM)'}</option>
+                <option value="pt">{t('lmBackendPt') || 'PT (~1.6 GB VRAM)'}</option>
               </select>
               <p className="text-[10px] text-zinc-500">{t('lmBackendHint') || 'vLLM uses CUDA graphs for faster LLM inference'}</p>
             </div>
