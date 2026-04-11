@@ -803,7 +803,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
   // Format handler - uses LLM to enhance style/lyrics and auto-fill parameters
   const handleFormat = async (target: 'style' | 'lyrics') => {
-    if (!token || !style.trim()) return;
+    if (!token) return;
+    if (target === 'style' && !style.trim()) return;
+    if (target === 'lyrics' && !lyrics.trim() && !style.trim()) return;
     if (target === 'style') {
       setIsFormattingStyle(true);
     } else {
@@ -1904,8 +1906,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             >
               <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-50 dark:bg-white/5 border-b border-zinc-100 dark:border-white/5 flex-shrink-0">
                 <div>
-                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('lyrics')}</span>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('leaveLyricsEmpty')}</p>
+                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('leaveLyricsEmpty')}>{t('lyrics')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1966,7 +1967,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       <span>{enhance ? 'ON' : 'OFF'}</span>
                     </button>
                   </div>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('genreMoodInstruments')}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button

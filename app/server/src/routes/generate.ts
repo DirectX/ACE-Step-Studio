@@ -1148,8 +1148,8 @@ router.post('/format', authMiddleware, async (req: AuthenticatedRequest, res: Re
   try {
     const { caption, lyrics, bpm, duration, keyScale, timeSignature, temperature, topK, topP, lmModel, lmBackend, vocalLanguage } = req.body;
 
-    if (!caption) {
-      res.status(400).json({ error: 'Caption/style is required' });
+    if (!caption && !lyrics) {
+      res.status(400).json({ error: 'Caption/style or lyrics is required' });
       return;
     }
 
