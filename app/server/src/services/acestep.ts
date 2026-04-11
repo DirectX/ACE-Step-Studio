@@ -201,7 +201,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.lmTopP ?? 0.9,                                         // 37: lm_top_p
     params.lmNegativePrompt || 'NO USER INPUT',                   // 38: lm_negative_prompt
     useCot ? (params.useCotMetas ?? true) : false,                // 39: use_cot_metas
-    useCot ? (params.useCotCaption ?? true) : false,              // 40: use_cot_caption
+    useCot ? (params.useCotCaption ?? false) : false,             // 40: use_cot_caption (off by default — LLM rewrites poorly for non-English)
     useCot ? (params.useCotLanguage ?? true) : false,             // 41: use_cot_language
     // is_format_caption_state is a hidden Gradio State — NOT passed via client.predict()
     params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
