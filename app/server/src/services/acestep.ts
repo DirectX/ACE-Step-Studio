@@ -633,6 +633,7 @@ async function processGenerationViaGradio(
 
   const result = await new Promise<{ data: unknown[] }>((resolve, reject) => {
     submission.on('status', (status: any) => {
+      console.log(`[Gradio] Job ${jobId} status:`, JSON.stringify(status).slice(0, 300));
       if (status.stage === 'error') {
         reject(new Error(status.message || 'Gradio generation error'));
       }
@@ -643,18 +644,16 @@ async function processGenerationViaGradio(
         const progress = status.progress_data;
         if (progress && Array.isArray(progress) && progress.length > 0) {
           const p = progress[0];
-          const pct = p.index !== undefined && p.length ? Math.round((p.index / p.length) * 100) : null;
-          job.stage = p.desc || 'Generating...';
-          if (pct !== null) {
-            job.progress = pct / 100;
-            job.stage = `${p.desc || 'Generating'} ${pct}%`;
+          if (p.index !== undefined && p.length) {
+            job.progress = p.index / p.length;
           }
-        } else {
-          job.stage = 'Generating...';
+          if (p.desc) {
+            job.stage = p.desc;
+          }
         }
       }
       if (status.stage === 'complete') {
-        job.stage = 'Saving...';
+        job.stage = 'Saving audio...';
         resolve({ data: status.data || [] });
       }
     });

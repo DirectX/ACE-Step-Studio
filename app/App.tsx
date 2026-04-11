@@ -805,6 +805,7 @@ function AppContent() {
       let enrichedParams = { ...params };
       if (!params.customMode && params.songDescription && token) {
         try {
+          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, stage: 'Writing lyrics & style...' } : s));
           const sample = await generateApi.createSample({
             query: params.songDescription,
             instrumental: params.instrumental,
