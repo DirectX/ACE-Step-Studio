@@ -1590,8 +1590,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </div>
             )}
 
-            {/* Vocal Language (Simple) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Instrumental Toggle (Simple) */}
+            <div className="flex items-center justify-between px-1">
+              <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                {t('instrumental')}
+              </label>
+              <button
+                type="button"
+                onClick={() => setInstrumental(!instrumental)}
+                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${instrumental ? 'bg-pink-500' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+              >
+                <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${instrumental ? 'left-[22px]' : 'left-[2px]'}`} />
+              </button>
+            </div>
+
+            {/* Vocal Language (Simple) - hidden when instrumental */}
+            {!instrumental && <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide px-1">
                   {t('vocalLanguage')}
@@ -1627,7 +1641,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Quick Settings (Simple Mode) */}
             <div className="bg-white dark:bg-suno-card rounded-xl border border-zinc-200 dark:border-white/5 p-4 space-y-4">
@@ -1966,7 +1980,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   {lyricsHistoryRef.current.length > 0 && (
                     <button
                       className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-                      title="Undo"
+                      title={t('undo')}
                       onClick={undoLyrics}
                     >
                       <Undo2 size={14} />
@@ -2059,7 +2073,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   {styleHistoryRef.current.length > 0 && (
                     <button
                       className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-                      title="Undo"
+                      title={t('undo')}
                       onClick={undoStyle}
                     >
                       <Undo2 size={14} />

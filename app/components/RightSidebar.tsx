@@ -243,7 +243,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                             startTitleEdit();
                                         }}
                                         className="text-zinc-400 hover:text-black dark:hover:text-white p-1 mr-1"
-                                        title="Rename song"
+                                        title={t('renameSong')}
                                     >
                                         <Edit3 size={18} />
                                     </button>

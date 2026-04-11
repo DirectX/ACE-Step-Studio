@@ -639,7 +639,7 @@ const SongItem: React.FC<SongItemProps> = ({
                             {getModelDisplayName(song.ditModel)}
                         </span>
                         {song.generationTime != null && song.generationTime > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] text-zinc-400 dark:text-zinc-500" title="Generation time">
+                            <span className="inline-flex items-center gap-0.5 text-[9px] text-zinc-400 dark:text-zinc-500" title={t('generationTime') || 'Generation time'}>
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 {song.generationTime}s
                             </span>
@@ -709,7 +709,7 @@ const SongItem: React.FC<SongItemProps> = ({
                         <button
                             className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-white/5 text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
                             onClick={(e) => { e.stopPropagation(); setShareModalOpen(true); }}
-                            title="Share"
+                            title={t('share')}
                         >
                             <Share2 size={16} />
                         </button>
@@ -717,7 +717,7 @@ const SongItem: React.FC<SongItemProps> = ({
                         <button
                             className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-white/5 text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
                             onClick={(e) => { e.stopPropagation(); if (onOpenVideo) onOpenVideo(); }}
-                            title="Create Video"
+                            title={t('createVideo')}
                         >
                             <Video size={16} />
                         </button>
@@ -725,7 +725,7 @@ const SongItem: React.FC<SongItemProps> = ({
                         <button
                             className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-white/5 text-zinc-400 hover:text-black dark:hover:text-white transition-colors ml-auto"
                             onClick={(e) => { e.stopPropagation(); onAddToPlaylist(); }}
-                            title="Add to Playlist"
+                            title={t('addToPlaylist')}
                         >
                             <ListPlus size={16} />
                         </button>
@@ -734,7 +734,7 @@ const SongItem: React.FC<SongItemProps> = ({
                         <button
                             className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-white/5 text-zinc-400 hover:text-black dark:hover:text-white transition-colors xl:hidden"
                             onClick={(e) => { e.stopPropagation(); if (onShowDetails) onShowDetails(); }}
-                            title="Song Details"
+                            title={t('songDetails')}
                         >
                             <Info size={16} />
                         </button>

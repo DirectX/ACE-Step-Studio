@@ -1868,7 +1868,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         </div>
                                         <input
                                             type="text"
-                                            placeholder="Or paste video URL..."
+                                            placeholder={t('orPasteVideoUrl')}
                                             value={videoUrl}
                                             onChange={(e) => setVideoUrl(e.target.value)}
                                             className="w-full bg-zinc-800 rounded px-3 py-2 text-xs text-white border border-white/10 placeholder-zinc-500"
@@ -2053,7 +2053,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         value={layer.text} 
                                         onChange={(e) => updateTextLayer(layer.id, { text: e.target.value })}
                                         className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5"
-                                        placeholder="Text content"
+                                        placeholder={t('textContent')}
                                     />
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
@@ -2266,7 +2266,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     type="password"
                     value={pexelsApiKey}
                     onChange={(e) => setPexelsApiKey(e.target.value)}
-                    placeholder="Enter your Pexels API key..."
+                    placeholder={t('enterPexelsApiKey')}
                     className="flex-1 bg-zinc-900 rounded-lg px-4 py-2 text-sm text-white border border-white/10 placeholder-zinc-500"
                   />
                   <button
@@ -2319,7 +2319,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   value={pexelsQuery}
                   onChange={(e) => setPexelsQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && searchPexels(pexelsQuery, pexelsTab)}
-                  placeholder="Search for backgrounds..."
+                  placeholder={t('searchBackgrounds')}
                   className="flex-1 bg-zinc-800 rounded-lg px-4 py-2 text-sm text-white border border-white/10 placeholder-zinc-500"
                 />
                 <button

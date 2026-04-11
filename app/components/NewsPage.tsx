@@ -85,7 +85,7 @@ export const NewsPage: React.FC = () => {
             <button
               onClick={() => dismissNewsItem(item.id)}
               className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 transition-all flex-shrink-0"
-              title="Dismiss"
+              title={t('dismiss')}
             >
               <X size={16} />
             </button>

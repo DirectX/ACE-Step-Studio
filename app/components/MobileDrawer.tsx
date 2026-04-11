@@ -124,7 +124,7 @@ export function MobileDrawer({ isOpen, onClose, position, children, title }: Mob
           <button
             onClick={handleClose}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors text-zinc-400 hover:text-white tap-highlight-none"
-            aria-label="Close drawer"
+            aria-label={t('closeDrawer')}
           >
             <X size={20} />
           </button>

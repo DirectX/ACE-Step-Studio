@@ -277,7 +277,7 @@ export const SongProfile: React.FC<SongProfileProps> = ({ songId, onBack, onPlay
                                     className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-full text-sm font-semibold transition-colors text-white"
                                 >
                                     <Edit3 size={16} />
-                                    <span className="hidden md:inline">Edit</span>
+                                    <span className="hidden md:inline">{t('edit')}</span>
                                 </button>
                             )}
                             <button
