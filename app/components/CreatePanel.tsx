@@ -1980,18 +1980,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     </button>
                   )}
                   <button
+                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
+                    onClick={() => setLyrics('')}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                     title={t('hintAiFormat') || 'AI — generate or enhance lyrics'}
                     onClick={() => handleFormat('lyrics')}
                     disabled={isFormattingLyrics || !style.trim()}
                   >
-                    {isFormattingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  </button>
-                  <button
-                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
-                    onClick={() => setLyrics('')}
-                  >
-                    <Trash2 size={14} />
+                    {isFormattingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />
                   </button>
                 </div>
               </div>
@@ -2039,18 +2039,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     </button>
                   )}
                   <button
+                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
+                    onClick={() => setStyle('')}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingStyle ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                     title={t('hintAiFormat') || 'AI Format'}
                     onClick={() => handleFormat('style')}
                     disabled={isFormattingStyle || !style.trim()}
                   >
                     {isFormattingStyle ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  </button>
-                  <button
-                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
-                    onClick={() => setStyle('')}
-                  >
-                    <Trash2 size={14} />
                   </button>
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors text-zinc-500 hover:text-black dark:hover:text-white"
