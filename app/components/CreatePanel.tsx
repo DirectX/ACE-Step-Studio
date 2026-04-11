@@ -275,14 +275,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       const settings: Record<string, unknown> = {
-        customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
+        customMode, instrumental, vocalLanguage, vocalGender, batchSize, bulkCount,
         guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
         shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
       settingsApi.save(settings, token).catch(() => {});
     }, 1000);
-  }, [token, customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
+  }, [token, customMode, instrumental, vocalLanguage, vocalGender, batchSize, bulkCount,
       guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
       shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
       mp3Bitrate, mp3SampleRate]);
@@ -308,7 +308,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.instrumental !== undefined) setInstrumental(s.instrumental as boolean);
       if (s.vocalLanguage !== undefined) setVocalLanguage(s.vocalLanguage as string);
       if (s.vocalGender !== undefined) setVocalGender(s.vocalGender as 'male' | 'female' | '');
-      if (s.duration !== undefined) setDuration(s.duration as number);
+      // BPM/Key/Duration not persisted — always start as auto
       if (s.batchSize !== undefined) setBatchSize(s.batchSize as number);
       if (s.bulkCount !== undefined) setBulkCount(s.bulkCount as number);
       if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
