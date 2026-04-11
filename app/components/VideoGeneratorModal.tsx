@@ -217,8 +217,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   useEffect(() => {
     if (song) {
         setTextLayers([
-            { id: '1', text: song.title, x: 50, y: 85, size: 52, color: '#ffffff', font: 'Inter' },
-            { id: '2', text: song.style.toUpperCase(), x: 50, y: 92, size: 24, color: '#3b82f6', font: 'Inter' }
+            { id: '1', text: song.title, x: 50, y: 85, size: 48, color: '#ffffff', font: 'Inter' },
+            { id: '2', text: song.creator || 'ACE-Step Studio', x: 50, y: 92, size: 24, color: '#a1a1aa', font: 'Inter' }
         ]);
         // Parse LRC
         if (song.lrcContent) {
