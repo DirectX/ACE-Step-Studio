@@ -614,8 +614,15 @@ async function processGenerationViaGradio(
 
   job.stage = 'generating';
 
-  const result = await client.predict('/generation_wrapper', args);
-  const data = result.data as unknown[];
+  // Use submit() instead of predict() to get all streamed yields including LRC
+  const submission = client.submit('/generation_wrapper', args);
+  let data: unknown[] = [];
+  for await (const msg of submission) {
+    if (msg.type === 'data') {
+      data = msg.data as unknown[];
+    }
+  }
+  // data now contains the LAST yield which includes LRC
 
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error(`Gradio returned unexpected data format: ${typeof data}`);
