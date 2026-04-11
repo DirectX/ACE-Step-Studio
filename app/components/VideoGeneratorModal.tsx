@@ -2027,14 +2027,47 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             </div>
 
             {/* Playback Controls */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center">
-              <button
-                onClick={togglePlay}
-                disabled={isExporting}
-                className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-xl tap-highlight-none disabled:opacity-50"
-              >
-                {isPlaying ? <Pause fill="black" size={22} /> : <Play fill="black" className="ml-1" size={22} />}
-              </button>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
+              {/* Timeline */}
+              <div className="flex items-center gap-2 mb-2 px-2">
+                <span className="text-[10px] text-zinc-400 font-mono w-10 text-right">
+                  {audioRef.current ? `${Math.floor(audioRef.current.currentTime / 60)}:${String(Math.floor(audioRef.current.currentTime % 60)).padStart(2, '0')}` : '0:00'}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={audioRef.current?.duration || 100}
+                  value={audioRef.current?.currentTime || 0}
+                  onChange={(e) => { if (audioRef.current) audioRef.current.currentTime = Number(e.target.value); }}
+                  className="flex-1 h-1 accent-pink-500 cursor-pointer"
+                  step={0.1}
+                />
+                <span className="text-[10px] text-zinc-400 font-mono w-10">
+                  {audioRef.current ? `${Math.floor(audioRef.current.duration / 60)}:${String(Math.floor(audioRef.current.duration % 60)).padStart(2, '0')}` : '0:00'}
+                </span>
+              </div>
+              {/* Play + Volume */}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={togglePlay}
+                  disabled={isExporting}
+                  className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg tap-highlight-none disabled:opacity-50"
+                >
+                  {isPlaying ? <Pause fill="black" size={18} /> : <Play fill="black" className="ml-0.5" size={18} />}
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <Music size={12} className="text-zinc-400" />
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={audioRef.current?.volume ?? 1}
+                    onChange={(e) => { if (audioRef.current) audioRef.current.volume = Number(e.target.value); }}
+                    className="w-20 h-1 accent-pink-500 cursor-pointer"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
