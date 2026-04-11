@@ -99,4 +99,17 @@ def _build_generation_info(
             lines.append(f"- LRC detection {songs_label}: {auto_lrc_time:.2f}s")
         info_parts.append("\n".join(lines))
 
+    if lm_metadata:
+        meta_lines = []
+        if lm_metadata.get('bpm'):
+            meta_lines.append(f"BPM: {lm_metadata['bpm']}")
+        if lm_metadata.get('keyscale'):
+            meta_lines.append(f"Key: {lm_metadata['keyscale']}")
+        if lm_metadata.get('duration'):
+            meta_lines.append(f"Duration: {lm_metadata['duration']}")
+        if lm_metadata.get('timesignature'):
+            meta_lines.append(f"Time Signature: {lm_metadata['timesignature']}")
+        if meta_lines:
+            info_parts.append(" | ".join(meta_lines))
+
     return "\n\n".join(info_parts)
