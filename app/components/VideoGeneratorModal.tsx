@@ -2665,10 +2665,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         {/* Preview Area - Desktop only */}
         {!isMobile && (
           <div className="flex-1 bg-black flex flex-col justify-center">
-               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 flex-shrink-0">
-                 <span>🖱 {t('dragToMove')}</span>
-                 <span>⚙ {t('scrollToResize')}</span>
-               </div>
                <div className="relative flex-1 min-h-0">
                  <canvas
                     ref={canvasRef}
@@ -2681,6 +2677,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     onMouseLeave={handleCanvasMouseUp}
                     onWheel={handleCanvasWheel}
                  />
+                 <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500">
+                   <span>🖱 {t('dragToMove')}</span>
+                   <span>⚙ {t('scrollToResize')}</span>
+                 </div>
                </div>
 
                {/* Playback Controls */}
