@@ -98,6 +98,9 @@ echo   Close this window to stop all
 echo ========================================
 echo.
 
+REM === Open browser after short delay (non-blocking) ===
+start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:3001"
+
 REM === Start Express (manages everything) ===
 "%SCRIPT_DIR%node\node.exe" "%SCRIPT_DIR%app\server\node_modules\tsx\dist\cli.mjs" "%SCRIPT_DIR%app\server\src\index.ts"
 
