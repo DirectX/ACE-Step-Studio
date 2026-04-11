@@ -12,7 +12,7 @@ import { UserProfile } from './components/UserProfile';
 import { SettingsModal } from './components/SettingsModal';
 import { SongProfile } from './components/SongProfile';
 import { Song, GenerationParams, View, Playlist } from './types';
-import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels';
+// react-resizable-panels installed but needs proper integration (TODO)
 import { generateApi, songsApi, playlistsApi, getAudioUrl } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { useResponsive } from './context/ResponsiveContext';
@@ -1360,10 +1360,12 @@ function AppContent() {
       case 'create':
       default:
         return (
-          <PanelGroup direction="horizontal" autoSaveId="ace-create-layout" className="h-full">
+          <div className="flex h-full overflow-hidden relative w-full">
             {/* Create Panel */}
-            <Panel defaultSize={25} minSize={15} maxSize={40} className={`${mobileShowList ? 'hidden md:block' : ''}`}>
-            <div className="h-full border-r border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-suno-panel transition-colors duration-300 overflow-hidden">
+            <div className={`
+              ${mobileShowList ? 'hidden md:block' : 'w-full'}
+              md:w-[320px] lg:w-[380px] flex-shrink-0 h-full border-r border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-suno-panel relative z-10 transition-colors duration-300
+            `}>
               <CreatePanel
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
@@ -1374,13 +1376,8 @@ function AppContent() {
                 onAudioSelectionApplied={() => setPendingAudioSelection(null)}
               />
             </div>
-            </Panel>
-            <PanelResizeHandle className="hidden md:flex w-1.5 items-center justify-center hover:bg-pink-500/20 transition-colors group cursor-col-resize">
-              <div className="w-0.5 h-8 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-pink-500 transition-colors" />
-            </PanelResizeHandle>
 
             {/* Song List */}
-            <Panel defaultSize={50} minSize={30}>
             <div className={`
               ${!mobileShowList ? 'hidden md:flex' : 'flex'}
               flex-1 flex-col h-full overflow-hidden bg-white dark:bg-suno-DEFAULT transition-colors duration-300
@@ -1412,16 +1409,10 @@ function AppContent() {
                 onSongUpdate={handleSongUpdate}
               />
             </div>
-            </Panel>
 
             {/* Right Sidebar */}
             {showRightSidebar && selectedSong && (
-              <>
-              <PanelResizeHandle className="hidden xl:flex w-1.5 items-center justify-center hover:bg-pink-500/20 transition-colors group cursor-col-resize">
-                <div className="w-0.5 h-8 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-pink-500 transition-colors" />
-              </PanelResizeHandle>
-              <Panel defaultSize={25} minSize={15} maxSize={40}>
-              <div className="hidden xl:block h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300">
+              <div className="hidden xl:block w-[360px] flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300">
                 <RightSidebar
                   song={selectedSong}
                   onClose={() => setShowRightSidebar(false)}
@@ -1438,8 +1429,6 @@ function AppContent() {
                   currentSong={currentSong}
                 />
               </div>
-              </Panel>
-              </>
             )}
 
             {/* Mobile Toggle Button */}
@@ -1452,7 +1441,7 @@ function AppContent() {
                 <List size={16} />
               </button>
             </div>
-          </PanelGroup>
+          </div>
         );
     }
   };
