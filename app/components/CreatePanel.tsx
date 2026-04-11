@@ -256,11 +256,15 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           const data = await res.json();
           setModelLoadingState(data);
           // Sync selectedModel with real active model (only when ready + connected)
-          if (data.state === 'ready' && data.activeModel && data.connected) {
-            setSelectedModel(data.activeModel);
-            localStorage.setItem('ace-model', data.activeModel);
-            // LM settings are user-controlled via dropdown + Apply button
-            // Don't auto-sync from pipeline — let user decide when to apply
+          // Don't override during model switch (user already selected the target)
+          if (data.state === 'ready' && data.activeModel && data.connected && !modelSwitchStatus) {
+            setSelectedModel(prev => {
+              if (prev !== data.activeModel) {
+                localStorage.setItem('ace-model', data.activeModel);
+                return data.activeModel;
+              }
+              return prev;
+            });
           }
           // During loading, show the target model
           if (data.state === 'loading' && data.model) {
