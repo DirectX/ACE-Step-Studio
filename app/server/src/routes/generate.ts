@@ -728,30 +728,42 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   const { spawn } = await import('child_process');
   const { resetGradioClient } = await import('../services/gradio-client.js');
 
-  // Kill existing Gradio
+  // Kill existing Gradio — retry until port 8001 is free
+  modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
+  const { execSync } = await import('child_process');
+
+  // Step 1: Kill our tracked process
   if (gradioProcess && gradioProcess.pid) {
-    modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
     console.log(`[Model] Killing Gradio process ${gradioProcess.pid}...`);
     try {
-      // Windows: taskkill with /T kills child processes too
-      const { execSync } = await import('child_process');
-      execSync(`taskkill /F /T /PID ${gradioProcess.pid}`, { stdio: 'ignore' });
+      if (process.platform === 'win32') {
+        execSync(`taskkill /F /T /PID ${gradioProcess.pid}`, { stdio: 'ignore' });
+      } else {
+        process.kill(-gradioProcess.pid, 'SIGKILL');
+      }
     } catch {
-      try { gradioProcess.kill(); } catch {}
+      try { gradioProcess.kill('SIGKILL'); } catch {}
     }
     gradioProcess = null;
-    resetGradioClient();
-    await new Promise(r => setTimeout(r, 3000));
   }
+  resetGradioClient();
 
-  // Also kill any python process on port 8001
-  try {
-    const { execSync } = await import('child_process');
-    if (process.platform === 'win32') {
-      execSync('powershell -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore' });
+  // Step 2: Wait for port 8001 to be free (kill any leftover process)
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      const check = await fetch('http://localhost:8001/', { signal: AbortSignal.timeout(500) });
+      // Still alive — kill harder
+      console.log(`[Model] Port 8001 still occupied (attempt ${attempt + 1}), killing...`);
+      if (process.platform === 'win32') {
+        execSync('powershell -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore' });
+      }
+    } catch {
+      // Connection refused = port is free
+      console.log(`[Model] Port 8001 is free`);
+      break;
     }
-    await new Promise(r => setTimeout(r, 2000));
-  } catch {}
+  }
 
   modelLoadingStatus = { state: 'loading', model };
   console.log(`[Model] Starting Gradio with model: ${model}`);
