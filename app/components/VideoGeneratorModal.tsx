@@ -2664,12 +2664,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
         {/* Preview Area - Desktop only */}
         {!isMobile && (
-          <div className="flex-1 bg-black relative flex flex-col">
+          <div className="flex-1 bg-[#0a0a0a] flex flex-col">
                <canvas
                   ref={canvasRef}
                   width={RESOLUTIONS[config.aspectRatio].width}
                   height={RESOLUTIONS[config.aspectRatio].height}
-                  className="w-full h-full object-contain bg-[#0a0a0a] cursor-crosshair"
+                  className="w-full flex-1 min-h-0 object-contain cursor-crosshair"
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
@@ -2677,13 +2677,13 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   onWheel={handleCanvasWheel}
                />
 
-               {/* Hints — above playback controls */}
-               <div className="absolute bottom-28 left-0 right-0 text-center text-[10px] text-zinc-500 pointer-events-none z-10">
+               {/* Hints */}
+               <div className="text-center py-1 text-[10px] text-zinc-500 flex-shrink-0">
                  🖱 {t('dragToMove')}  ⚙ {t('scrollToResize')}
                </div>
 
                {/* Playback Controls */}
-               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+               <div className="flex-shrink-0 p-3">
                  {/* Timeline */}
                  <div className="flex items-center gap-3 mb-3 px-2">
                    <span className="text-[11px] text-zinc-400 font-mono w-12 text-right">
