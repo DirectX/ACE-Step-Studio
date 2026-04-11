@@ -856,7 +856,6 @@ router.get('/download-model', authMiddleware, async (req: AuthenticatedRequest, 
   send({ status: 'downloading', model, message: `Downloading ${model}...` });
 
   const { spawn } = await import('child_process');
-  const ACESTEP_DIR = process.env.ACESTEP_PATH || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ACE-Step-1.5');
   const pythonPath = resolvePythonPath(ACESTEP_DIR);
   const proc = spawn(pythonPath, [
     '-m', 'huggingface_hub.commands.huggingface_cli', 'download', hfRepo, '--local-dir', modelDir
