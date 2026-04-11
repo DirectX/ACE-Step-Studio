@@ -800,27 +800,32 @@ function AppContent() {
       // Simple mode: LLM generates caption + lyrics + metadata from description
       let enrichedParams = { ...params };
       if (!params.customMode && params.songDescription && token) {
-        const sample = await generateApi.createSample({
-          query: params.songDescription,
-          instrumental: params.instrumental,
-          vocalLanguage: params.vocalLanguage,
-        }, token);
-        if (sample.caption) {
-          enrichedParams = {
-            ...enrichedParams,
-            customMode: true,
-            style: sample.caption,
-            lyrics: sample.lyrics || '',
-            instrumental: sample.instrumental,
-            vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
-            bpm: sample.bpm > 0 ? sample.bpm : undefined,
-            duration: sample.duration > 0 ? sample.duration : undefined,
-            keyScale: sample.keyScale || undefined,
-            timeSignature: sample.timeSignature || undefined,
-            thinking: true,
-            isFormatCaption: true,
-          };
-          setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
+        try {
+          const sample = await generateApi.createSample({
+            query: params.songDescription,
+            instrumental: params.instrumental,
+            vocalLanguage: params.vocalLanguage,
+          }, token);
+          if (sample.caption) {
+            enrichedParams = {
+              ...enrichedParams,
+              customMode: true,
+              style: sample.caption,
+              lyrics: sample.lyrics || '',
+              instrumental: sample.instrumental,
+              vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
+              bpm: sample.bpm > 0 ? sample.bpm : undefined,
+              duration: sample.duration > 0 ? sample.duration : undefined,
+              keyScale: sample.keyScale || undefined,
+              timeSignature: sample.timeSignature || undefined,
+              thinking: true,
+              isFormatCaption: true,
+            };
+            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
+          }
+        } catch (err) {
+          // create_sample not available — generate with raw description
+          console.warn('[Simple] create_sample unavailable, generating with raw description');
         }
       }
 
