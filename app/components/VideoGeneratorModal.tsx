@@ -979,7 +979,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           const lrcLine = lrcLines[lrcIdx];
 
           if (lrcStyle === 'karaoke' && !(!lrcShowSections && lrcLine.isSection)) {
-            const nextT = lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5;
+            const nextT = Math.min(lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5, lrcLine.time + 5);
             const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
             const m = ctx.measureText(lrcLine.text);
             const bx = lrcX - m.width / 2;
@@ -997,7 +997,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             ctx.strokeText(lrcLine.text, bx, lrcY); ctx.fillText(lrcLine.text, bx, lrcY);
             ctx.restore();
           } else if (lrcStyle === 'scroll' && !(!lrcShowSections && lrcLine.isSection)) {
-            const nextT = lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5;
+            const nextT = Math.min(lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5, lrcLine.time + 5);
             const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
             const m = ctx.measureText(lrcLine.text);
             const scrollOff = prog * (m.width + width * 0.5);
@@ -1561,7 +1561,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           const line = lines[currentIdx];
           if (!showSections && line.isSection) { /* skip */ } else {
             const metrics = ctx.measureText(line.text);
-            const nextTime = currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5;
+            const nextTime = Math.min(currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5, line.time + 5);
             const progress = Math.min(1, (currentTime - line.time) / (nextTime - line.time));
             const scrollOffset = progress * (metrics.width + width * 0.5);
             const x = width - scrollOffset;
@@ -1582,7 +1582,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           // --- KARAOKE: progressive fill left-to-right ---
           const line = lines[currentIdx];
           if (!showSections && line.isSection) { /* skip */ } else {
-            const nextTime = currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5;
+            const nextTime = Math.min(currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5, line.time + 5);
             const progress = Math.min(1, (currentTime - line.time) / (nextTime - line.time));
             const metrics = ctx.measureText(line.text);
             const textW = metrics.width;
