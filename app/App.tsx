@@ -76,7 +76,7 @@ function AppContent() {
 
   // UI State
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(false);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [pendingAudioSelection, setPendingAudioSelection] = useState<{ target: 'reference' | 'source'; url: string; title?: string } | null>(null);
 
@@ -1410,7 +1410,7 @@ function AppContent() {
             </div>
 
             {/* Right Sidebar */}
-            {showRightSidebar && (
+            {showRightSidebar && selectedSong && (
               <div className="hidden xl:block w-[360px] flex-shrink-0 h-full bg-zinc-50 dark:bg-suno-panel relative z-10 border-l border-zinc-200 dark:border-white/5 transition-colors duration-300">
                 <RightSidebar
                   song={selectedSong}
