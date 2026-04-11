@@ -151,6 +151,7 @@ function migrate(): void {
     try { db.exec('ALTER TABLE songs ADD COLUMN dit_model TEXT'); } catch {}
     try { db.exec('ALTER TABLE songs ADD COLUMN lm_model TEXT'); } catch {}
     try { db.exec('ALTER TABLE songs ADD COLUMN lm_backend TEXT'); } catch {}
+    try { db.exec('ALTER TABLE users ADD COLUMN settings TEXT'); } catch {}
     console.log('Migrations completed successfully!');
   } catch (error) {
     // Check if it's just "already exists" errors

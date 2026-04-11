@@ -568,6 +568,15 @@ export const playlistsApi = {
     api(`/api/playlists/${id}`, { method: 'DELETE', token }),
 };
 
+// Settings API
+export const settingsApi = {
+  get: (token: string): Promise<Record<string, unknown>> =>
+    api('/api/settings', { token }),
+
+  save: (settings: Record<string, unknown>, token: string): Promise<Record<string, unknown>> =>
+    api('/api/settings', { method: 'PUT', body: settings, token }),
+};
+
 // Search API
 export interface SearchResult {
   songs: Song[];

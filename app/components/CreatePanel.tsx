@@ -3,7 +3,7 @@ import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash,
 import { GenerationParams, Song } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
-import { generateApi } from '../services/api';
+import { generateApi, settingsApi } from '../services/api';
 import { MAIN_STYLES } from '../data/genres';
 import { EditableSlider } from './EditableSlider';
 
@@ -158,14 +158,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   // Advanced Settings
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [duration, setDuration] = useState(-1);
-  const [batchSize, setBatchSize] = useState(() => {
-    const stored = localStorage.getItem('ace-batchSize');
-    return stored ? Number(stored) : 1;
-  });
-  const [bulkCount, setBulkCount] = useState(() => {
-    const stored = localStorage.getItem('ace-bulkCount');
-    return stored ? Number(stored) : 1;
-  });
+  const [batchSize, setBatchSize] = useState(1);
+  const [bulkCount, setBulkCount] = useState(1);
   const [guidanceScale, setGuidanceScale] = useState(9.0);
   const [randomSeed, setRandomSeed] = useState(true);
   const [seed, setSeed] = useState(-1);
@@ -235,6 +229,63 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [loraScale, setLoraScale] = useState(1.0);
   const [loraError, setLoraError] = useState<string | null>(null);
   const [isLoraLoading, setIsLoraLoading] = useState(false);
+
+  // Load settings from server on mount
+  const settingsLoadedRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const saveSettingsToServer = useCallback((overrides?: Record<string, unknown>) => {
+    if (!token || !settingsLoadedRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const settings: Record<string, unknown> = {
+        customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
+        guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel,
+        shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
+        mp3Bitrate, mp3SampleRate, ...overrides,
+      };
+      settingsApi.save(settings, token).catch(() => {});
+    }, 1000);
+  }, [token, customMode, instrumental, vocalLanguage, vocalGender, duration, batchSize, bulkCount,
+      guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel,
+      shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
+      mp3Bitrate, mp3SampleRate]);
+
+  // Auto-save when any setting changes
+  React.useEffect(() => {
+    saveSettingsToServer();
+  }, [saveSettingsToServer]);
+
+  // Load settings on mount
+  React.useEffect(() => {
+    if (!token) return;
+    settingsApi.get(token).then(s => {
+      if (s.customMode !== undefined) setCustomMode(s.customMode as boolean);
+      if (s.instrumental !== undefined) setInstrumental(s.instrumental as boolean);
+      if (s.vocalLanguage !== undefined) setVocalLanguage(s.vocalLanguage as string);
+      if (s.vocalGender !== undefined) setVocalGender(s.vocalGender as 'male' | 'female' | '');
+      if (s.duration !== undefined) setDuration(s.duration as number);
+      if (s.batchSize !== undefined) setBatchSize(s.batchSize as number);
+      if (s.bulkCount !== undefined) setBulkCount(s.bulkCount as number);
+      if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
+      if (s.thinking !== undefined) setThinking(s.thinking as boolean);
+      if (s.enhance !== undefined) setEnhance(s.enhance as boolean);
+      if (s.audioFormat !== undefined) setAudioFormat(s.audioFormat as 'mp3' | 'flac');
+      if (s.inferenceSteps !== undefined) setInferenceSteps(s.inferenceSteps as number);
+      if (s.inferMethod !== undefined) setInferMethod(s.inferMethod as 'ode' | 'sde');
+      if (s.lmModel !== undefined) setLmModel(s.lmModel as string);
+      if (s.shift !== undefined) setShift(s.shift as number);
+      if (s.lmTemperature !== undefined) setLmTemperature(s.lmTemperature as number);
+      if (s.lmCfgScale !== undefined) setLmCfgScale(s.lmCfgScale as number);
+      if (s.lmTopK !== undefined) setLmTopK(s.lmTopK as number);
+      if (s.lmTopP !== undefined) setLmTopP(s.lmTopP as number);
+      if (s.lmNegativePrompt !== undefined) setLmNegativePrompt(s.lmNegativePrompt as string);
+      if (s.useAdg !== undefined) setUseAdg(s.useAdg as boolean);
+      if (s.samplerMode !== undefined) setSamplerMode(s.samplerMode as 'euler' | 'heun');
+      if (s.mp3Bitrate !== undefined) setMp3Bitrate(s.mp3Bitrate as string);
+      if (s.mp3SampleRate !== undefined) setMp3SampleRate(s.mp3SampleRate as number);
+      settingsLoadedRef.current = true;
+    }).catch(() => { settingsLoadedRef.current = true; });
+  }, [token]);
 
   // Model selection
   const [selectedModel, setSelectedModel] = useState<string>(() => {
