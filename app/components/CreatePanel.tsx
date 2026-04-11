@@ -179,22 +179,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [vocalGender, setVocalGender] = useState<'male' | 'female' | ''>('');
 
   // Music Parameters
-  const [bpm, setBpmRaw] = useState(0);
-  const [keyScale, setKeyScaleRaw] = useState('');
-  const [timeSignature, setTimeSignatureRaw] = useState('');
-  const bpmManual = useRef(false);
-  const keyManual = useRef(false);
-  const timeManual = useRef(false);
-  const durationManual = useRef(false);
-  // User-triggered setters mark as manual
-  const setBpm = useCallback((v: number) => { bpmManual.current = true; setBpmRaw(v); }, []);
-  const setKeyScale = useCallback((v: string) => { keyManual.current = true; setKeyScaleRaw(v); }, []);
-  const setTimeSignature = useCallback((v: string) => { timeManual.current = true; setTimeSignatureRaw(v); }, []);
+  const [bpm, setBpm] = useState(0);
+  const [keyScale, setKeyScale] = useState('');
+  const [timeSignature, setTimeSignature] = useState('');
 
   // Advanced Settings
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [duration, setDurationRaw] = useState(-1);
-  const setDuration = useCallback((v: number) => { durationManual.current = true; setDurationRaw(v); }, []);
+  const [duration, setDuration] = useState(-1);
   const [batchSize, setBatchSize] = useState(1);
   const [bulkCount, setBulkCount] = useState(1);
   const [guidanceScale, setGuidanceScale] = useState(9.0);
@@ -652,10 +643,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       // Restore ALL generation params
       if (p.vocalLanguage) setVocalLanguage(p.vocalLanguage);
       if (p.vocalGender) setVocalGender(p.vocalGender);
-      if (p.bpm && p.bpm > 0) { setBpmRaw(p.bpm); bpmManual.current = true; }
-      if (p.keyScale) { setKeyScaleRaw(p.keyScale); keyManual.current = true; }
-      if (p.timeSignature) { setTimeSignatureRaw(p.timeSignature); timeManual.current = true; }
-      if (p.duration && p.duration > 0) { setDurationRaw(p.duration); durationManual.current = true; }
+      if (p.bpm && p.bpm > 0) setBpm(p.bpm);
+      if (p.keyScale) setKeyScale(p.keyScale);
+      if (p.timeSignature) setTimeSignature(p.timeSignature);
+      if (p.duration && p.duration > 0) setDuration(p.duration);
       if (p.inferenceSteps) setInferenceSteps(p.inferenceSteps);
       if (p.guidanceScale !== undefined) setGuidanceScale(p.guidanceScale);
       if (p.seed !== undefined && p.seed >= 0) { setSeed(p.seed); setRandomSeed(false); }
@@ -892,12 +883,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         }, token);
         if (sample.lyrics) {
           setLyrics(sample.lyrics);
-          if (sample.bpm && sample.bpm > 0) setBpmRaw(sample.bpm);
-          if (sample.duration && sample.duration > 0) setDurationRaw(sample.duration);
-          if (sample.keyScale) setKeyScaleRaw(sample.keyScale);
+          if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
+          if (sample.duration && sample.duration > 0) setDuration(sample.duration);
+          if (sample.keyScale) setKeyScale(sample.keyScale);
           if (sample.timeSignature) {
             const ts = String(sample.timeSignature);
-            setTimeSignatureRaw(ts.includes('/') ? ts : `${ts}/4`);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
           }
         } else {
           alert('LLM did not generate lyrics. Try a more descriptive style.');
@@ -922,12 +913,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         if (result.caption || result.lyrics || result.bpm || result.duration) {
           if (target === 'style' && result.caption) setStyle(result.caption);
           if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
-          if (result.bpm && result.bpm > 0) setBpmRaw(result.bpm);
-          if (result.duration && result.duration > 0) setDurationRaw(result.duration);
-          if (result.key_scale) setKeyScaleRaw(result.key_scale);
+          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
+          if (result.duration && result.duration > 0) setDuration(result.duration);
+          if (result.key_scale) setKeyScale(result.key_scale);
           if (result.time_signature) {
             const ts = String(result.time_signature);
-            setTimeSignatureRaw(ts.includes('/') ? ts : `${ts}/4`);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
           }
           if (target === 'style') setIsFormatCaption(true);
         } else {
