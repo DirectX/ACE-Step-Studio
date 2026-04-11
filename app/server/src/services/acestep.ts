@@ -631,11 +631,24 @@ async function processGenerationViaGradio(
   const genDetails = data[9] as string | undefined;
   const genStatus = data[10] as string | undefined;
   const genSeed = data[11] as string | undefined;
-  // LRC data at indices 36-43 (lrc_display_1 through lrc_display_8)
-  const lrcData: string[] = [];
-  for (let i = 36; i < 44 && i < data.length; i++) {
-    lrcData.push(typeof data[i] === 'string' ? data[i] as string : '');
+  // LRC data — find in Gradio outputs (indices vary by version)
+  console.log(`[GEN] Total data elements: ${data.length}`);
+  // Log all string elements to find LRC
+  for (let i = 12; i < data.length; i++) {
+    const val = data[i];
+    if (typeof val === 'string' && val.length > 0) {
+      console.log(`[GEN] data[${i}]: (${val.length} chars) ${val.slice(0, 100)}`);
+    }
   }
+  const lrcData: string[] = [];
+  // Search for LRC content — look for strings containing [mm:ss timestamps
+  for (let i = 12; i < data.length; i++) {
+    const val = data[i];
+    if (typeof val === 'string' && /\[\d{2}:\d{2}/.test(val)) {
+      lrcData.push(val);
+    }
+  }
+  console.log(`[GEN] Found ${lrcData.length} LRC entries`);
   console.log('[GEN] genDetails:', genDetails?.slice(0, 500));
   console.log('[GEN] all data indices 9-15:', Array.from({length: 7}, (_, i) => `[${i+9}]: ${typeof data[i+9] === 'string' ? (data[i+9] as string).slice(0, 100) : JSON.stringify(data[i+9])}`).join(' | '));
 
