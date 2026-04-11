@@ -1,4 +1,4 @@
-import { spawn, ChildProcess, execSync } from 'child_process';
+import { spawn, ChildProcess, execSync, exec } from 'child_process';
 import { existsSync } from 'fs';
 import { config } from '../config/index.js';
 
@@ -176,6 +176,20 @@ class PipelineManager {
     this.state = 'ready';
     this.message = 'Pipeline running';
     this.startedAt = Date.now();
+
+    // Open browser only on first start, not on restarts
+    if (this.restartCount === 0) {
+      const url = `http://localhost:${config.port}`;
+      console.log(`[Pipeline] Opening browser: ${url}`);
+      if (process.platform === 'win32') {
+        exec(`start "" "${url}"`);
+      } else if (process.platform === 'darwin') {
+        exec(`open "${url}"`);
+      } else {
+        exec(`xdg-open "${url}"`);
+      }
+    }
+
     this.restartCount = 0;
     console.log('[Pipeline] Ready!');
 
