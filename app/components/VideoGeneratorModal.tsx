@@ -17,12 +17,21 @@ type PresetType =
   | 'Orbital' | 'Digital Rain' | 'Hexagon' | 'Shockwave' 
   | 'Oscilloscope' | 'Minimal';
 
+type AspectRatio = '16:9' | '9:16' | '1:1';
+
+const RESOLUTIONS: Record<AspectRatio, { width: number; height: number; label: string }> = {
+  '16:9': { width: 1920, height: 1080, label: '1920×1080' },
+  '9:16': { width: 1080, height: 1920, label: '1080×1920' },
+  '1:1': { width: 1080, height: 1080, label: '1080×1080' },
+};
+
 interface VisualizerConfig {
   preset: PresetType;
   primaryColor: string;
   secondaryColor: string;
   bgDim: number;
   particleCount: number;
+  aspectRatio: AspectRatio;
 }
 
 interface EffectConfig {
@@ -105,6 +114,14 @@ function ColumnsIcon() {
 export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen, onClose, song }) => {
   const { t } = useI18n();
   const { isMobile } = useResponsive();
+
+  // Lyrics overlay
+  const lrcLinesRef = useRef<import('../services/lrc-parser').LrcLine[]>([]);
+  const [lyricsEnabled, setLyricsEnabled] = useState(true);
+  const [lyricsPosition, setLyricsPosition] = useState<'bottom' | 'center' | 'top'>('bottom');
+  const [lyricsFontSize, setLyricsFontSize] = useState(42);
+  const [lyricsLines, setLyricsLines] = useState(2);
+  const [lyricsShowSections, setLyricsShowSections] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationRef = useRef<number>(0);
@@ -157,7 +174,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     primaryColor: '#ec4899', // Pink-500
     secondaryColor: '#3b82f6', // Blue-500
     bgDim: 0.6,
-    particleCount: 50
+    particleCount: 50,
+    aspectRatio: '16:9' as AspectRatio,
   });
 
   const [effects, setEffects] = useState<EffectConfig>({
@@ -195,13 +213,23 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   // Text Layers State
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
 
-  // Init default text on load
+  // Init default text + parse LRC on load
   useEffect(() => {
     if (song) {
         setTextLayers([
             { id: '1', text: song.title, x: 50, y: 85, size: 52, color: '#ffffff', font: 'Inter' },
             { id: '2', text: song.style.toUpperCase(), x: 50, y: 92, size: 24, color: '#3b82f6', font: 'Inter' }
         ]);
+        // Parse LRC
+        if (song.lrcContent) {
+            import('../services/lrc-parser').then(({ parseLrc }) => {
+                lrcLinesRef.current = parseLrc(song.lrcContent!);
+                setLyricsEnabled(true);
+            });
+        } else {
+            lrcLinesRef.current = [];
+            setLyricsEnabled(false);
+        }
     }
   }, [song]);
 
@@ -211,10 +239,21 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const intensitiesRef = useRef(intensities);
   const textLayersRef = useRef(textLayers);
 
+  const lyricsEnabledRef = useRef(lyricsEnabled);
+  const lyricsPositionRef = useRef(lyricsPosition);
+  const lyricsFontSizeRef = useRef(lyricsFontSize);
+  const lyricsLinesRef = useRef(lyricsLines);
+  const lyricsShowSectionsRef = useRef(lyricsShowSections);
+
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { effectsRef.current = effects; }, [effects]);
   useEffect(() => { intensitiesRef.current = intensities; }, [intensities]);
   useEffect(() => { textLayersRef.current = textLayers; }, [textLayers]);
+  useEffect(() => { lyricsEnabledRef.current = lyricsEnabled; }, [lyricsEnabled]);
+  useEffect(() => { lyricsPositionRef.current = lyricsPosition; }, [lyricsPosition]);
+  useEffect(() => { lyricsFontSizeRef.current = lyricsFontSize; }, [lyricsFontSize]);
+  useEffect(() => { lyricsLinesRef.current = lyricsLines; }, [lyricsLines]);
+  useEffect(() => { lyricsShowSectionsRef.current = lyricsShowSections; }, [lyricsShowSections]);
 
   // Load FFmpeg
   const loadFFmpeg = useCallback(async () => {
@@ -271,7 +310,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     if (backgroundType === 'custom' && customImage) {
       img.src = customImage;
     } else {
-      img.src = `https://picsum.photos/seed/${backgroundSeed}/1920/1080?blur=4`;
+      const bgRes = RESOLUTIONS[config.aspectRatio || '16:9'];
+      img.src = `https://picsum.photos/seed/${backgroundSeed}/${bgRes.width}/${bgRes.height}?blur=4`;
     }
     img.onload = () => {
       bgImageRef.current = img;
@@ -481,8 +521,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     // Create a separate clean canvas to avoid tainted canvas issues
     const canvas = document.createElement('canvas');
-    canvas.width = 1920;
-    canvas.height = 1080;
+    const res = RESOLUTIONS[configRef.current.aspectRatio || '16:9'];
+    canvas.width = res.width;
+    canvas.height = res.height;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -1194,6 +1235,70 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
     ctx.restore();
 
+    // --- 3.5 SYNCED LYRICS OVERLAY ---
+    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0 && audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
+      const lines = lrcLinesRef.current;
+      const showSections = lyricsShowSectionsRef.current;
+      const fontSize = lyricsFontSizeRef.current * (width / 1920); // scale with resolution
+      const maxLines = lyricsLinesRef.current;
+      const position = lyricsPositionRef.current;
+
+      // Find current line index
+      let currentIdx = -1;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (currentTime >= lines[i].time) { currentIdx = i; break; }
+      }
+
+      if (currentIdx >= 0) {
+        // Filter out section markers if disabled
+        const visibleLines: { text: string; isCurrent: boolean }[] = [];
+        for (let offset = 0; offset < maxLines && currentIdx + offset < lines.length; offset++) {
+          const line = lines[currentIdx + offset];
+          if (!showSections && line.isSection) continue;
+          visibleLines.push({ text: line.text, isCurrent: offset === 0 });
+        }
+
+        // Calculate Y position
+        const lineHeight = fontSize * 1.6;
+        let baseY: number;
+        if (position === 'bottom') baseY = height - lineHeight * maxLines - height * 0.08;
+        else if (position === 'top') baseY = height * 0.12;
+        else baseY = (height - lineHeight * visibleLines.length) / 2;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        visibleLines.forEach((line, i) => {
+          const y = baseY + i * lineHeight;
+          const alpha = line.isCurrent ? 1.0 : 0.4;
+
+          // Background pill
+          ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+          const metrics = ctx.measureText(line.text);
+          const pillWidth = metrics.width + fontSize * 0.8;
+          const pillHeight = fontSize * 1.3;
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * alpha})`;
+          ctx.beginPath();
+          const pillRadius = pillHeight / 2;
+          const pillX = width / 2 - pillWidth / 2;
+          const pillY = y - fontSize * 0.15;
+          ctx.roundRect(pillX, pillY, pillWidth, pillHeight, pillRadius);
+          ctx.fill();
+
+          // Text with outline
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+          ctx.strokeStyle = `rgba(0, 0, 0, ${0.8 * alpha})`;
+          ctx.lineWidth = 3;
+          ctx.strokeText(line.text, width / 2, y);
+          ctx.fillText(line.text, width / 2, y);
+        });
+
+        ctx.restore();
+      }
+    }
+
     // --- 4. POST-PROCESSING EFFECTS ---
     
     // Scanlines
@@ -1721,11 +1826,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             </div>
 
             {/* Canvas Preview */}
-            <div className="aspect-video w-full">
+            <div className={`w-full ${config.aspectRatio === '1:1' ? 'aspect-square' : config.aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[60vh]' : 'aspect-video'}`}>
               <canvas
                 ref={canvasRef}
-                width={1920}
-                height={1080}
+                width={RESOLUTIONS[config.aspectRatio].width}
+                height={RESOLUTIONS[config.aspectRatio].height}
                 className="w-full h-full object-contain bg-[#0a0a0a]"
               />
             </div>
@@ -1798,6 +1903,23 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 {/* STYLE TAB */}
                 {activeTab === 'style' && (
                     <div className="space-y-6">
+                         {/* Resolution / Aspect Ratio */}
+                         <div className="space-y-3">
+                            <label className="text-xs font-bold text-zinc-500 uppercase">{t('aspectRatio') || 'Aspect Ratio'}</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {(Object.keys(RESOLUTIONS) as AspectRatio[]).map(ratio => (
+                                    <button
+                                        key={ratio}
+                                        onClick={() => setConfig({...config, aspectRatio: ratio})}
+                                        className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${config.aspectRatio === ratio ? 'bg-pink-600 border-pink-600 text-white' : 'border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                    >
+                                        <div className="font-bold">{ratio}</div>
+                                        <div className="text-[10px] opacity-60">{RESOLUTIONS[ratio].label}</div>
+                                    </button>
+                                ))}
+                            </div>
+                         </div>
+
                          {/* Background */}
                          <div className="space-y-3">
                             <label className="text-xs font-bold text-zinc-500 uppercase flex justify-between">
@@ -2034,7 +2156,74 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 {/* TEXT TAB */}
                 {activeTab === 'text' && (
                     <div className="space-y-4">
-                        <button 
+                        {/* Lyrics Overlay Settings */}
+                        {lrcLinesRef.current.length > 0 && (
+                            <div className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-zinc-500 uppercase">{t('lyricsOverlay') || 'Lyrics Overlay'}</label>
+                                    <button
+                                        onClick={() => setLyricsEnabled(!lyricsEnabled)}
+                                        className={`w-10 h-5 rounded-full transition-colors ${lyricsEnabled ? 'bg-pink-500' : 'bg-zinc-600'}`}
+                                    >
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${lyricsEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                    </button>
+                                </div>
+
+                                {lyricsEnabled && (
+                                    <div className="space-y-3">
+                                        {/* Position */}
+                                        <div>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('position') || 'Position'}</label>
+                                            <div className="grid grid-cols-3 gap-1">
+                                                {(['top', 'center', 'bottom'] as const).map(pos => (
+                                                    <button
+                                                        key={pos}
+                                                        onClick={() => setLyricsPosition(pos)}
+                                                        className={`px-2 py-1 rounded text-[10px] font-medium ${lyricsPosition === pos ? 'bg-pink-600 text-white' : 'bg-white/5 text-zinc-400'}`}
+                                                    >
+                                                        {t(pos) || pos}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Lines visible */}
+                                        <div>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('visibleLines') || 'Visible Lines'}</label>
+                                            <div className="grid grid-cols-3 gap-1">
+                                                {[1, 2, 3].map(n => (
+                                                    <button
+                                                        key={n}
+                                                        onClick={() => setLyricsLines(n)}
+                                                        className={`px-2 py-1 rounded text-[10px] font-medium ${lyricsLines === n ? 'bg-pink-600 text-white' : 'bg-white/5 text-zinc-400'}`}
+                                                    >
+                                                        {n}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Font size */}
+                                        <div>
+                                            <div className="flex justify-between">
+                                                <label className="text-[10px] text-zinc-500">{t('fontSize') || 'Font Size'}</label>
+                                                <span className="text-[10px] text-zinc-400">{lyricsFontSize}px</span>
+                                            </div>
+                                            <input type="range" min={24} max={72} value={lyricsFontSize} onChange={e => setLyricsFontSize(Number(e.target.value))} className="w-full accent-pink-500" />
+                                        </div>
+
+                                        {/* Show sections */}
+                                        <label className="flex items-center gap-2 text-[10px] text-zinc-400 cursor-pointer">
+                                            <input type="checkbox" checked={lyricsShowSections} onChange={() => setLyricsShowSections(!lyricsShowSections)} className="accent-pink-500" />
+                                            {t('showSectionMarkers') || 'Show section markers ([Verse], [Chorus])'}
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Text Layers */}
+                        <button
                             onClick={addTextLayer}
                             className="w-full py-2 bg-pink-600 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold hover:bg-pink-700"
                         >
@@ -2196,8 +2385,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           <div className="flex-1 bg-black relative flex flex-col">
                <canvas
                   ref={canvasRef}
-                  width={1920}
-                  height={1080}
+                  width={RESOLUTIONS[config.aspectRatio].width}
+                  height={RESOLUTIONS[config.aspectRatio].height}
                   className="w-full h-full object-contain bg-[#0a0a0a]"
                />
 
