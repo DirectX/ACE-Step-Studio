@@ -868,30 +868,50 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setIsFormattingLyrics(true);
     }
     try {
-      // Lyrics: generate full song text via create_sample (style + existing text as context)
       if (target === 'lyrics') {
-        const query = lyrics.trim()
-          ? `${style}\n\nExpand and complete these lyrics:\n${lyrics}`
-          : style;
-        const sample = await generateApi.createSample({
-          query,
-          instrumental: false,
-          vocalLanguage: vocalLanguage || 'en',
-          lmTemperature,
-          lmTopK: lmTopK > 0 ? lmTopK : undefined,
-          lmTopP,
-        }, token);
-        if (sample.lyrics) {
-          setLyrics(sample.lyrics);
-          if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
-          if (sample.duration && sample.duration > 0) setDuration(sample.duration);
-          if (sample.keyScale) setKeyScale(sample.keyScale);
-          if (sample.timeSignature) {
-            const ts = String(sample.timeSignature);
+        if (lyrics.trim()) {
+          // Enhance existing lyrics via format endpoint
+          const result = await generateApi.formatInput({
+            caption: style,
+            lyrics: lyrics,
+            bpm: bpm > 0 ? bpm : undefined,
+            duration: duration > 0 ? duration : undefined,
+            keyScale: keyScale || undefined,
+            timeSignature: timeSignature || undefined,
+            temperature: lmTemperature,
+            topK: lmTopK > 0 ? lmTopK : undefined,
+            topP: lmTopP,
+            lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
+            lmBackend: lmBackend || 'pt',
+          }, token);
+          if (result.lyrics) setLyrics(result.lyrics);
+          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
+          if (result.duration && result.duration > 0) setDuration(result.duration);
+          if (result.keyScale) setKeyScale(result.keyScale);
+          if (result.timeSignature) {
+            const ts = String(result.timeSignature);
             setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
           }
         } else {
-          alert('LLM did not generate lyrics. Try a more descriptive style.');
+          // No lyrics yet — generate from scratch via create_sample
+          const sample = await generateApi.createSample({
+            query: style,
+            instrumental: false,
+            vocalLanguage: vocalLanguage || 'en',
+            lmTemperature,
+            lmTopK: lmTopK > 0 ? lmTopK : undefined,
+            lmTopP,
+          }, token);
+          if (sample.lyrics) {
+            setLyrics(sample.lyrics);
+            if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
+            if (sample.duration && sample.duration > 0) setDuration(sample.duration);
+            if (sample.keyScale) setKeyScale(sample.keyScale);
+            if (sample.timeSignature) {
+              const ts = String(sample.timeSignature);
+              setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+            }
+          }
         }
       } else {
         // Format existing content via /format endpoint
