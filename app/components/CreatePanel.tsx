@@ -1267,6 +1267,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       });
     }
 
+    // Reset BPM/Key/Duration to auto after generation so next run gets fresh values
+    setBpm(0);
+    setKeyScale('');
+    setTimeSignature('');
+    setDuration(-1);
+
     // Reset bulk count after generation
     if (bulkCount > 1) {
       setBulkCount(1);
