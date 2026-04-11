@@ -255,6 +255,54 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const lyricsLinesRef = useRef(lyricsLines);
   const lyricsShowSectionsRef = useRef(lyricsShowSections);
 
+  // WYSIWYG drag state
+  const dragRef = useRef<{ layerId: string; offsetX: number; offsetY: number } | null>(null);
+
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+
+    // Hit test text layers (reverse order = top layer first)
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    for (let i = textLayers.length - 1; i >= 0; i--) {
+      const layer = textLayers[i];
+      ctx.font = `bold ${layer.size}px ${layer.font}, sans-serif`;
+      const metrics = ctx.measureText(layer.text);
+      const lx = (layer.x / 100) * canvas.width;
+      const ly = (layer.y / 100) * canvas.height;
+      const halfW = metrics.width / 2;
+      const halfH = layer.size / 2;
+      if (mx >= lx - halfW && mx <= lx + halfW && my >= ly - halfH && my <= ly + halfH) {
+        dragRef.current = { layerId: layer.id, offsetX: mx - lx, offsetY: my - ly };
+        e.preventDefault();
+        return;
+      }
+    }
+  }, [textLayers]);
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!dragRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX - dragRef.current.offsetX;
+    const my = (e.clientY - rect.top) * scaleY - dragRef.current.offsetY;
+    const newX = Math.max(0, Math.min(100, (mx / canvas.width) * 100));
+    const newY = Math.max(0, Math.min(100, (my / canvas.height) * 100));
+    setTextLayers(prev => prev.map(l => l.id === dragRef.current!.layerId ? { ...l, x: newX, y: newY } : l));
+  }, []);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    dragRef.current = null;
+  }, []);
+
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { effectsRef.current = effects; }, [effects]);
   useEffect(() => { intensitiesRef.current = intensities; }, [intensities]);
@@ -682,7 +730,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           ctx.translate(shakeX, shakeY);
         }
 
-        const zoom = 1 + (Math.sin(time * 0.5) * 0.05);
+        const zoom = 1.05 + (Math.sin(time * 0.5) * 0.05);
         ctx.translate(centerX, centerY);
         ctx.scale(zoom, zoom);
         drawImageCover(ctx, bgSource, 0, 0, width, height);
@@ -1151,7 +1199,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
              ctx.translate(shakeX, shakeY);
         }
 
-        const zoom = 1 + (Math.sin(time * 0.5) * 0.05);
+        const zoom = 1.05 + (Math.sin(time * 0.5) * 0.05);
         ctx.translate(centerX, centerY);
         ctx.scale(zoom, zoom);
         drawImageCover(ctx, bgSource, 0, 0, width, height);
@@ -1841,7 +1889,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 ref={canvasRef}
                 width={RESOLUTIONS[config.aspectRatio].width}
                 height={RESOLUTIONS[config.aspectRatio].height}
-                className="w-full h-full object-contain bg-[#0a0a0a]"
+                className="w-full h-full object-contain bg-[#0a0a0a] cursor-grab active:cursor-grabbing"
+                onMouseDown={handleCanvasMouseDown}
+                onMouseMove={handleCanvasMouseMove}
+                onMouseUp={handleCanvasMouseUp}
+                onMouseLeave={handleCanvasMouseUp}
               />
             </div>
 
@@ -2397,7 +2449,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   ref={canvasRef}
                   width={RESOLUTIONS[config.aspectRatio].width}
                   height={RESOLUTIONS[config.aspectRatio].height}
-                  className="w-full h-full object-contain bg-[#0a0a0a]"
+                  className="w-full h-full object-contain bg-[#0a0a0a] cursor-grab active:cursor-grabbing"
+                  onMouseDown={handleCanvasMouseDown}
+                  onMouseMove={handleCanvasMouseMove}
+                  onMouseUp={handleCanvasMouseUp}
+                  onMouseLeave={handleCanvasMouseUp}
                />
 
                {/* Playback Controls Overlay */}
