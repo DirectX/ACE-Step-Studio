@@ -276,6 +276,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const textLayersRef = useRef(textLayers);
 
   const lyricsEnabledRef = useRef(lyricsEnabled);
+  const lyricsStyleRef = useRef(lyricsStyle);
   const lyricsPositionRef = useRef(lyricsPosition);
   const lyricsFontSizeRef = useRef(lyricsFontSize);
   const lyricsLinesRef = useRef(lyricsLines);
@@ -418,6 +419,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   useEffect(() => { intensitiesRef.current = intensities; }, [intensities]);
   useEffect(() => { textLayersRef.current = textLayers; }, [textLayers]);
   useEffect(() => { lyricsEnabledRef.current = lyricsEnabled; }, [lyricsEnabled]);
+  useEffect(() => { lyricsStyleRef.current = lyricsStyle; }, [lyricsStyle]);
   useEffect(() => { lyricsPositionRef.current = lyricsPosition; }, [lyricsPosition]);
   useEffect(() => { lyricsFontSizeRef.current = lyricsFontSize; }, [lyricsFontSize]);
   useEffect(() => { lyricsLinesRef.current = lyricsLines; }, [lyricsLines]);
@@ -1449,8 +1451,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       const currentTime = audioRef.current?.currentTime || 0;
       const lines = lrcLinesRef.current;
       const showSections = lyricsShowSectionsRef.current;
-      const fontSize = lyricsFontSizeRef.current * (width / 1920); // scale with resolution
+      const fontSize = lyricsFontSizeRef.current * (width / 1920);
       const maxLines = lyricsLinesRef.current;
+      const style = lyricsStyleRef.current;
       const position = lyricsPositionRef.current;
 
       // Find current line index
@@ -1460,62 +1463,115 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       }
 
       if (currentIdx >= 0) {
-        // Filter out section markers if disabled
-        const visibleLines: { text: string; isCurrent: boolean }[] = [];
-        for (let offset = 0; offset < maxLines && currentIdx + offset < lines.length; offset++) {
-          const line = lines[currentIdx + offset];
-          if (!showSections && line.isSection) continue;
-          visibleLines.push({ text: line.text, isCurrent: offset === 0 });
-        }
-
-        // Calculate position from config (draggable)
         const lineHeight = fontSize * 1.6;
         const lyricsXPos = (currentConfig.lyricsX / 100) * width;
         const lyricsYPos = (currentConfig.lyricsY / 100) * height;
-        const baseY = lyricsYPos - (lineHeight * visibleLines.length) / 2;
 
         ctx.save();
+        ctx.font = `bold ${fontSize}px Inter, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
-        visibleLines.forEach((line, i) => {
-          const y = baseY + i * lineHeight;
-          const alpha = line.isCurrent ? 1.0 : 0.4;
+        if (style === 'scroll') {
+          // --- SCROLL: horizontal scrolling text ---
+          const line = lines[currentIdx];
+          if (!showSections && line.isSection) { /* skip */ } else {
+            const metrics = ctx.measureText(line.text);
+            const nextTime = currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5;
+            const progress = Math.min(1, (currentTime - line.time) / (nextTime - line.time));
+            const scrollOffset = progress * (metrics.width + width * 0.5);
+            const x = width - scrollOffset;
 
-          // Background pill
-          ctx.font = `bold ${fontSize}px Inter, sans-serif`;
-          const metrics = ctx.measureText(line.text);
-          const pillWidth = metrics.width + fontSize * 0.8;
-          const pillHeight = fontSize * 1.3;
-          ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * alpha})`;
-          ctx.beginPath();
-          const pillRadius = pillHeight / 2;
-          const pillX = lyricsXPos - pillWidth / 2;
-          const pillY = y - fontSize * 0.15;
-          ctx.roundRect(pillX, pillY, pillWidth, pillHeight, pillRadius);
-          ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            const pillH = fontSize * 1.3;
+            ctx.fillRect(0, lyricsYPos - fontSize * 0.15, width, pillH);
 
-          // Text with outline
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.strokeStyle = `rgba(0, 0, 0, ${0.8 * alpha})`;
-          ctx.lineWidth = 3;
-          ctx.strokeText(line.text, lyricsXPos, y);
-          ctx.fillText(line.text, lyricsXPos, y);
-        });
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+            ctx.lineWidth = 2;
+            ctx.textAlign = 'left';
+            ctx.strokeText(line.text, x, lyricsYPos);
+            ctx.fillText(line.text, x, lyricsYPos);
+          }
 
-        // Lyrics selection frame
+        } else if (style === 'karaoke') {
+          // --- KARAOKE: progressive fill left-to-right ---
+          const line = lines[currentIdx];
+          if (!showSections && line.isSection) { /* skip */ } else {
+            const nextTime = currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5;
+            const progress = Math.min(1, (currentTime - line.time) / (nextTime - line.time));
+            const metrics = ctx.measureText(line.text);
+            const textW = metrics.width;
+            const baseX = lyricsXPos - textW / 2;
+
+            // Background pill
+            const pillW = textW + fontSize * 0.8;
+            const pillH = fontSize * 1.3;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.beginPath();
+            ctx.roundRect(lyricsXPos - pillW / 2, lyricsYPos - fontSize * 0.15, pillW, pillH, pillH / 2);
+            ctx.fill();
+
+            // Dim text (full line)
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+            ctx.lineWidth = 2;
+            ctx.strokeText(line.text, baseX, lyricsYPos);
+            ctx.fillText(line.text, baseX, lyricsYPos);
+
+            // Highlighted portion (clip to progress)
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(baseX, lyricsYPos - fontSize * 0.2, textW * progress, fontSize * 1.4);
+            ctx.clip();
+            ctx.fillStyle = '#ec4899';
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+            ctx.lineWidth = 2;
+            ctx.strokeText(line.text, baseX, lyricsYPos);
+            ctx.fillText(line.text, baseX, lyricsYPos);
+            ctx.restore();
+          }
+
+        } else {
+          // --- LINES: default style (multi-line with fade) ---
+          const visibleLines: { text: string; isCurrent: boolean }[] = [];
+          for (let offset = 0; offset < maxLines && currentIdx + offset < lines.length; offset++) {
+            const line = lines[currentIdx + offset];
+            if (!showSections && line.isSection) continue;
+            visibleLines.push({ text: line.text, isCurrent: offset === 0 });
+          }
+
+          const baseY = lyricsYPos - (lineHeight * visibleLines.length) / 2;
+
+          visibleLines.forEach((line, i) => {
+            const y = baseY + i * lineHeight;
+            const alpha = line.isCurrent ? 1.0 : 0.4;
+
+            const metrics = ctx.measureText(line.text);
+            const pillWidth = metrics.width + fontSize * 0.8;
+            const pillHeight = fontSize * 1.3;
+            ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * alpha})`;
+            ctx.beginPath();
+            ctx.roundRect(lyricsXPos - pillWidth / 2, y - fontSize * 0.15, pillWidth, pillHeight, pillHeight / 2);
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.strokeStyle = `rgba(0, 0, 0, ${0.8 * alpha})`;
+            ctx.lineWidth = 3;
+            ctx.strokeText(line.text, lyricsXPos, y);
+            ctx.fillText(line.text, lyricsXPos, y);
+          });
+        }
+
+        // Selection frame
         if (activeLayerId === '__lyrics__') {
-            const totalH = lineHeight * visibleLines.length;
-            let maxW = 0;
-            visibleLines.forEach(line => {
-                const m = ctx.measureText(line.text);
-                if (m.width > maxW) maxW = m.width;
-            });
-            const pad = 10;
             ctx.strokeStyle = '#ec4899';
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 4]);
-            ctx.strokeRect(lyricsXPos - maxW / 2 - pad, baseY - pad, maxW + pad * 2, totalH + pad * 2);
+            const frameW = width * 0.5;
+            const frameH = lineHeight * 2;
+            ctx.strokeRect(lyricsXPos - frameW / 2, lyricsYPos - frameH / 2, frameW, frameH);
             ctx.setLineDash([]);
         }
 
@@ -2455,6 +2511,26 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                     <div className="space-y-3">
                                         {/* Position */}
                                         <div>
+                                        {/* Style */}
+                                        <div>
+                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('lyricsStyleLabel') || 'Style'}</label>
+                                            <div className="grid grid-cols-3 gap-1">
+                                                {([
+                                                    { id: 'lines' as const, label: t('lyricsStyleLines') || 'Lines' },
+                                                    { id: 'scroll' as const, label: t('lyricsStyleScroll') || 'Scroll' },
+                                                    { id: 'karaoke' as const, label: t('lyricsStyleKaraoke') || 'Karaoke' },
+                                                ]).map(s => (
+                                                    <button
+                                                        key={s.id}
+                                                        onClick={() => setLyricsStyle(s.id)}
+                                                        className={`px-2 py-1 rounded text-[10px] font-medium ${lyricsStyle === s.id ? 'bg-pink-600 text-white' : 'bg-white/5 text-zinc-400'}`}
+                                                    >
+                                                        {s.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
                                             <label className="text-[10px] text-zinc-500 block mb-1">{t('position') || 'Position'}</label>
                                             <div className="grid grid-cols-3 gap-1">
                                                 {(['top', 'center', 'bottom'] as const).map(pos => (
