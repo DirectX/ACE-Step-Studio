@@ -631,6 +631,8 @@ async function processGenerationViaGradio(
   const genDetails = data[9] as string | undefined;
   const genStatus = data[10] as string | undefined;
   const genSeed = data[11] as string | undefined;
+  console.log('[GEN] genDetails:', genDetails?.slice(0, 500));
+  console.log('[GEN] all data indices 9-15:', Array.from({length: 7}, (_, i) => `[${i+9}]: ${typeof data[i+9] === 'string' ? (data[i+9] as string).slice(0, 100) : JSON.stringify(data[i+9])}`).join(' | '));
 
   // Collect audio file objects — prefer the "All Generated Files" list
   let audioFileObjects: Array<{ url?: string; path?: string; orig_name?: string }> = [];

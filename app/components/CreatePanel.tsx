@@ -1276,12 +1276,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       });
     }
 
-    // Reset AI-filled values to auto for next generation (unless user set them manually)
-    if (!bpmManual.current) setBpmRaw(0);
-    if (!keyManual.current) setKeyScaleRaw('');
-    if (!timeManual.current) setTimeSignatureRaw('');
-    if (!durationManual.current) setDurationRaw(-1);
-
     // Reset bulk count after generation
     if (bulkCount > 1) {
       setBulkCount(1);
