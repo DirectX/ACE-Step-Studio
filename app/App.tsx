@@ -371,6 +371,7 @@ function AppContent() {
           lmModel: s.lmModel,
           lmBackend: s.lmBackend,
           generationTime: s.generationTime,
+          lrcContent: s.lrcContent,
           bpm: s.bpm || (s as any).bpm || 0,
           keyScale: s.key_scale || (s as any).keyScale || '',
           timeSignature: s.time_signature || (s as any).timeSignature || '',
