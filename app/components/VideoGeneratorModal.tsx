@@ -2048,13 +2048,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
               </h2>
             </div>
 
+            {/* WYSIWYG Hint — above video */}
+            <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 bg-black/30">
+              <span>🖱 {t('dragToMove')}</span>
+              <span>⚙ {t('scrollToResize')}</span>
+            </div>
+
             {/* Canvas Preview */}
             <div className={`relative w-full ${config.aspectRatio === '1:1' ? 'aspect-square' : config.aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[60vh]' : 'aspect-video'}`}>
-              {/* WYSIWYG Hint overlay */}
-              <div className="absolute bottom-2 left-0 right-0 z-10 flex items-center justify-center gap-3 text-[10px] text-zinc-400 pointer-events-none">
-                <span className="bg-black/50 px-2 py-0.5 rounded">🖱 {t('dragToMove')}</span>
-                <span className="bg-black/50 px-2 py-0.5 rounded">⚙ {t('scrollToResize')}</span>
-              </div>
               <canvas
                 ref={canvasRef}
                 width={RESOLUTIONS[config.aspectRatio].width}
@@ -2676,9 +2677,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                />
 
                {/* WYSIWYG Hint */}
-               <div className="absolute bottom-24 left-0 right-0 flex items-center justify-center gap-3 text-[10px] text-zinc-400 z-10 pointer-events-none">
-                 <span className="bg-black/50 px-2 py-0.5 rounded">🖱 {t('dragToMove')}</span>
-                 <span className="bg-black/50 px-2 py-0.5 rounded">⚙ {t('scrollToResize')}</span>
+               {/* WYSIWYG Hint — above video */}
+               <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500 bg-black/30">
+                 <span>🖱 {t('dragToMove')}</span>
+                 <span>⚙ {t('scrollToResize')}</span>
                </div>
 
                {/* Playback Controls */}
