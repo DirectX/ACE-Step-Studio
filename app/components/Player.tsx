@@ -99,7 +99,7 @@ export const Player: React.FC<PlayerProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Hide player when no song is playing
+    // Hide player when no song selected
     if (!currentSong) {
         return null;
     }
