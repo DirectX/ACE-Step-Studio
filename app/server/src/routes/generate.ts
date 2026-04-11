@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
+import { existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { pool } from '../db/pool.js';
 import { generateUUID } from '../db/sqlite.js';
@@ -764,7 +765,7 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   if (lmModel) {
     const lmModelDir = path.join(ACESTEP_DIR, 'checkpoints', lmModel);
     const hasSafetensors = existsSync(lmModelDir) &&
-      require('fs').readdirSync(lmModelDir).some((f: string) => f.endsWith('.safetensors'));
+      readdirSync(lmModelDir).some((f: string) => f.endsWith('.safetensors'));
     if (!hasSafetensors) {
       const LM_HF_REPOS: Record<string, string> = {
         'acestep-5Hz-lm-0.6B': 'ACE-Step/acestep-5Hz-lm-0.6B',
