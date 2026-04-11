@@ -46,9 +46,9 @@ function useResizablePanel(key: string, defaultWidth: number, min: number, max: 
   const handle = (
     <div
       onMouseDown={onMouseDown}
-      className="hidden md:flex w-[3px] flex-shrink-0 items-center justify-center cursor-col-resize group opacity-0 hover:opacity-100 transition-opacity"
+      className="hidden md:flex w-[6px] flex-shrink-0 items-center justify-center cursor-col-resize group -mx-[3px] z-20 relative"
     >
-      <div className="w-[3px] h-12 rounded-full bg-zinc-500/40 group-hover:bg-pink-500/60 transition-colors" />
+      <div className="w-[3px] h-10 rounded-full bg-transparent group-hover:bg-pink-500/60 transition-colors" />
     </div>
   );
 
