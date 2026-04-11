@@ -2339,9 +2339,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             {/* Apply LM Settings button */}
             <button
               type="button"
+              disabled={!!modelSwitchStatus}
               onClick={async () => {
                 if (!token) return;
-                setModelSwitchStatus(`${t('applyingLmSettings') || 'Applying LM settings'}...`);
+                setModelSwitchStatus(`${t('applyingLmSettings') || 'Restarting pipeline'}...`);
                 try {
                   const res = await fetch('/api/generate/switch-model', {
                     method: 'POST',
@@ -2360,9 +2361,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   setTimeout(() => setModelSwitchStatus(''), 5000);
                 }
               }}
-              className="w-full py-1.5 rounded-lg text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors"
+              className={`w-full py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 ${modelSwitchStatus ? 'bg-purple-800 text-purple-300 cursor-wait' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
             >
-              {t('applyLmSettings') || 'Apply LM Settings (restart pipeline)'}
+              {modelSwitchStatus ? (
+                <><Loader2 size={12} className="animate-spin" /> {modelSwitchStatus}</>
+              ) : (
+                t('applyLmSettings') || 'Apply LM Settings (restart pipeline)'
+              )}
             </button>
 
             {/* Seed */}
