@@ -459,26 +459,41 @@ async function startServer() {
     });
   }
 
-  app.listen(config.port, '0.0.0.0', () => {
-    console.log(`ACE-Step UI Server running on http://localhost:${config.port}`);
-    console.log(`Environment: ${config.nodeEnv}`);
-    if (managePipeline) {
-      console.log(`Pipeline: managed (port ${config.pipeline.port})`);
-    } else {
-      console.log(`ACE-Step API: ${config.acestep.apiUrl} (external)`);
-    }
+  function tryListen(port: number) {
+    const server = app.listen(port, '0.0.0.0', () => {
+      config.port = port;
+      console.log(`ACE-Step UI Server running on http://localhost:${port}`);
+      console.log(`Environment: ${config.nodeEnv}`);
+      if (managePipeline) {
+        console.log(`Pipeline: managed (port ${config.pipeline.port})`);
+      } else {
+        console.log(`ACE-Step API: ${config.acestep.apiUrl} (external)`);
+      }
 
-    import('os').then(os => {
-      const nets = os.networkInterfaces();
-      for (const name of Object.keys(nets)) {
-        for (const net of nets[name] || []) {
-          if (net.family === 'IPv4' && !net.internal) {
-            console.log(`LAN access: http://${net.address}:${config.port}`);
+      import('os').then(os => {
+        const nets = os.networkInterfaces();
+        for (const name of Object.keys(nets)) {
+          for (const net of nets[name] || []) {
+            if (net.family === 'IPv4' && !net.internal) {
+              console.log(`LAN access: http://${net.address}:${port}`);
+            }
           }
         }
+      });
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE' && port < config.port + 10) {
+        console.log(`[Server] Port ${port} busy, trying ${port + 1}...`);
+        tryListen(port + 1);
+      } else {
+        console.error(`[Server] Failed to start:`, err.message);
+        process.exit(1);
       }
     });
-  });
+  }
+
+  tryListen(config.port);
 
   // Graceful shutdown
   const shutdown = async () => {
