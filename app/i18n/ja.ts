@@ -665,4 +665,5 @@ export const ja = {
   hintFormatCaption: 'AIフォーマッタが生成したフォーマット済みキャプションを使用。',
   hintGetScores: '診断用のスコアラー出力を返す。',
   hintGetLrcLyrics: '利用可能な場合、同期歌詞（LRC）出力を返す。',
+    connectingToServer: 'サーバーに接続中...',
 };

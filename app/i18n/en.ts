@@ -665,4 +665,5 @@ export const en = {
     hintFormatCaption: 'Use the formatted caption produced by the AI formatter.',
     hintGetScores: 'Return scorer outputs for diagnostics.',
     hintGetLrcLyrics: 'Return synced lyric (LRC) output when available.',
+    connectingToServer: 'Connecting to server...',
 };

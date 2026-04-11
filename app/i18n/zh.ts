@@ -665,4 +665,5 @@ export const zh = {
     hintFormatCaption: '使用AI格式化器生成的格式化描述。',
     hintGetScores: '返回评分器输出用于诊断。',
     hintGetLrcLyrics: '在可用时返回同步歌词（LRC）输出。',
+    connectingToServer: '正在连接服务器...',
 };

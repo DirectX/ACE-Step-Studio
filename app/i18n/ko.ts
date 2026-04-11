@@ -665,4 +665,5 @@ export const ko = {
     hintFormatCaption: 'AI 포맷터가 생성한 포맷된 캡션을 사용.',
     hintGetScores: '진단용 스코어러 출력을 반환.',
     hintGetLrcLyrics: '사용 가능한 경우 동기화된 가사(LRC) 출력을 반환.',
+    connectingToServer: '서버 연결 중...',
 };

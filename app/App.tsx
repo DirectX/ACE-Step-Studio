@@ -1450,7 +1450,7 @@ function AppContent() {
       {authLoading && (
         <div className="bg-zinc-800 text-zinc-300 text-xs text-center py-1.5 flex items-center justify-center gap-2 flex-shrink-0">
           <div className="w-3 h-3 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-          Connecting to server...
+          {t('connectingToServer') || 'Connecting to server...'}
         </div>
       )}
       <div className="flex-1 flex overflow-hidden">
