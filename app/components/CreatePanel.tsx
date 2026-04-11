@@ -261,6 +261,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           if (data.state === 'ready' && data.activeModel && data.connected) {
             setSelectedModel(data.activeModel);
             localStorage.setItem('ace-model', data.activeModel);
+            // Sync LM settings from real pipeline state
+            if (data.activeLmModel) { setLmModel(data.activeLmModel); localStorage.setItem('ace-lmModel', data.activeLmModel); }
+            if (data.activeLmBackend) setLmBackend(data.activeLmBackend as 'pt' | 'vllm');
           }
           // During loading, show the target model
           if (data.state === 'loading' && data.model) {

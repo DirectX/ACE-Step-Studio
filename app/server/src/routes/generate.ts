@@ -667,6 +667,8 @@ router.get('/model-status', async (_req, res: Response) => {
     ...modelLoadingStatus,
     connected: gradioAlive,
     activeModel: activeLoadedModel,
+    activeLmModel,
+    activeLmBackend,
   });
 });
 
@@ -719,6 +721,8 @@ router.get('/system-info', async (_req, res: Response) => {
 // Restart Gradio pipeline with a different model
 let gradioProcess: any = null;
 let activeLoadedModel: string = process.env.ACESTEP_DEFAULT_MODEL || 'acestep-v15-xl-turbo';
+let activeLmModel: string = 'acestep-5Hz-lm-1.7B';
+let activeLmBackend: string = 'pt';
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const { model, lmModel, lmBackend } = req.body;
@@ -809,6 +813,8 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   if (ready) {
     resetGradioClient();
     activeLoadedModel = model;
+    if (lmModel) activeLmModel = lmModel;
+    if (lmBackend) activeLmBackend = lmBackend;
     modelLoadingStatus = { state: 'ready', model };
     console.log(`[Model] Gradio ready with model: ${model}`);
     res.json({ success: true, model });
