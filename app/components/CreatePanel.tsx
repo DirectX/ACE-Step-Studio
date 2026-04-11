@@ -175,9 +175,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [inferenceSteps, setInferenceSteps] = useState(12);
   const [inferMethod, setInferMethod] = useState<'ode' | 'sde'>('ode');
   const [lmBackend] = useState<'pt' | 'vllm'>('pt'); // VLLM not supported on Windows
-  const [lmModel, setLmModel] = useState(() => {
-    return localStorage.getItem('ace-lmModel') || 'acestep-5Hz-lm-0.6B';
-  });
+  const [lmModel, setLmModel] = useState('acestep-5Hz-lm-4B');
   const [shift, setShift] = useState(3.0);
 
   // LM Parameters (under Expert)
@@ -2321,7 +2319,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('lmModelLabel')}</label>
               <select
                 value={lmModel}
-                onChange={(e) => { const v = e.target.value; setLmModel(v); localStorage.setItem('ace-lmModel', v); }}
+                onChange={(e) => setLmModel(e.target.value)}
                 className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
               >
                 <option value="acestep-5Hz-lm-0.6B">{t('lmModel06B')}</option>
