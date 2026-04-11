@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3 } from 'lucide-react';
+import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3, Undo2 } from 'lucide-react';
 import { GenerationParams, Song } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -141,9 +141,37 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [songDescription, setSongDescription] = useState(() => localStorage.getItem('ace-songDescription') || '');
 
   // Custom Mode
-  const [lyrics, setLyrics] = useState(() => localStorage.getItem('ace-lyrics') || '');
-  const [style, setStyle] = useState(() => localStorage.getItem('ace-style') || '');
+  const [lyrics, setLyricsRaw] = useState(() => localStorage.getItem('ace-lyrics') || '');
+  const [style, setStyleRaw] = useState(() => localStorage.getItem('ace-style') || '');
   const [title, setTitle] = useState(() => localStorage.getItem('ace-title') || '');
+
+  // Undo history for lyrics and style
+  const lyricsHistoryRef = useRef<string[]>([]);
+  const styleHistoryRef = useRef<string[]>([]);
+  const setLyrics = useCallback((val: string | ((prev: string) => string)) => {
+    setLyricsRaw(prev => {
+      const newVal = typeof val === 'function' ? val(prev) : val;
+      if (prev && prev !== newVal) lyricsHistoryRef.current.push(prev);
+      if (lyricsHistoryRef.current.length > 20) lyricsHistoryRef.current.shift();
+      return newVal;
+    });
+  }, []);
+  const setStyle = useCallback((val: string | ((prev: string) => string)) => {
+    setStyleRaw(prev => {
+      const newVal = typeof val === 'function' ? val(prev) : val;
+      if (prev && prev !== newVal) styleHistoryRef.current.push(prev);
+      if (styleHistoryRef.current.length > 20) styleHistoryRef.current.shift();
+      return newVal;
+    });
+  }, []);
+  const undoLyrics = useCallback(() => {
+    const prev = lyricsHistoryRef.current.pop();
+    if (prev !== undefined) setLyricsRaw(prev);
+  }, []);
+  const undoStyle = useCallback(() => {
+    const prev = styleHistoryRef.current.pop();
+    if (prev !== undefined) setStyleRaw(prev);
+  }, []);
 
   // Common
   const [instrumental, setInstrumental] = useState(false);
@@ -1947,11 +1975,19 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </button>
                   <button
                     className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormattingLyrics ? 'text-pink-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title={t('hintAiFormat') || 'AI Format - Enhance style & auto-fill parameters'}
+                    title={t('hintAiFormat') || 'AI — generate or enhance lyrics'}
                     onClick={() => handleFormat('lyrics')}
                     disabled={isFormattingLyrics || !style.trim()}
                   >
                     {isFormattingLyrics ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  </button>
+                  <button
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${lyricsHistoryRef.current.length > 0 ? 'text-zinc-500 hover:text-black dark:hover:text-white' : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed'}`}
+                    title="Undo (Ctrl+Z)"
+                    onClick={undoLyrics}
+                    disabled={lyricsHistoryRef.current.length === 0}
+                  >
+                    <Undo2 size={14} />
                   </button>
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
@@ -2001,6 +2037,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     onClick={refreshMusicTags}
                   >
                     <Dices size={14} />
+                  </button>
+                  <button
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${styleHistoryRef.current.length > 0 ? 'text-zinc-500 hover:text-black dark:hover:text-white' : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed'}`}
+                    title="Undo (Ctrl+Z)"
+                    onClick={undoStyle}
+                    disabled={styleHistoryRef.current.length === 0}
+                  >
+                    <Undo2 size={14} />
                   </button>
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
