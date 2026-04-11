@@ -196,6 +196,7 @@ export const songsApi = {
         ditModel: s.dit_model || s.ditModel,
         lmModel: s.lm_model || s.lmModel,
         lmBackend: s.lm_backend || s.lmBackend,
+        generationTime: s.generation_time || s.generationTime,
         isGenerating: s.isGenerating,
         queuePosition: s.queuePosition,
         bpm: s.bpm,

@@ -355,7 +355,8 @@ app.get('/api/search', async (req, res) => {
       const songsResult = await pool.query(
         `SELECT s.id, s.title, s.lyrics, s.style, s.caption, s.cover_url, s.audio_url,
                 s.duration, s.tags, s.like_count, s.view_count, s.is_public, s.created_at,
-                u.username as creator, u.avatar_url as creator_avatar
+                u.username as creator, u.avatar_url as creator_avatar,
+                s.dit_model, s.lm_model, s.lm_backend, s.generation_time
          FROM songs s
          LEFT JOIN users u ON s.user_id = u.id
          WHERE s.is_public = 1
