@@ -3,17 +3,21 @@
 [![Stars](https://img.shields.io/github/stars/timoncool/ACE-Step-Studio?style=social)](https://github.com/timoncool/ACE-Step-Studio/stargazers)
 [![License](https://img.shields.io/github/license/timoncool/ACE-Step-Studio)](LICENSE)
 
-Portable music generation studio powered by [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) (4B DiT). Full-featured UI with model switching, real-time GPU monitoring, Russian/English/Chinese/Japanese/Korean interface, and one-click portable installation for Windows.
+Portable music generation studio powered by [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) (4B DiT). Full-featured UI with hot model switching, real-time GPU monitoring, 5-language interface, and one-click portable installation for Windows.
 
 ## Features
 
-- **3 XL Models**: XL Turbo (8 steps, fast), XL SFT (50 steps, max quality), XL Turbo BF16 (compact, 7.5 GB)
-- **Portable**: Everything in one folder. Delete folder = uninstall. No system pollution
-- **Model Management**: Auto-download, switch models on the fly, real status indicators
-- **System Monitor**: Live GPU/VRAM/RAM/CPU stats in sidebar via nvidia-smi
-- **Multi-language**: Russian, English, Chinese, Japanese, Korean (auto-detect)
-- **AI Enhance**: LLM-powered style enrichment for better genre accuracy
-- **Advanced Controls**: Inference steps, CFG, shift, sampler, LM temperature, batch generation
+- **Single Terminal** — one `run.bat`, everything managed by Express (Python auto-spawned, auto-restarted on crash)
+- **3 XL Models** — XL Turbo (8 steps, fast), XL SFT (50 steps, max quality), XL Turbo BF16 (compact, 7.5 GB)
+- **Hot Model Switching** — change DiT/LM models without restart via in-process `/v1/init` API
+- **Portable** — everything in one folder. Delete folder = uninstall. No system pollution
+- **Generation Time Tracking** — stopwatch icon shows how long each track took to generate
+- **System Monitor** — live GPU/VRAM/RAM/CPU stats in sidebar via nvidia-smi
+- **Multi-language** — English, Russian, Chinese, Japanese, Korean (auto-detect)
+- **Built-in Tools** — audio editor (AudioMass), stem extraction (Demucs), video generator
+- **AI Enhance** — LLM-powered style enrichment for better genre accuracy
+- **LAN Access** — use from any device on your network
+- **Advanced Controls** — inference steps, CFG, shift, sampler, LM temperature, batch generation
 
 ## System Requirements
 
@@ -56,7 +60,9 @@ Choose XL Turbo (18.8 GB) for fast generation or XL SFT (18.8 GB) for max qualit
 run.bat
 ```
 
-Opens UI at http://localhost:3000. Three services start: Gradio pipeline (8001), Express backend (3001), Vite frontend (3000).
+Single terminal — Express + Gradio pipeline in one window. Browser opens automatically when models are loaded. UI at http://localhost:3001 (auto-finds free port if busy).
+
+For development with Vite HMR: `run-dev.bat` (3 terminals, frontend at http://localhost:3000).
 
 ## Models
 
@@ -76,7 +82,9 @@ ACE-Step-Studio/
 ├── node/             # Portable Node.js 22 (created by install.bat)
 ├── models/           # HuggingFace cache (created at runtime)
 ├── install.bat       # One-click installer
-├── run.bat           # Launcher (3 services)
+├── run.bat           # Single-terminal launcher (Express manages Python)
+├── run-dev.bat       # Dev mode (3 terminals with Vite HMR)
+├── AGENTS.md         # Agent/contributor guidelines
 ├── update.bat        # Update wrapper + deps
 └── download_model.bat # Model downloader
 ```
@@ -100,6 +108,10 @@ Updates both ACE-Step Studio wrapper and ACE-Step 1.5 core, then refreshes depen
 | [SuperCaption Qwen3-VL](https://github.com/timoncool/SuperCaption_Qwen3-VL) | Image captioning |
 | [VideoSOS](https://github.com/timoncool/videosos) | AI video production |
 | [RC Stable Audio Tools](https://github.com/timoncool/RC-stable-audio-tools-portable) | Music and audio generation |
+
+## Contributing
+
+See [AGENTS.md](AGENTS.md) for architecture details, coding conventions, and pitfalls to avoid.
 
 ## Authors
 
