@@ -40,9 +40,10 @@ function resolveAceStepPath(): string {
 
 // Resolve Python path cross-platform (supports venv and portable installations)
 export function resolvePythonPath(baseDir: string): string {
-  // Allow explicit override via env var
+  // Allow explicit override via env var (resolve to absolute path)
   if (process.env.PYTHON_PATH) {
-    return process.env.PYTHON_PATH;
+    const envPath = process.env.PYTHON_PATH;
+    return path.isAbsolute(envPath) ? envPath : path.resolve(envPath);
   }
 
   const isWindows = process.platform === 'win32';
