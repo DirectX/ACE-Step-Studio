@@ -2677,7 +2677,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     onMouseLeave={handleCanvasMouseUp}
                     onWheel={handleCanvasWheel}
                  />
-                 <div className="flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-500">
+                 <div className="absolute bottom-1 left-0 right-0 flex items-center justify-center gap-3 py-1 text-[10px] text-zinc-400 pointer-events-none">
                    <span>🖱 {t('dragToMove')}</span>
                    <span>⚙ {t('scrollToResize')}</span>
                  </div>
