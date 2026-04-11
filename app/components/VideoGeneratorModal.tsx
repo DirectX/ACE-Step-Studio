@@ -600,8 +600,13 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     if (audioContextRef.current.state === 'suspended') {
       await audioContextRef.current.resume();
     }
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play();
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      await audioRef.current.play();
+      setPlaybackTime(audioRef.current.currentTime);
+      setPlaybackDuration(audioRef.current.duration || 0);
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -1526,8 +1531,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     ctx.restore();
 
     // --- 3.5 SYNCED LYRICS OVERLAY ---
-    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0 && audioRef.current && !audioRef.current.paused) {
-      const currentTime = audioRef.current.currentTime + lyricsOffsetRef.current;
+    if (lyricsEnabledRef.current && lrcLinesRef.current.length > 0) {
+      const currentTime = (audioRef.current?.currentTime ?? 0) + lyricsOffsetRef.current;
       const lines = lrcLinesRef.current;
       const showSections = lyricsShowSectionsRef.current;
       const fontSize = lyricsFontSizeRef.current * (width / 1920);
