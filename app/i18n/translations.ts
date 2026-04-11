@@ -220,7 +220,6 @@ export const translations = {
     bpm: 'BPM',
     auto: 'Auto',
     duration: 'Duration',
-    seconds: 's',
     keyScale: 'Key & Scale',
     timeSignature: 'Time Signature',
     
@@ -849,7 +848,6 @@ export const translations = {
     bpm: '曲速*(BPM)',
     auto: '自动',
     duration: '时长',
-    seconds: '秒',
     keyScale: '调式',
     timeSignature: '拍号',
     
@@ -1478,7 +1476,6 @@ export const translations = {
     bpm: 'BPM',
     auto: '自動',
     duration: '長さ',
-    seconds: '秒',
     keyScale: 'キーとスケール',
     timeSignature: '拍子',
     
@@ -2107,7 +2104,6 @@ export const translations = {
     bpm: 'BPM',
     auto: '자동',
     duration: '길이',
-    seconds: '초',
     keyScale: '키와 스케일',
     timeSignature: '박자',
     
@@ -2731,7 +2727,6 @@ export const translations = {
     bpm: 'BPM',
     auto: 'Авто',
     duration: 'Длительность',
-    seconds: 'с',
     keyScale: 'Тональность и лад',
     timeSignature: 'Размер',
 
