@@ -981,6 +981,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           if (lrcStyle === 'karaoke' && !(!lrcShowSections && lrcLine.isSection)) {
             const nextT = Math.min(lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5, lrcLine.time + 5);
             const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
+            // Hide line if fully sung (prog=1) for more than 1s
+            if (prog >= 1 && lrcTime > nextT + 1) { /* skip — line already sung */ } else {
             const m = ctx.measureText(lrcLine.text);
             const bx = lrcX - m.width / 2;
             const pw = m.width + lrcFontSize * 0.8;
@@ -996,6 +998,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             ctx.fillStyle = lyricsHighlightColorRef.current;
             ctx.strokeText(lrcLine.text, bx, lrcY); ctx.fillText(lrcLine.text, bx, lrcY);
             ctx.restore();
+            }
           } else if (lrcStyle === 'scroll' && !(!lrcShowSections && lrcLine.isSection)) {
             const nextT = Math.min(lrcIdx + 1 < lrcLines.length ? lrcLines[lrcIdx + 1].time : lrcLine.time + 5, lrcLine.time + 5);
             const prog = Math.min(1, (lrcTime - lrcLine.time) / (nextT - lrcLine.time));
@@ -1584,6 +1587,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           if (!showSections && line.isSection) { /* skip */ } else {
             const nextTime = Math.min(currentIdx + 1 < lines.length ? lines[currentIdx + 1].time : line.time + 5, line.time + 5);
             const progress = Math.min(1, (currentTime - line.time) / (nextTime - line.time));
+            if (progress >= 1 && currentTime > nextTime + 1) { /* skip — already sung */ } else {
             const metrics = ctx.measureText(line.text);
             const textW = metrics.width;
             const baseX = lyricsXPos - textW / 2;
@@ -1615,6 +1619,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
             ctx.strokeText(line.text, baseX, lyricsYPos);
             ctx.fillText(line.text, baseX, lyricsYPos);
             ctx.restore();
+            }
           }
 
         } else {
