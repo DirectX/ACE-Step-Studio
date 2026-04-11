@@ -12,7 +12,7 @@ import { UserProfile } from './components/UserProfile';
 import { SettingsModal } from './components/SettingsModal';
 import { SongProfile } from './components/SongProfile';
 import { Song, GenerationParams, View, Playlist } from './types';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { generateApi, songsApi, playlistsApi, getAudioUrl } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { useResponsive } from './context/ResponsiveContext';
