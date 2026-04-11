@@ -2626,25 +2626,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5"
                                         placeholder={t('textContent')}
                                     />
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('xPosition')}</label>
-                                            <input type="range" min="0" max="100" value={layer.x} onChange={(e) => updateTextLayer(layer.id, { x: parseInt(e.target.value) })} className="w-full accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('yPosition')}</label>
-                                            <input type="range" min="0" max="100" value={layer.y} onChange={(e) => updateTextLayer(layer.id, { y: parseInt(e.target.value) })} className="w-full accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1">
-                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('size')}</label>
-                                            <input type="number" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">{t('color')}</label>
-                                            <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-8 h-6 rounded cursor-pointer border-none bg-transparent" />
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-zinc-500">{t('size')}</span>
+                                        <input type="range" min="12" max="120" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="flex-1 accent-pink-500" />
+                                        <span className="text-[10px] text-zinc-400 w-8 text-right">{layer.size}px</span>
+                                        <span className="text-[10px] text-zinc-500">{t('color')}</span>
+                                        <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-5 h-5 rounded cursor-pointer border-none bg-transparent" />
                                     </div>
                                 </div>
                             ))}
