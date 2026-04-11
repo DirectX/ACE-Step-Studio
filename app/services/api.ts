@@ -398,6 +398,26 @@ export const generateApi = {
     error?: string;
   }> => api('/api/generate/format', { method: 'POST', body: params, token }),
 
+  // Create Sample - LLM generates caption/lyrics/metadata from description (Simple Mode)
+  createSample: (params: {
+    query: string;
+    instrumental?: boolean;
+    vocalLanguage?: string;
+    lmTemperature?: number;
+    lmTopK?: number;
+    lmTopP?: number;
+  }, token: string): Promise<{
+    caption: string;
+    lyrics: string;
+    bpm: number;
+    duration: number;
+    keyScale: string;
+    vocalLanguage: string;
+    timeSignature: string;
+    instrumental: boolean;
+    status: string;
+  }> => api('/api/generate/create-sample', { method: 'POST', body: params, token }),
+
   // Random description from Gradio's example library
   getRandomDescription: (token: string): Promise<{
     description: string;

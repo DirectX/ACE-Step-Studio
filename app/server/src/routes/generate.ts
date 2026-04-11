@@ -1043,6 +1043,55 @@ router.get('/debug/:taskId', authMiddleware, async (req: AuthenticatedRequest, r
   }
 });
 
+// Create Sample endpoint - LLM generates caption/lyrics/metadata from description (Simple Mode)
+router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { query, instrumental, vocalLanguage, lmTemperature, lmTopK, lmTopP } = req.body;
+
+    if (!query) {
+      res.status(400).json({ error: 'query (song description) is required' });
+      return;
+    }
+
+    const { getGradioClient } = await import('../services/gradio-client.js');
+    const client = await getGradioClient();
+
+    console.log('[CreateSample] Calling Gradio /create_sample...');
+    const result = await client.predict('/create_sample', [
+      query,
+      instrumental ?? false,
+      vocalLanguage || 'en',
+      lmTemperature ?? 0.85,
+      lmTopK ?? 0,
+      lmTopP ?? 0.9,
+      false, // constrained_decoding_debug
+    ]);
+
+    const data = result.data as any[];
+    // Returns 15 values: caption, lyrics, bpm, duration, keyscale, language, language2,
+    // timesignature, instrumental, btn_interactive, sample_created, think, is_format_caption, status, mode
+    if (!Array.isArray(data) || data.length < 8) {
+      res.status(500).json({ error: 'Unexpected response from create_sample' });
+      return;
+    }
+
+    res.json({
+      caption: data[0] || '',
+      lyrics: data[1] || '',
+      bpm: data[2] || 0,
+      duration: data[3] || -1,
+      keyScale: data[4] || '',
+      vocalLanguage: data[5] || 'en',
+      timeSignature: data[7] || '',
+      instrumental: data[8] ?? false,
+      status: data[13] || 'Sample created',
+    });
+  } catch (error) {
+    console.error('[CreateSample] Error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // Format endpoint - uses LLM to enhance style/lyrics
 router.post('/format', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -1063,7 +1112,7 @@ router.post('/format', authMiddleware, async (req: AuthenticatedRequest, res: Re
     if (timeSignature) paramObj.time_signature = timeSignature;
 
     // Call Gradio format endpoints
-    // lambda_22 = format caption, lambda_23 = format lyrics
+    // Named Gradio endpoints: /format_caption, /format_lyrics
     try {
       const { getGradioClient } = await import('../services/gradio-client.js');
       const client = await getGradioClient();
@@ -1080,16 +1129,16 @@ router.post('/format', authMiddleware, async (req: AuthenticatedRequest, res: Re
         false,
       ];
 
-      // Format caption via /lambda_22
-      console.log('[Format] Calling Gradio /lambda_22 (caption)...');
-      const captionResult = await client.predict('/lambda_22', gradioArgs);
+      // Format caption via named endpoint
+      console.log('[Format] Calling Gradio /format_caption...');
+      const captionResult = await client.predict('/format_caption', gradioArgs);
       const cd = captionResult.data as any[];
 
-      // Format lyrics via /lambda_23 if lyrics provided
+      // Format lyrics via named endpoint if lyrics provided
       let formattedLyrics = lyrics || '';
       if (lyrics && lyrics.trim()) {
-        console.log('[Format] Calling Gradio /lambda_23 (lyrics)...');
-        const lyricsResult = await client.predict('/lambda_23', gradioArgs);
+        console.log('[Format] Calling Gradio /format_lyrics...');
+        const lyricsResult = await client.predict('/format_lyrics', gradioArgs);
         const ld = lyricsResult.data as any[];
         formattedLyrics = ld[0] || lyrics;
       }

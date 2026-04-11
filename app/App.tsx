@@ -797,24 +797,57 @@ function AppContent() {
     setShowRightSidebar(true);
 
     try {
+      // Simple mode: use LLM to generate caption/lyrics/metadata from description
+      let enrichedParams = { ...params };
+      if (!params.customMode && params.songDescription && token) {
+        try {
+          const sample = await generateApi.createSample({
+            query: params.songDescription,
+            instrumental: params.instrumental,
+            vocalLanguage: params.vocalLanguage,
+          }, token);
+          if (sample.caption) {
+            enrichedParams = {
+              ...enrichedParams,
+              customMode: true, // switch to custom mode for generation
+              style: sample.caption,
+              lyrics: sample.lyrics || '',
+              instrumental: sample.instrumental,
+              vocalLanguage: sample.vocalLanguage || params.vocalLanguage,
+              bpm: sample.bpm > 0 ? sample.bpm : undefined,
+              duration: sample.duration > 0 ? sample.duration : undefined,
+              keyScale: sample.keyScale || undefined,
+              timeSignature: sample.timeSignature || undefined,
+              thinking: true,
+              isFormatCaption: true,
+            };
+            // Update temp song title with generated caption
+            setSongs(prev => prev.map(s => s.id === tempId ? { ...s, title: sample.caption.slice(0, 50) || s.title, style: sample.caption } : s));
+          }
+        } catch (err) {
+          console.warn('[CreateSample] LLM enrichment failed, using raw description:', err);
+          // Continue with raw description — not a fatal error
+        }
+      }
+
       const job = await generateApi.startGeneration({
-        customMode: params.customMode,
-        songDescription: params.songDescription,
-        lyrics: params.lyrics,
-        style: params.style,
-        title: params.title,
-        instrumental: params.instrumental,
-        vocalLanguage: params.vocalLanguage,
-        duration: params.duration && params.duration > 0 ? params.duration : undefined,
-        bpm: params.bpm,
-        keyScale: params.keyScale,
-        timeSignature: params.timeSignature,
+        customMode: enrichedParams.customMode,
+        songDescription: enrichedParams.songDescription,
+        lyrics: enrichedParams.lyrics,
+        style: enrichedParams.style,
+        title: enrichedParams.title,
+        instrumental: enrichedParams.instrumental,
+        vocalLanguage: enrichedParams.vocalLanguage,
+        duration: enrichedParams.duration && enrichedParams.duration > 0 ? enrichedParams.duration : undefined,
+        bpm: enrichedParams.bpm,
+        keyScale: enrichedParams.keyScale,
+        timeSignature: enrichedParams.timeSignature,
         inferenceSteps: params.inferenceSteps,
         guidanceScale: params.guidanceScale,
         batchSize: params.batchSize,
         randomSeed: params.randomSeed,
         seed: params.seed,
-        thinking: params.thinking,
+        thinking: enrichedParams.thinking ?? params.thinking,
         enhance: params.enhance,
         audioFormat: params.audioFormat,
         inferMethod: params.inferMethod,
@@ -852,7 +885,7 @@ function AppContent() {
         lmBatchChunkSize: params.lmBatchChunkSize,
         trackName: params.trackName,
         completeTrackClasses: params.completeTrackClasses,
-        isFormatCaption: params.isFormatCaption,
+        isFormatCaption: enrichedParams.isFormatCaption ?? params.isFormatCaption,
         coverNoiseStrength: params.coverNoiseStrength,
         samplerMode: params.samplerMode,
         velocityNormThreshold: params.velocityNormThreshold,
