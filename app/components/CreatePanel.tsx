@@ -805,44 +805,67 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const handleFormat = async (target: 'style' | 'lyrics') => {
     if (!token) return;
     if (target === 'style' && !style.trim()) return;
-    if (target === 'lyrics' && !lyrics.trim() && !style.trim()) return;
+    if (target === 'lyrics' && !style.trim()) return;
     if (target === 'style') {
       setIsFormattingStyle(true);
     } else {
       setIsFormattingLyrics(true);
     }
     try {
-      const result = await generateApi.formatInput({
-        caption: style,
-        lyrics: lyrics,
-        bpm: bpm > 0 ? bpm : undefined,
-        duration: duration > 0 ? duration : undefined,
-        keyScale: keyScale || undefined,
-        timeSignature: timeSignature || undefined,
-        temperature: lmTemperature,
-        topK: lmTopK > 0 ? lmTopK : undefined,
-        topP: lmTopP,
-        lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
-        lmBackend: lmBackend || 'pt',
-        vocalLanguage: vocalLanguage || 'en',
-      }, token);
-
-      if (result.caption || result.lyrics || result.bpm || result.duration) {
-        // Update fields with LLM-generated values
-        if (target === 'style' && result.caption) setStyle(result.caption);
-        if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
-        if (result.bpm && result.bpm > 0) setBpm(result.bpm);
-        if (result.duration && result.duration > 0) setDuration(result.duration);
-        if (result.key_scale) setKeyScale(result.key_scale);
-        if (result.time_signature) {
-          const ts = String(result.time_signature);
-          setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+      // If lyrics is empty and we want to generate lyrics — use create_sample
+      if (target === 'lyrics' && !lyrics.trim()) {
+        const sample = await generateApi.createSample({
+          query: style,
+          instrumental: false,
+          vocalLanguage: vocalLanguage || 'en',
+          lmTemperature,
+          lmTopK: lmTopK > 0 ? lmTopK : undefined,
+          lmTopP,
+        }, token);
+        if (sample.lyrics) {
+          setLyrics(sample.lyrics);
+          if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
+          if (sample.duration && sample.duration > 0) setDuration(sample.duration);
+          if (sample.keyScale) setKeyScale(sample.keyScale);
+          if (sample.timeSignature) {
+            const ts = String(sample.timeSignature);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+          }
+        } else {
+          alert('LLM did not generate lyrics. Try a more descriptive style.');
         }
-        // Don't override user's language choice from AI format
-        if (target === 'style') setIsFormatCaption(true);
       } else {
-        console.error('Format failed:', result.error || result.status_message);
-        alert(result.error || result.status_message || 'Format failed. Make sure the LLM is initialized.');
+        // Format existing content via /format endpoint
+        const result = await generateApi.formatInput({
+          caption: style,
+          lyrics: lyrics,
+          bpm: bpm > 0 ? bpm : undefined,
+          duration: duration > 0 ? duration : undefined,
+          keyScale: keyScale || undefined,
+          timeSignature: timeSignature || undefined,
+          temperature: lmTemperature,
+          topK: lmTopK > 0 ? lmTopK : undefined,
+          topP: lmTopP,
+          lmModel: lmModel || 'acestep-5Hz-lm-0.6B',
+          lmBackend: lmBackend || 'pt',
+          vocalLanguage: vocalLanguage || 'en',
+        }, token);
+
+        if (result.caption || result.lyrics || result.bpm || result.duration) {
+          if (target === 'style' && result.caption) setStyle(result.caption);
+          if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
+          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
+          if (result.duration && result.duration > 0) setDuration(result.duration);
+          if (result.key_scale) setKeyScale(result.key_scale);
+          if (result.time_signature) {
+            const ts = String(result.time_signature);
+            setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
+          }
+          if (target === 'style') setIsFormatCaption(true);
+        } else {
+          console.error('Format failed:', result.error || result.status_message);
+          alert(result.error || result.status_message || 'Format failed. Make sure the LLM is initialized.');
+        }
       }
     } catch (err) {
       console.error('Format error:', err);

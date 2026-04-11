@@ -600,6 +600,11 @@ export const ko = {
     stopTraining: '훈련 중지',
     trainingProgress: '훈련 진행',
     trainingLog: '훈련 로그',
+    trainingStatus: '훈련 상태',
+    tensorboardView: 'TensorBoard 보기',
+    showTensorboard: 'TensorBoard 표시',
+    hideTensorboard: 'TensorBoard 숨기기',
+    openInNewTab: '새 탭에서 열기',
 
     // Training Status Messages
     scanning: '스캔 중...',
