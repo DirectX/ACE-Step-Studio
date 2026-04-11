@@ -46,21 +46,15 @@ install.bat
 
 Select your GPU type. Installs Python 3.12, PyTorch, Node.js 22, and all dependencies.
 
-### 3. Download Models
-
-```
-download_model.bat
-```
-
-Choose XL Turbo (18.8 GB) for fast generation or XL SFT (18.8 GB) for max quality. XL Turbo BF16 (7.5 GB) if low on VRAM.
-
-### 4. Run
+### 3. Run
 
 ```
 run.bat
 ```
 
 Single terminal — Express + Gradio pipeline in one window. Browser opens automatically when models are loaded. UI at http://localhost:3001 (auto-finds free port if busy).
+
+Models download automatically on first run (~7.5 GB for default BF16 model). To pre-download or add other models, use `download_model.bat`.
 
 For development with Vite HMR: `run-dev.bat` (3 terminals, frontend at http://localhost:3000).
 
