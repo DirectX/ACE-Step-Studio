@@ -2595,15 +2595,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         </div>
 
                                         {/* Background */}
-                                        <div>
-                                            <div className="flex justify-between">
-                                                <label className="text-[10px] text-zinc-500">{t('lyricsBgOpacity') || 'Background'}</label>
-                                                <span className="text-[10px] text-zinc-400">{lyricsBgOpacity}%</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent flex-shrink-0" />
-                                                <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500" />
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <label className="text-[10px] text-zinc-500 flex-shrink-0">{t('lyricsBgOpacity') || 'Background'}</label>
+                                            <input type="color" value={lyricsBgColor} onChange={e => setLyricsBgColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent flex-shrink-0" />
+                                            <input type="range" min={0} max={100} value={lyricsBgOpacity} onChange={e => setLyricsBgOpacity(Number(e.target.value))} className="flex-1 accent-pink-500" />
+                                            <span className="text-[10px] text-zinc-400 w-8 text-right">{lyricsBgOpacity}%</span>
                                         </div>
 
                                         {/* Show sections */}
