@@ -2583,14 +2583,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         </div>
 
                                         {/* Colors */}
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="text-[10px] text-zinc-500 block mb-1">{t('lyricsTextColor') || 'Text'}</label>
-                                                <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-full h-6 rounded cursor-pointer border-none bg-transparent" />
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-1.5">
+                                                <label className="text-[10px] text-zinc-500">{t('lyricsTextColor') || 'Text'}</label>
+                                                <input type="color" value={lyricsColor} onChange={e => setLyricsColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
                                             </div>
-                                            <div>
-                                                <label className="text-[10px] text-zinc-500 block mb-1">{t('lyricsHighlight') || 'Highlight'}</label>
-                                                <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-full h-6 rounded cursor-pointer border-none bg-transparent" />
+                                            <div className="flex items-center gap-1.5">
+                                                <label className="text-[10px] text-zinc-500">{t('lyricsHighlight') || 'Highlight'}</label>
+                                                <input type="color" value={lyricsHighlightColor} onChange={e => setLyricsHighlightColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
                                             </div>
                                         </div>
 
