@@ -391,6 +391,8 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       [localJobId, req.user!.id, JSON.stringify(params)]
     );
 
+    console.log('[Generate] params.lmModel:', params.lmModel, 'params.lmBackend:', params.lmBackend, 'params.ditModel:', params.ditModel);
+
     // Start generation
     const { jobId: hfJobId } = await generateMusicViaAPI(params);
 
