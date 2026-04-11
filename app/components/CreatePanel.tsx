@@ -1963,12 +1963,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide" title={t('leaveLyricsEmpty')}>{t('lyrics')}</span>
                   <button
                     onClick={() => setInstrumental(!instrumental)}
-                    className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0"
-                    style={{ backgroundColor: instrumental ? '#ec4899' : '#3f3f46' }}
+                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${instrumental ? 'bg-zinc-600 dark:bg-zinc-500' : 'bg-green-500'}`}
                     title={instrumental ? t('instrumental') : t('vocal')}
                   >
-                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${instrumental ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${instrumental ? 'translate-x-0.5' : 'translate-x-4'}`} />
                   </button>
+                  <span className={`text-[10px] font-medium ${instrumental ? 'text-zinc-500 line-through' : 'text-green-500'}`}>
+                    {instrumental ? t('instrumental') : t('vocal')}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   {lyricsHistoryRef.current.length > 0 && (
