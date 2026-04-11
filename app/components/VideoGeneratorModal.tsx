@@ -34,6 +34,7 @@ interface VisualizerConfig {
   aspectRatio: AspectRatio;
   visualizerX: number; // 0-100%
   visualizerY: number; // 0-100%
+  visualizerScale: number; // 0.3-2.0
   lyricsX: number;     // 0-100%
   lyricsY: number;     // 0-100%
 }
@@ -192,8 +193,9 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     aspectRatio: '16:9' as AspectRatio,
     visualizerX: 50,
     visualizerY: 50,
+    visualizerScale: 1.0,
     lyricsX: 50,
-    lyricsY: 80,
+    lyricsY: 15,
   });
 
   const [effects, setEffects] = useState<EffectConfig>({
@@ -384,7 +386,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     const delta = e.deltaY > 0 ? -2 : 2; // scroll down = smaller, up = bigger
 
     if (hitId === '__visualizer__') {
-      // No direct size control for visualizer yet
+      const scaleDelta = e.deltaY > 0 ? -0.05 : 0.05;
+      setConfig(prev => ({ ...prev, visualizerScale: Math.max(0.3, Math.min(2.0, prev.visualizerScale + scaleDelta)) }));
     } else if (hitId === '__lyrics__') {
       setLyricsFontSize(prev => Math.max(16, Math.min(96, prev + delta)));
     } else {
@@ -828,13 +831,20 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.restore();
       }
 
-      // Draw preset
+      // Draw preset (scaled)
       ctx.save();
       if (currentEffects.shake && normBass > 0.6) {
         const magnitude = currentIntensities.shake * 30;
         const shakeX = (Math.random() - 0.5) * magnitude * normBass;
         const shakeY = (Math.random() - 0.5) * magnitude * normBass;
         ctx.translate(shakeX, shakeY);
+      }
+      // Apply visualizer scale around its center
+      const vScale = currentConfig.visualizerScale || 1.0;
+      if (vScale !== 1.0) {
+        ctx.translate(centerX, centerY);
+        ctx.scale(vScale, vScale);
+        ctx.translate(-centerX, -centerY);
       }
 
       switch(currentConfig.preset) {
@@ -1306,6 +1316,12 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
          const shakeX = (Math.random() - 0.5) * magnitude * normBass;
          const shakeY = (Math.random() - 0.5) * magnitude * normBass;
          ctx.translate(shakeX, shakeY);
+    }
+    const vScale = currentConfig.visualizerScale || 1.0;
+    if (vScale !== 1.0) {
+        ctx.translate(centerX, centerY);
+        ctx.scale(vScale, vScale);
+        ctx.translate(-centerX, -centerY);
     }
 
     switch(currentConfig.preset) {
@@ -2313,6 +2329,20 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                              </div>
                          </div>
                          
+                         {/* Visualizer Scale */}
+                         <div className="space-y-3">
+                            <div className="flex justify-between text-xs font-bold text-zinc-500 uppercase">
+                                <span>{t('size')}</span>
+                                <span>{Math.round(config.visualizerScale * 100)}%</span>
+                            </div>
+                            <input
+                                type="range" min="30" max="200" step="5"
+                                value={Math.round(config.visualizerScale * 100)}
+                                onChange={(e) => setConfig({...config, visualizerScale: parseInt(e.target.value) / 100})}
+                                className="w-full accent-pink-500 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+                            />
+                         </div>
+
                          {/* Particles */}
                          <div className="space-y-3">
                             <div className="flex justify-between text-xs font-bold text-zinc-500 uppercase">
@@ -2405,7 +2435,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                                         onClick={() => setLyricsPosition(pos)}
                                                         className={`px-2 py-1 rounded text-[10px] font-medium ${lyricsPosition === pos ? 'bg-pink-600 text-white' : 'bg-white/5 text-zinc-400'}`}
                                                     >
-                                                        {t(pos) || pos}
+                                                        {t(`pos${pos.charAt(0).toUpperCase() + pos.slice(1)}`) || pos}
                                                     </button>
                                                 ))}
                                             </div>
