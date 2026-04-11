@@ -1073,19 +1073,22 @@ router.post('/create-sample', authMiddleware, async (req: AuthenticatedRequest, 
       return;
     }
 
-    console.log('[CreateSample] Output:', { caption: String(data[0]).slice(0, 80), lyrics: String(data[1]).slice(0, 80), bpm: data[2], duration: data[3], key: data[4], lang: data[5], timeSig: data[7] });
+    // Gradio returns either plain values or {__type__: "update", value: ...} objects
+    const unwrap = (v: any): any => (v && typeof v === 'object' && '__type__' in v) ? v.value : v;
 
-    res.json({
-      caption: data[0] || '',
-      lyrics: data[1] || '',
-      bpm: data[2] || 0,
-      duration: data[3] || -1,
-      keyScale: data[4] || '',
-      vocalLanguage: data[5] || 'en',
-      timeSignature: data[7] || '',
-      instrumental: data[8] ?? false,
-      status: data[13] || 'Sample created',
-    });
+    const caption = unwrap(data[0]) || '';
+    const lyrics = unwrap(data[1]) || '';
+    const bpm = unwrap(data[2]) || 0;
+    const duration = unwrap(data[3]) || -1;
+    const keyScale = unwrap(data[4]) || '';
+    const vocalLanguage = unwrap(data[5]) || 'en';
+    const timeSignature = unwrap(data[7]) || '';
+    const instrumental = unwrap(data[8]) ?? false;
+    const status = unwrap(data[13]) || 'Sample created';
+
+    console.log('[CreateSample] Output:', { caption: String(caption).slice(0, 80), lyrics: String(lyrics).slice(0, 80), bpm, duration, key: keyScale, lang: vocalLanguage, timeSig: timeSignature });
+
+    res.json({ caption, lyrics, bpm, duration, keyScale, vocalLanguage, timeSignature, instrumental, status });
   } catch (error) {
     console.error('[CreateSample] Error:', error);
     res.status(500).json({ error: (error as Error).message });
