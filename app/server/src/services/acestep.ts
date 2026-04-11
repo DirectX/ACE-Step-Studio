@@ -625,7 +625,7 @@ async function processGenerationViaGradio(
         throw new Error(status.message || 'Gradio generation error');
       }
       if (status.stage === 'pending') {
-        job.stage = status.position ? `Queue #${status.position}` : 'In queue';
+        job.stage = 'Preparing...';
       }
       if (status.stage === 'generating') {
         const progress = status.progress_data;
