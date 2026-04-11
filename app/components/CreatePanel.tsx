@@ -1274,7 +1274,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                                 const switchRes = await fetch('/api/generate/switch-model', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                  body: JSON.stringify({ model: model.id }),
+                                  body: JSON.stringify({ model: model.id, lmModel, lmBackend }),
                                 });
                                 const switchData = await switchRes.json();
                                 if (switchData.success) {
@@ -2335,6 +2335,35 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </select>
               <p className="text-[10px] text-zinc-500">{t('lmModelHint')}</p>
             </div>
+
+            {/* Apply LM Settings button */}
+            <button
+              type="button"
+              onClick={async () => {
+                if (!token) return;
+                setModelSwitchStatus(`${t('applyingLmSettings') || 'Applying LM settings'}...`);
+                try {
+                  const res = await fetch('/api/generate/switch-model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ model: selectedModel, lmModel, lmBackend }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    setModelSwitchStatus('');
+                  } else {
+                    setModelSwitchStatus(data.error || 'Failed');
+                    setTimeout(() => setModelSwitchStatus(''), 5000);
+                  }
+                } catch (err) {
+                  setModelSwitchStatus('Error');
+                  setTimeout(() => setModelSwitchStatus(''), 5000);
+                }
+              }}
+              className="w-full py-1.5 rounded-lg text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors"
+            >
+              {t('applyLmSettings') || 'Apply LM Settings (restart pipeline)'}
+            </button>
 
             {/* Seed */}
             <div className="space-y-2">

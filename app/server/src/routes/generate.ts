@@ -721,7 +721,7 @@ let gradioProcess: any = null;
 let activeLoadedModel: string = process.env.ACESTEP_DEFAULT_MODEL || 'acestep-v15-xl-turbo';
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-  const { model } = req.body;
+  const { model, lmModel, lmBackend } = req.body;
   if (!model) {
     res.status(400).json({ error: 'model required' });
     return;
@@ -759,13 +759,18 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   modelLoadingStatus = { state: 'loading', model };
   console.log(`[Model] Starting Gradio with model: ${model}`);
 
-  gradioProcess = spawn(pythonPath, [
+  const spawnArgs = [
     '-m', 'acestep.acestep_v15_pipeline',
     '--config_path', model,
     '--port', '8001',
     '--init_service', 'true',
     '--init_llm', 'true',
-  ], {
+  ];
+  if (lmBackend) spawnArgs.push('--backend', lmBackend);
+  if (lmModel) spawnArgs.push('--lm_model_path', lmModel);
+
+  console.log(`[Model] Spawn args:`, spawnArgs.join(' '));
+  gradioProcess = spawn(pythonPath, spawnArgs, {
     cwd: ACESTEP_DIR,
     env: {
       ...process.env,
