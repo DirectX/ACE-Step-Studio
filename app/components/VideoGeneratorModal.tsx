@@ -198,7 +198,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     secondaryColor: '#3b82f6', // Blue-500
     bgDim: 0.6,
     particleCount: 50,
-    aspectRatio: '16:9' as AspectRatio,
+    aspectRatio: '1:1' as AspectRatio,
     visualizerX: 50,
     visualizerY: 50,
     visualizerScale: 1.0,
