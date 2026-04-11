@@ -48,6 +48,7 @@ export const ja = {
   textContent: 'テキスト内容',
   enterPexelsApiKey: 'Pexels APIキーを入力...',
   searchBackgrounds: '背景を検索...',
+  downloadLrc: 'LRC（歌詞）をダウンロード',
   generationFailed: '生成に失敗しました。もう一度お試しください。',
   playlistCreated: 'プレイリストを作成しました！',
   failedToCreatePlaylist: 'プレイリストの作成に失敗しました',

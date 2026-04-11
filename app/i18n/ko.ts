@@ -48,6 +48,7 @@ export const ko = {
     textContent: '텍스트 내용',
     enterPexelsApiKey: 'Pexels API 키 입력...',
     searchBackgrounds: '배경 검색...',
+    downloadLrc: 'LRC(가사) 다운로드',
     generationFailed: '생성에 실패했습니다. 다시 시도해주세요.',
     playlistCreated: '재생목록이 생성되었습니다!',
     failedToCreatePlaylist: '재생목록 생성에 실패했습니다',

@@ -48,6 +48,7 @@ export const en = {
     textContent: 'Text content',
     enterPexelsApiKey: 'Enter your Pexels API key...',
     searchBackgrounds: 'Search for backgrounds...',
+    downloadLrc: 'Download LRC (Lyrics)',
     generationFailed: 'Generation failed. Please try again.',
     playlistCreated: 'Playlist created successfully!',
     failedToCreatePlaylist: 'Failed to create playlist',

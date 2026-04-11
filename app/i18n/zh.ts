@@ -48,6 +48,7 @@ export const zh = {
     textContent: '文本内容',
     enterPexelsApiKey: '输入您的 Pexels API 密钥...',
     searchBackgrounds: '搜索背景...',
+    downloadLrc: '下载 LRC（歌词）',
     generationFailed: '生成失败，请重试。',
     playlistCreated: '歌单创建成功！',
     failedToCreatePlaylist: '创建歌单失败',

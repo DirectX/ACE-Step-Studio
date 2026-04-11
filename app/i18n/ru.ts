@@ -48,6 +48,7 @@ export const ru = {
     textContent: 'Текстовое содержимое',
     enterPexelsApiKey: 'Введите ваш Pexels API ключ...',
     searchBackgrounds: 'Поиск фонов...',
+    downloadLrc: 'Скачать LRC (текст песни)',
     generationFailed: 'Генерация не удалась. Попробуйте ещё раз.',
     playlistCreated: 'Плейлист успешно создан!',
     failedToCreatePlaylist: 'Не удалось создать плейлист',
