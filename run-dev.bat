@@ -49,6 +49,7 @@ if exist "%SCRIPT_DIR%ffmpeg\ffmpeg.exe" (
 
 set PYTHONIOENCODING=utf-8
 set PYTHONUNBUFFERED=1
+set PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 REM === Node.js in PATH ===
 set "PATH=%SCRIPT_DIR%node;%PATH%"
