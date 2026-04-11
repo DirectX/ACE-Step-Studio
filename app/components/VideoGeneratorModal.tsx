@@ -1649,17 +1649,6 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.fillRect(0, height - barHeight, width, barHeight);
     }
 
-    // --- 5. WYSIWYG HINTS (rendered on canvas) ---
-    ctx.save();
-    ctx.globalAlpha = 0.4;
-    const hintSize = Math.round(13 * (width / 1920));
-    ctx.font = `${hintSize}px Inter, sans-serif`;
-    ctx.fillStyle = '#a1a1aa';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('\u{1F5B1} Drag to move    \u2699 Scroll to resize', width / 2, 8);
-    ctx.restore();
-
     animationRef.current = requestAnimationFrame(renderLoop);
   };
 
@@ -2687,6 +2676,11 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                   onMouseLeave={handleCanvasMouseUp}
                   onWheel={handleCanvasWheel}
                />
+
+               {/* Hints under video */}
+               <div className="text-center py-1 text-[10px] text-zinc-600">
+                 🖱 {t('dragToMove')}  ⚙ {t('scrollToResize')}
+               </div>
 
                {/* Playback Controls */}
                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
