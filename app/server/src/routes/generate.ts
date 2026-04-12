@@ -762,7 +762,11 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   }
 
   const { resetGradioClient } = await import('../services/gradio-client.js');
+  const { pipelineManager } = await import('../services/pipeline-manager.js');
   const ACESTEP_API = config.acestep.apiUrl;
+
+  // Pause health checks during model switch to prevent zombie kill
+  pipelineManager.pauseHealthCheck();
 
   // Show unloading state so frontend can display progress
   modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
@@ -798,6 +802,14 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
     const result = await initRes.json() as any;
     console.log(`[Model] Switch result:`, JSON.stringify(result));
 
+    // Check for error in response body (Gradio returns 200 with error in JSON)
+    if (result?.code && result.code >= 400) {
+      console.error(`[Model] Switch failed (API error):`, result.error);
+      modelLoadingStatus = { state: 'error', model: result.error || 'Unknown error' };
+      res.status(500).json({ error: `Model switch failed: ${result.error}` });
+      return;
+    }
+
     // Reset Gradio client to reconnect with new model state
     resetGradioClient();
 
@@ -807,10 +819,12 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
     modelLoadingStatus = { state: 'ready', model };
 
     console.log(`[Model] Switched to ${model} successfully (in-process, no restart)`);
+    pipelineManager.resumeHealthCheck();
     res.json({ success: true, model, result: result?.data || result });
   } catch (error: any) {
     console.error(`[Model] Switch failed:`, error);
     modelLoadingStatus = { state: 'error', model: error.message };
+    pipelineManager.resumeHealthCheck();
     res.status(500).json({ error: `Model switch failed: ${error.message}` });
   }
 });

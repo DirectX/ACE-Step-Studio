@@ -28,6 +28,7 @@ class PipelineManager {
   private startedAt: number | null = null;
   private healthCheckTimer: ReturnType<typeof setInterval> | null = null;
   private isShuttingDown = false;
+  private isSwitchingModel = false;
   private readyResolve: (() => void) | null = null;
   private readyReject: ((err: Error) => void) | null = null;
 
@@ -41,6 +42,10 @@ class PipelineManager {
       lastError: this.lastError,
     };
   }
+
+  /** Pause health checks during model switch to prevent zombie detection. */
+  pauseHealthCheck() { this.isSwitchingModel = true; }
+  resumeHealthCheck() { this.isSwitchingModel = false; }
 
   /** Spawn Python pipeline and wait for readiness. */
   async start(): Promise<void> {
@@ -204,7 +209,7 @@ class PipelineManager {
     let consecutiveFailures = 0;
 
     this.healthCheckTimer = setInterval(async () => {
-      if (this.state !== 'ready') return;
+      if (this.state !== 'ready' || this.isSwitchingModel) return;
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 5000);

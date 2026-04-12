@@ -380,12 +380,20 @@ async def init_model(request: Request):
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
 
     try:
-        # Initialize DiT with new model
+        from acestep.gpu_config import gpu_config
+
+        # Determine quantization (same logic as pipeline startup)
+        quantization = "int8_weight_only" if gpu_config.quantization_default else None
+
+        # Initialize DiT with new model — respect GPU VRAM limits
         status, ok = dit_handler.initialize_service(
             project_root=project_root,
             config_path=model,
             device="auto",
             use_flash_attention=dit_handler.is_flash_attention_available("auto"),
+            offload_to_cpu=gpu_config.offload_to_cpu_default,
+            offload_dit_to_cpu=gpu_config.offload_dit_to_cpu_default,
+            quantization=quantization,
         )
 
         if not ok:
@@ -396,7 +404,10 @@ async def init_model(request: Request):
         if init_llm and llm_handler and lm_model_path:
             checkpoints_dir = os.path.join(project_root, "checkpoints")
             lm_full_path = os.path.join(checkpoints_dir, lm_model_path)
-            lm_status = llm_handler.initialize(lm_full_path)
+            lm_status, _ = llm_handler.initialize(
+                checkpoint_dir=checkpoints_dir,
+                lm_model_path=lm_full_path,
+            )
 
         return _wrap_response({
             "message": "Model initialization completed",
