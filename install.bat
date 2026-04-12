@@ -151,14 +151,14 @@ if exist "python\python.exe" (
     if errorlevel 1 ( echo Failed to download Python! & pause & exit /b 1 )
     call :unzip "downloads\python.zip" "python"
 
-    REM Patch _pth for site-packages
+    REM Patch _pth for site-packages (order matters!)
     cd python
     if exist "python312._pth" (
-        echo import site> python312._pth
-        echo.>> python312._pth
-        echo python312.zip>> python312._pth
+        echo python312.zip> python312._pth
         echo .>> python312._pth
+        echo Lib\site-packages>> python312._pth
         echo ..\Lib\site-packages>> python312._pth
+        echo import site>> python312._pth
     )
     cd ..
     echo [OK] Python 3.12.9 installed
@@ -211,7 +211,7 @@ if exist "node\node.exe" (
 REM ============================================================
 REM  Step 7: npm dependencies
 REM ============================================================
-echo [6/6] Installing npm dependencies...
+echo [6/7] Installing npm dependencies...
 set "PATH=%SCRIPT_DIR%node;%PATH%"
 REM Force native modules to build for portable node, not system node
 for /f "tokens=*" %%v in ('"%SCRIPT_DIR%node\node.exe" -v') do set "NODE_VER=%%v"
@@ -219,9 +219,44 @@ set "NODE_VER=%NODE_VER:~1%"
 set "npm_config_target=%NODE_VER%"
 set "npm_config_target_arch=x64"
 set "npm_config_runtime=node"
+
+REM Frontend deps
 cd app
 "%SCRIPT_DIR%node\npm.cmd" install
 cd "%SCRIPT_DIR%"
+
+REM Server deps (better-sqlite3, node-id3, etc.)
+cd app\server
+"%SCRIPT_DIR%node\npm.cmd" install
+cd "%SCRIPT_DIR%"
+
+REM ============================================================
+REM  Step 8: Build frontend
+REM ============================================================
+echo [7/7] Building frontend...
+cd app
+"%SCRIPT_DIR%node\npx.cmd" vite build
+cd "%SCRIPT_DIR%"
+
+REM ============================================================
+REM  Step 9: FFmpeg (for video rendering)
+REM ============================================================
+if not exist "ffmpeg\ffmpeg.exe" (
+    echo Downloading FFmpeg...
+    if not exist "ffmpeg" mkdir ffmpeg
+    call :download "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" "downloads\ffmpeg.zip"
+    if not errorlevel 1 (
+        call :unzip "downloads\ffmpeg.zip" "downloads\ffmpeg-extract"
+        for /d %%D in ("downloads\ffmpeg-extract\ffmpeg-*") do (
+            copy "%%D\bin\ffmpeg.exe" "ffmpeg\ffmpeg.exe" >nul 2>&1
+            copy "%%D\bin\ffprobe.exe" "ffmpeg\ffprobe.exe" >nul 2>&1
+        )
+        if exist "downloads\ffmpeg-extract" rmdir /s /q "downloads\ffmpeg-extract"
+        echo [OK] FFmpeg installed
+    ) else (
+        echo WARNING: Could not download FFmpeg. Video rendering will not work.
+    )
+)
 
 REM ============================================================
 REM  Save GPU config
