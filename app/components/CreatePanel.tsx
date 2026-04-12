@@ -1725,7 +1725,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <button
                 type="button"
                 onClick={() => setGetLrc(!getLrc)}
-                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${getLrc ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${getLrc ? 'bg-pink-500' : 'bg-zinc-300 dark:bg-zinc-600'}`}
               >
                 <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${getLrc ? 'left-[22px]' : 'left-[2px]'}`} />
               </button>
@@ -2146,6 +2146,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     <option value="female">{t('female')}</option>
                   </select>
                 </div>
+              </div>
+            )}
+
+            {/* LRC Toggle (Custom Mode) */}
+            {customMode && (
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                  LRC
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setGetLrc(!getLrc)}
+                  className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${getLrc ? 'bg-pink-500' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+                >
+                  <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${getLrc ? 'left-[22px]' : 'left-[2px]'}`} />
+                </button>
               </div>
             )}
 
