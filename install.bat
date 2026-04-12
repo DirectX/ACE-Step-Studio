@@ -167,11 +167,18 @@ if not "%CUDA_VERSION%"=="cpu" (
         )
     )
 )
-REM Install Flash Attention 2 (pre-built wheel for Windows, skip if unavailable)
+REM Install Flash Attention 2
 if not "%CUDA_VERSION%"=="cpu" (
     echo Installing Flash Attention 2...
-    python\python.exe -m pip install flash-attn --no-build-isolation --no-warn-script-location 2>nul || (
-        echo Flash Attention wheel not available for this Python/CUDA combo, using SDPA fallback
+    python\python.exe -m pip install flash-attn --no-build-isolation --no-warn-script-location
+    if errorlevel 1 (
+        echo ERROR: Flash Attention failed to install!
+        echo Trying pre-built wheel from HuggingFace...
+        python\python.exe -m pip install "https://huggingface.co/lldacing/flash-attention-windows-wheel/resolve/main/flash_attn-2.7.4.post1%%2Bcu128torch2.7.0cxx11abiFALSE-cp312-cp312-win_amd64.whl" --no-warn-script-location
+        if errorlevel 1 (
+            echo ERROR: Flash Attention could not be installed!
+            pause
+        )
     )
 )
 REM Install ace-step last (all deps already satisfied, no warnings)
