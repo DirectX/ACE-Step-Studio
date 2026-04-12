@@ -372,7 +372,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
                                 <LinkIcon size={14} />
-                                Sources
+                                {t('sources') || 'Sources'}
                             </div>
                             <div className="space-y-2">
                                 {song.generationParams?.referenceAudioUrl && (
@@ -380,7 +380,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                         <div className="flex items-center gap-2 min-w-0">
                                             <Music size={14} className="text-zinc-400" />
                                             <div className="min-w-0">
-                                                <div className="text-xs text-zinc-500">Reference</div>
+                                                <div className="text-xs text-zinc-500">{t('reference')}</div>
                                                 <div className="text-sm font-medium text-zinc-900 dark:text-white truncate">
                                                     {song.generationParams?.referenceAudioTitle || getSourceLabel(song.generationParams?.referenceAudioUrl)}
                                                 </div>
@@ -417,12 +417,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                             <Layers size={14} className="text-zinc-400" />
                                             <div className="min-w-0">
                                                 <div className="text-xs text-zinc-500">
-                                                    {song.generationParams?.taskType === 'repaint' ? 'Repaint' : 'Cover'}
+                                                    {song.generationParams?.taskType === 'repaint' ? 'Repaint' : t('cover')}
                                                     <span className="ml-1 text-zinc-400">
-                                                        · влияние {Math.round((song.generationParams?.audioCoverStrength ?? 1) * 100)}%
+                                                        · {t('audioCoverStrength') || 'влияние'} {Math.round((song.generationParams?.audioCoverStrength ?? 1) * 100)}%
                                                         {song.generationParams?.taskType === 'repaint' && (
                                                             <>
-                                                                {song.generationParams?.repaintStrength !== undefined && ` · сила ${Math.round((song.generationParams.repaintStrength ?? 0.5) * 100)}%`}
+                                                                {song.generationParams?.repaintStrength !== undefined && ` · ${t('strength') || 'сила'} ${Math.round((song.generationParams.repaintStrength ?? 0.5) * 100)}%`}
                                                                 {(song.generationParams?.repaintingStart > 0 || (song.generationParams?.repaintingEnd > 0)) && ` · ${song.generationParams?.repaintingStart || 0}s—${song.generationParams?.repaintingEnd > 0 ? `${song.generationParams.repaintingEnd}s` : 'end'}`}
                                                             </>
                                                         )}
