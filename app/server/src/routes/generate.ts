@@ -863,6 +863,7 @@ router.get('/download-model', authMiddleware, async (req: AuthenticatedRequest, 
 
   send({ status: 'downloading', model, message: `Downloading ${model}...` });
 
+  // Download via huggingface-cli (same as all other models, with progress bar)
   const { spawn } = await import('child_process');
   const pythonPath = resolvePythonPath(ACESTEP_DIR);
   const proc = spawn(pythonPath, [
@@ -879,8 +880,33 @@ router.get('/download-model', authMiddleware, async (req: AuthenticatedRequest, 
     const line = chunk.toString().trim();
     if (line && !line.includes('Warning')) send({ status: 'progress', message: line });
   });
-  proc.on('close', (code) => {
+  proc.on('close', async (code) => {
     if (code === 0) {
+      // Post-process: rename safetensors + copy config from reference model
+      try {
+        const { readdirSync, existsSync, copyFileSync, renameSync } = await import('fs');
+        // Rename first .safetensors to model.safetensors if needed
+        if (!existsSync(path.join(modelDir, 'model.safetensors'))) {
+          const files = readdirSync(modelDir).filter(f => f.endsWith('.safetensors'));
+          if (files.length > 0) {
+            renameSync(path.join(modelDir, files[0]), path.join(modelDir, 'model.safetensors'));
+            send({ status: 'progress', message: `Renamed ${files[0]} → model.safetensors` });
+          }
+        }
+        // Copy config.json from xl-sft if missing
+        if (!existsSync(path.join(modelDir, 'config.json'))) {
+          const refDir = path.join(ACESTEP_DIR, 'checkpoints', 'acestep-v15-xl-sft');
+          for (const fname of ['config.json', 'configuration_acestep_v15.py', 'silence_latent.pt']) {
+            const src = path.join(refDir, fname);
+            if (existsSync(src)) {
+              copyFileSync(src, path.join(modelDir, fname));
+              send({ status: 'progress', message: `Copied ${fname} from xl-sft` });
+            }
+          }
+        }
+      } catch (e) {
+        send({ status: 'progress', message: `Post-process warning: ${e}` });
+      }
       send({ status: 'done', model, message: 'Download complete' });
     } else {
       send({ status: 'error', model, message: `Download failed (exit ${code})` });
