@@ -118,19 +118,11 @@ class LLMHandler:
         """Release LM weights/tokenizer and clear caches to free memory."""
         try:
             if self.llm_backend == "vllm" and self.llm is not None:
-                # Manually free nano-vllm internals without calling exit()
-                # exit() calls destroy_process_group() + synchronize() which
-                # corrupts global CUDA state and breaks DiT model still on GPU.
+                # Unregister atexit handler that holds a reference to the engine,
+                # preventing Python GC from collecting it and freeing CUDA memory.
+                import atexit
                 try:
-                    if hasattr(self.llm, 'model_runner'):
-                        mr = self.llm.model_runner
-                        if hasattr(mr, 'kv_cache'):
-                            del mr.kv_cache
-                        if hasattr(mr, 'model'):
-                            del mr.model
-                        if hasattr(mr, 'graphs'):
-                            del mr.graphs
-                        del self.llm.model_runner
+                    atexit.unregister(self.llm.exit)
                 except Exception:
                     pass
                 self._cleanup_torch_distributed_state()
