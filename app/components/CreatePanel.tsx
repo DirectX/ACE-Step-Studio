@@ -267,15 +267,15 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       const settings: Record<string, unknown> = {
-        customMode, instrumental, vocalLanguage, vocalGender, batchSize, bulkCount,
+        customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
         guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
         shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
       settingsApi.save(settings, token).catch(() => {});
     }, 1000);
-  }, [token, customMode, instrumental, vocalLanguage, vocalGender, batchSize, bulkCount,
-      guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
+  }, [token, customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
+      guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
       shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
       mp3Bitrate, mp3SampleRate]);
 
@@ -300,7 +300,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.instrumental !== undefined) setInstrumental(s.instrumental as boolean);
       if (s.vocalLanguage !== undefined) setVocalLanguage(s.vocalLanguage as string);
       if (s.vocalGender !== undefined) setVocalGender(s.vocalGender as 'male' | 'female' | '');
-      // BPM/Key/Duration not persisted — always start as auto
+      // BPM/Key/Duration — persist user's manual values
+      if (s.bpm !== undefined) setBpm(s.bpm as number);
+      if (s.keyScale !== undefined) setKeyScale(s.keyScale as string);
+      if (s.timeSignature !== undefined) setTimeSignature(s.timeSignature as string);
+      if (s.duration !== undefined) setDuration(s.duration as number);
       if (s.batchSize !== undefined) setBatchSize(s.batchSize as number);
       if (s.bulkCount !== undefined) setBulkCount(s.bulkCount as number);
       if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
@@ -1338,11 +1342,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       });
     }
 
-    // Reset BPM/Key/Duration to auto after generation so next run gets fresh values
-    setBpm(0);
-    setKeyScale('');
-    setTimeSignature('');
-    setDuration(-1);
+    // Don't reset BPM/Key/Duration — user's manual values should persist.
+    // Auto (0/'') means the model picks, manual values stay as set.
 
     // Reset bulk count after generation
     if (bulkCount > 1) {
