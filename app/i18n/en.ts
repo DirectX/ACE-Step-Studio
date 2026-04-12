@@ -139,6 +139,7 @@ export const en = {
     modelDescTurbo: '4B, fast',
     modelDescSft: '4B, max quality',
     modelDescBf16: '4B BF16, compact',
+    modelDescMerge: '4B SFT+Turbo merge, community',
     inQueue: 'in queue',
     uploadForCover: 'Upload audio for Cover / Remix',
     samplerMode: 'Sampler',

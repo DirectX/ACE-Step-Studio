@@ -137,6 +137,7 @@ export const ja = {
   modelDescTurbo: '4B、高速',
   modelDescSft: '4B、最高品質',
   modelDescBf16: '4B BF16、コンパクト',
+  modelDescMerge: '4B SFT+Turbo マージ、コミュニティ',
   inQueue: 'キュー内',
   uploadForCover: 'カバー / リミックス用にオーディオをアップロード',
   samplerMode: 'サンプラー',
