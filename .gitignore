@@ -6,7 +6,10 @@ cache/
 temp/
 downloads/
 ffmpeg/
-app/data/
+app/data/*.db
+app/data/*.db-journal
+app/server/data/*.db
+app/server/data/*.db-journal
 app/server/public/audio/
 app/node_modules/
 app/server/node_modules/
