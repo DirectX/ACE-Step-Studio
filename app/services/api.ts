@@ -108,6 +108,8 @@ export interface Song {
   creator?: string;
   creator_avatar?: string;
   ditModel?: string;
+  lmModel?: string;
+  lmBackend?: string;
   generationTime?: number;
   lrcContent?: string;
   generation_params?: any;
@@ -396,6 +398,7 @@ export const generateApi = {
     topP?: number;
     lmModel?: string;
     lmBackend?: string;
+    vocalLanguage?: string;
   }, token: string): Promise<{
     caption?: string;
     lyrics?: string;

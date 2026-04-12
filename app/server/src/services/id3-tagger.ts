@@ -50,7 +50,7 @@ export function tagMp3Buffer(buffer: Buffer, options: TagOptions): Buffer {
   }
 
   const tagged = NodeID3.write(tags, buffer);
-  if (tagged === false) {
+  if (!tagged) {
     console.warn('[ID3] Failed to write tags, returning original buffer');
     return buffer;
   }

@@ -922,9 +922,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         if (result.lyrics) setLyrics(result.lyrics);
         if (result.bpm && result.bpm > 0) setBpm(result.bpm);
         if (result.duration && result.duration > 0) setDuration(result.duration);
-        if (result.keyScale) setKeyScale(result.keyScale);
-        if (result.timeSignature) {
-          const ts = String(result.timeSignature);
+        if (result.key_scale) setKeyScale(result.key_scale);
+        if (result.time_signature) {
+          const ts = String(result.time_signature);
           setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
         }
       } else {
@@ -945,8 +945,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         }, token);
 
         if (result.caption || result.lyrics || result.bpm || result.duration) {
-          if (target === 'style' && result.caption) setStyle(result.caption);
-          if (target === 'lyrics' && result.lyrics) setLyrics(result.lyrics);
+          if (result.caption) setStyle(result.caption);
+          if (result.lyrics) setLyrics(result.lyrics);
           if (result.bpm && result.bpm > 0) setBpm(result.bpm);
           if (result.duration && result.duration > 0) setDuration(result.duration);
           if (result.key_scale) setKeyScale(result.key_scale);
@@ -1226,9 +1226,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         jobSeed = Math.floor(Math.random() * 4294967295);
       }
 
-      onGenerate({
-        customMode,
-        songDescription: customMode ? undefined : songDescription,
+      // Simple mode: use only songDescription + safe defaults, ignore custom mode settings
+      // Custom mode: use all user-configured parameters
+      onGenerate(customMode ? {
+        customMode: true,
         prompt: lyrics,
         lyrics,
         style: styleWithGender,
@@ -1243,7 +1244,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         inferenceSteps,
         guidanceScale,
         batchSize,
-        randomSeed: randomSeed || i > 0, // Force random for subsequent bulk jobs
+        randomSeed: randomSeed || i > 0,
         seed: jobSeed,
         thinking,
         enhance,
@@ -1257,16 +1258,16 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         lmTopK,
         lmTopP,
         lmNegativePrompt,
-        referenceAudioUrl: customMode ? (referenceAudioUrl.trim() || undefined) : undefined,
-        sourceAudioUrl: customMode ? (sourceAudioUrl.trim() || undefined) : undefined,
-        referenceAudioTitle: customMode ? (referenceAudioTitle.trim() || undefined) : undefined,
-        sourceAudioTitle: customMode ? (sourceAudioTitle.trim() || undefined) : undefined,
+        referenceAudioUrl: referenceAudioUrl.trim() || undefined,
+        sourceAudioUrl: sourceAudioUrl.trim() || undefined,
+        referenceAudioTitle: referenceAudioTitle.trim() || undefined,
+        sourceAudioTitle: sourceAudioTitle.trim() || undefined,
         audioCodes: audioCodes.trim() || undefined,
         repaintingStart,
         repaintingEnd,
         instruction,
         audioCoverStrength,
-        taskType: customMode ? taskType : 'text2music',
+        taskType,
         useAdg,
         cfgIntervalStart,
         cfgIntervalEnd,
@@ -1297,6 +1298,37 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         fadeOutDuration: fadeOutDuration > 0 ? fadeOutDuration : undefined,
         repaintMode: taskType === 'repaint' ? repaintMode : undefined,
         repaintStrength: taskType === 'repaint' ? repaintStrength : undefined,
+        loraLoaded,
+      } : {
+        // Simple mode — isolated defaults, no custom mode bleed-through
+        customMode: false,
+        songDescription,
+        prompt: songDescription,
+        lyrics: '',
+        style: '',
+        title: '',
+        ditModel: selectedModel,
+        instrumental,
+        vocalLanguage,
+        bpm: 0,
+        keyScale: '',
+        timeSignature: '',
+        duration: -1,
+        inferenceSteps: 12,
+        guidanceScale: 9.0,
+        batchSize: 1,
+        randomSeed: true,
+        seed: -1,
+        thinking: false,
+        enhance: false,
+        audioFormat: 'mp3' as const,
+        inferMethod: 'ode' as const,
+        lmBackend: 'vllm' as const,
+        lmModel: 'acestep-5Hz-lm-4B',
+        shift: 3.0,
+        taskType: 'text2music',
+        getLrc: true,
+        getScores: false,
         loraLoaded,
       });
     }

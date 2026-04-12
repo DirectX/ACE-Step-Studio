@@ -363,6 +363,8 @@ interface GenerationResult {
   keyScale?: string;
   timeSignature?: string;
   status: string;
+  generationTime?: number;
+  lrcData?: (string | null)[];
 }
 
 interface JobStatus {
