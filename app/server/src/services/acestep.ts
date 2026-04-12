@@ -115,13 +115,23 @@ async function prepareAudioFile(audioUrl: string | undefined): Promise<unknown> 
   const filePath = resolveAudioPath(audioUrl);
 
   try {
-    // Pass file path directly — handle_file in Node.js uses Command("upload_file")
-    // which preserves the filename. Blob-based upload loses the filename and
-    // Gradio saves it as "blob" without extension, breaking soundfile/torchaudio.
     if (existsSync(filePath)) {
-      return handle_file(filePath);
+      // Gradio Audio component uses type="filepath" — Python gets a path string.
+      // Copy file into Gradio's temp directory with correct filename+extension.
+      // Return FileData pointing to the temp copy — Gradio recognizes its own
+      // temp paths and passes them directly to Python without re-downloading.
+      const filename = path.basename(filePath);
+      const gradioTmpDir = path.resolve(ACESTEP_DIR, '..', 'temp', 'gradio', `ref-${Date.now()}`);
+      await mkdir(gradioTmpDir, { recursive: true });
+      const tmpPath = path.join(gradioTmpDir, filename);
+      await copyFile(filePath, tmpPath);
+      console.log(`[Gradio] prepareAudioFile: copied ${filename} -> ${tmpPath}`);
+      return {
+        path: tmpPath,
+        orig_name: filename,
+        meta: { _type: 'gradio.FileData' },
+      };
     }
-    // Fall back to URL-based reference
     if (audioUrl.startsWith('http')) {
       return handle_file(audioUrl);
     }
