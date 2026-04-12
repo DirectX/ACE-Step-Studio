@@ -66,6 +66,7 @@ class PipelineManager {
       '--port', String(port),
       '--init_service', 'true',
       '--init_llm', 'true',
+      '--enable-api',
     ];
 
     console.log(`[Pipeline] Starting: ${pythonPath} ${args.join(' ')}`);

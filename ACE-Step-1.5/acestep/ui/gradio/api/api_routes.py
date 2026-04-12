@@ -358,6 +358,56 @@ async def format_input(request: Request, authorization: Optional[str] = Header(N
         return _wrap_response(None, code=500, error=str(e))
 
 
+@router.post("/v1/init")
+async def init_model(request: Request):
+    """Initialize or switch DiT/LM models on demand (hot-swap)."""
+    dit_handler = request.app.state.dit_handler
+    llm_handler = request.app.state.llm_handler
+
+    if not dit_handler:
+        raise HTTPException(status_code=500, detail="DiT handler not initialized")
+
+    body = await request.json()
+    model = body.get("model")
+    init_llm = body.get("init_llm", False)
+    lm_model_path = body.get("lm_model_path")
+
+    if not model:
+        raise HTTPException(status_code=400, detail="model is required")
+
+    import os
+    current_file = os.path.abspath(__file__)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
+
+    try:
+        # Initialize DiT with new model
+        status, ok = dit_handler.initialize_service(
+            project_root=project_root,
+            config_path=model,
+            device="auto",
+            use_flash_attention=dit_handler.is_flash_attention_available("auto"),
+        )
+
+        if not ok:
+            return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
+
+        # Initialize LM if requested
+        lm_status = ""
+        if init_llm and llm_handler and lm_model_path:
+            checkpoints_dir = os.path.join(project_root, "checkpoints")
+            lm_full_path = os.path.join(checkpoints_dir, lm_model_path)
+            lm_status = llm_handler.initialize(lm_full_path)
+
+        return _wrap_response({
+            "message": "Model initialization completed",
+            "loaded_model": model,
+            "loaded_lm_model": lm_model_path if init_llm else None,
+            "lm_status": lm_status,
+        })
+    except Exception as exc:
+        return _wrap_response(None, code=500, error=f"Model initialization failed: {str(exc)}")
+
+
 @router.post("/release_task")
 async def release_task(request: Request, authorization: Optional[str] = Header(None)):
     """Create music generation task"""
