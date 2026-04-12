@@ -230,6 +230,7 @@ export const ja = {
   upload: 'アップロード',
   dropAudioHere: 'オーディオをドロップまたはボタンを使用',
   dropAudioForCover: 'カバー/リミックス用のオーディオをドロップ',
+    sources: 'ソース',
 
   // CreatePanel - Lyrics
   lyricsPlaceholder: 'ここに歌詞を入力...',

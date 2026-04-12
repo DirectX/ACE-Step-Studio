@@ -232,6 +232,7 @@ export const en = {
     upload: 'Upload',
     dropAudioHere: 'Drop audio or use buttons above',
     dropAudioForCover: 'Drop audio for Cover / Remix',
+    sources: 'Sources',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: 'Your lyrics here...',

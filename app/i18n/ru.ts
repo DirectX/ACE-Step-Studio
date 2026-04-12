@@ -232,6 +232,7 @@ export const ru = {
     upload: 'Загрузить',
     dropAudioHere: 'Перетащите аудио или используйте кнопки',
     dropAudioForCover: 'Перетащите аудио для Cover / Remix',
+    sources: 'Источники',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: 'Введите текст песни...',
