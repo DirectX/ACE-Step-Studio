@@ -46,11 +46,11 @@ goto :skip_unzip_func
 set "_ZIP=%~1"
 set "_DEST=%~2"
 if not exist "%_DEST%" mkdir "%_DEST%"
-if exist "tools\7za.exe" (
-    "tools\7za.exe" x "%_ZIP%" -o"%_DEST%" -y >nul 2>&1 && exit /b 0
-)
 where tar >nul 2>&1 && (
     tar -xf "%_ZIP%" -C "%_DEST%" 2>nul && exit /b 0
+)
+if exist "tools\7za.exe" (
+    "tools\7za.exe" x "%_ZIP%" -o"%_DEST%" -y >nul 2>&1 && exit /b 0
 )
 where powershell >nul 2>&1 && (
     powershell -Command "Expand-Archive -Path '%_ZIP%' -DestinationPath '%_DEST%' -Force" 2>nul && exit /b 0

@@ -1,7 +1,8 @@
 python/
 node/
 node_modules/
-models/
+/models/
+__pycache__/
 cache/
 temp/
 downloads/
