@@ -230,6 +230,8 @@ export const ru = {
     cover: 'Кавер',
     fromLibrary: 'Из библиотеки',
     upload: 'Загрузить',
+    dropAudioHere: 'Перетащите аудио или используйте кнопки',
+    dropAudioForCover: 'Перетащите аудио для Cover / Remix',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: 'Введите текст песни...',

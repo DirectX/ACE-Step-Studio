@@ -228,6 +228,8 @@ export const zh = {
     cover: '翻唱',
     fromLibrary: '从库中选择',
     upload: '上传',
+    dropAudioHere: '拖放音频或使用上方按钮',
+    dropAudioForCover: '拖放音频进行翻唱/混音',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: '在此输入歌词...',

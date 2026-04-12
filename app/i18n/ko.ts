@@ -228,6 +228,8 @@ export const ko = {
     cover: '커버',
     fromLibrary: '라이브러리에서',
     upload: '업로드',
+    dropAudioHere: '오디오를 드롭하거나 버튼 사용',
+    dropAudioForCover: '커버/리믹스용 오디오 드롭',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: '여기에 가사를 입력하세요...',

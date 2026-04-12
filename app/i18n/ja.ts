@@ -228,6 +228,8 @@ export const ja = {
   cover: 'カバー',
   fromLibrary: 'ライブラリから',
   upload: 'アップロード',
+  dropAudioHere: 'オーディオをドロップまたはボタンを使用',
+  dropAudioForCover: 'カバー/リミックス用のオーディオをドロップ',
 
   // CreatePanel - Lyrics
   lyricsPlaceholder: 'ここに歌詞を入力...',

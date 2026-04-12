@@ -230,6 +230,8 @@ export const en = {
     cover: 'Cover',
     fromLibrary: 'From library',
     upload: 'Upload',
+    dropAudioHere: 'Drop audio or use buttons above',
+    dropAudioForCover: 'Drop audio for Cover / Remix',
 
     // CreatePanel - Lyrics
     lyricsPlaceholder: 'Your lyrics here...',
