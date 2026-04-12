@@ -11,6 +11,9 @@ app/data/*.db-journal
 app/server/data/*.db
 app/server/data/*.db-journal
 app/server/public/audio/
+app/server/tmp/
+app/dist/
+tools/
 app/node_modules/
 app/server/node_modules/
 *.db
