@@ -42,7 +42,6 @@ export const ru = {
     dismiss: 'Закрыть',
     renameSong: 'Переименовать песню',
     editBanner: 'Изменить баннер',
-    edit: 'Редактировать',
     closeDrawer: 'Закрыть панель',
     orPasteVideoUrl: 'Или вставьте ссылку на видео...',
     textContent: 'Текстовое содержимое',

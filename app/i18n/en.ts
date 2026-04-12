@@ -42,7 +42,6 @@ export const en = {
     dismiss: 'Dismiss',
     renameSong: 'Rename song',
     editBanner: 'Edit Banner',
-    edit: 'Edit',
     closeDrawer: 'Close drawer',
     orPasteVideoUrl: 'Or paste video URL...',
     textContent: 'Text content',

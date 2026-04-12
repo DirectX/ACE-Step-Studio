@@ -42,7 +42,6 @@ export const zh = {
     dismiss: '关闭',
     renameSong: '重命名歌曲',
     editBanner: '编辑横幅',
-    edit: '编辑',
     closeDrawer: '关闭面板',
     orPasteVideoUrl: '或粘贴视频链接...',
     textContent: '文本内容',

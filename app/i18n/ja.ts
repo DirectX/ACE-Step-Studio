@@ -42,7 +42,6 @@ export const ja = {
   dismiss: '閉じる',
   renameSong: '曲名を変更',
   editBanner: 'バナーを編集',
-  edit: '編集',
   closeDrawer: 'パネルを閉じる',
   orPasteVideoUrl: 'または動画URLを貼り付け...',
   textContent: 'テキスト内容',

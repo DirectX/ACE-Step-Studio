@@ -18,7 +18,7 @@ goto :skip_download_func
 set "_URL=%~1"
 set "_OUT=%~2"
 where curl >nul 2>&1 && (
-    curl -L -o "%_OUT%" "%_URL%" 2>nul && exit /b 0
+    curl -L --progress-bar -o "%_OUT%" "%_URL%" && exit /b 0
 )
 where certutil >nul 2>&1 && (
     certutil -urlcache -split -f "%_URL%" "%_OUT%" >nul 2>&1 && exit /b 0

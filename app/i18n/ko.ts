@@ -42,7 +42,6 @@ export const ko = {
     dismiss: '닫기',
     renameSong: '노래 이름 변경',
     editBanner: '배너 편집',
-    edit: '편집',
     closeDrawer: '패널 닫기',
     orPasteVideoUrl: '또는 동영상 URL 붙여넣기...',
     textContent: '텍스트 내용',
