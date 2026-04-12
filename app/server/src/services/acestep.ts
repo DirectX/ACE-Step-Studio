@@ -513,9 +513,16 @@ async function processQueue(): Promise<void> {
       try {
         await processGeneration(jobId, job.params, job);
       } catch (error: any) {
-        console.error(`Queue processing error for ${jobId}:`, error);
+        const msg = error?.message || String(error);
         job.status = 'failed';
-        job.error = error?.message || String(error);
+        job.error = msg;
+        if (msg.includes('VRAM') || msg.includes('Insufficient free')) {
+          console.error(`\n❌ [${jobId}] NOT ENOUGH GPU MEMORY`);
+          console.error(`   ${msg.match(/need ~[\d.]+ GB, only [\d.]+ GB available/)?.[0] || msg}`);
+          console.error(`   Reduce duration/batch or switch to a lighter model\n`);
+        } else {
+          console.error(`[${jobId}] Generation failed: ${msg}`);
+        }
       }
     }
 
