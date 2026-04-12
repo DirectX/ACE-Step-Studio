@@ -118,15 +118,11 @@ class LLMHandler:
         """Release LM weights/tokenizer and clear caches to free memory."""
         try:
             if self.llm_backend == "vllm" and self.llm is not None:
-                # nano-vllm requires explicit exit() to free KV cache CUDA tensors
+                # nano-vllm LLM(LLMEngine) requires explicit exit() to free
+                # model_runner + KV cache CUDA tensors. Without it, setting
+                # self.llm = None leaves ~3-6GB CUDA memory unreclaimable.
                 try:
-                    engine = getattr(self.llm, 'engine', None)
-                    if engine is not None and hasattr(engine, 'exit'):
-                        engine.exit()
-                    elif hasattr(self.llm, 'exit'):
-                        self.llm.exit()
-                    elif hasattr(self.llm, 'reset'):
-                        self.llm.reset()
+                    self.llm.exit()
                 except Exception:
                     pass
                 self._cleanup_torch_distributed_state()
