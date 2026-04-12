@@ -58,7 +58,7 @@ import { generateApi, songsApi, playlistsApi, getAudioUrl } from './services/api
 import { useAuth } from './context/AuthContext';
 import { useResponsive } from './context/ResponsiveContext';
 import { I18nProvider, useI18n } from './context/I18nContext';
-import { List } from 'lucide-react';
+import { List, GraduationCap } from 'lucide-react';
 import { PlaylistDetail } from './components/PlaylistDetail';
 import { Toast, ToastType } from './components/Toast';
 import { SearchPage } from './components/SearchPage';
@@ -1405,7 +1405,17 @@ function AppContent() {
         );
 
       case 'training':
-        return <TrainingPanel />;
+        return (
+          <div className="flex-1 bg-white dark:bg-black flex items-center justify-center transition-colors duration-300">
+            <div className="text-center">
+              <GraduationCap size={64} className="mx-auto text-zinc-300 dark:text-zinc-600 mb-6" />
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Coming Soon</h2>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md">
+                {t('training')} — this feature is under development and will be available in a future update.
+              </p>
+            </div>
+          </div>
+        );
 
       case 'news':
         return <NewsPage />;
