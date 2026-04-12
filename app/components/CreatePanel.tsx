@@ -335,6 +335,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [modelLoadingState, setModelLoadingState] = useState<{ state: string; model: string; connected?: boolean; activeModel?: string; backendDown?: boolean }>({ state: 'ready', model: '', connected: false, backendDown: true });
   const modelMenuRef = useRef<HTMLDivElement>(null);
   const previousModelRef = useRef<string>(selectedModel);
+  const lmSyncedRef = useRef(false);
 
   // Poll model loading status every 2s
   React.useEffect(() => {
@@ -354,12 +355,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               }
               return prev;
             });
-            // Sync LM model and backend with real server state
-            if (data.activeLmModel) {
-              setLmModel(prev => prev !== data.activeLmModel ? data.activeLmModel : prev);
-            }
-            if (data.activeLmBackend) {
-              setLmBackend(prev => prev !== data.activeLmBackend ? data.activeLmBackend : prev);
+            // Sync LM on first connect only (not continuously — blocks user editing)
+            if (!lmSyncedRef.current && data.activeLmModel) {
+              setLmModel(data.activeLmModel);
+              if (data.activeLmBackend) setLmBackend(data.activeLmBackend);
+              lmSyncedRef.current = true;
             }
           }
           // During loading, show the target model
@@ -1519,6 +1519,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                                 });
                                 const switchData = await switchRes.json();
                                 if (switchData.success) {
+                                  lmSyncedRef.current = false;
                                   fetch('/api/generate/models').then(r => r.json()).then(d => {
                                     if (d.models) setFetchedModels(d.models);
                                   });
@@ -2643,6 +2644,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   const data = await res.json();
                   if (data.success) {
                     setModelSwitchStatus('');
+                    lmSyncedRef.current = false; // re-sync on next poll
                   } else {
                     setModelSwitchStatus(data.error || 'Failed');
                     setTimeout(() => setModelSwitchStatus(''), 5000);
