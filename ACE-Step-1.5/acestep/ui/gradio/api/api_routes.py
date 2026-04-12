@@ -393,22 +393,21 @@ async def init_model(request: Request):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
-        # FP32 XL models (19GB) need int8 quantization on 24GB GPUs
-        # BF16 models (9GB) don't need it
+        # FP32 XL models (19GB) need int8 quantization to fit on GPU
+        # int8 reduces 19GB → ~10GB, fits on 24GB without offload
+        # BF16 models (9GB) don't need quantization
         is_fp32_xl = "xl" in model and "bf16" not in model
         quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
 
-        # FP32 XL models also need CPU offload on <=24GB GPUs
-        offload = gpu_cfg.offload_to_cpu_default or is_fp32_xl
-
-        # Initialize DiT with new model
+        # No offload — int8 DiT (~10GB) + LM (~4GB) = ~14GB, fits in 24GB
+        # Offload causes CPU↔GPU thrashing and 85s LRC times instead of 3s
         status, ok = dit_handler.initialize_service(
             project_root=project_root,
             config_path=model,
             device="auto",
             use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-            offload_to_cpu=offload,
-            offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default or is_fp32_xl,
+            offload_to_cpu=gpu_cfg.offload_to_cpu_default,
+            offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
             quantization=quantization,
         )
 
