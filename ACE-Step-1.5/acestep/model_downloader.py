@@ -40,6 +40,7 @@ _CHECKPOINT_TO_VARIANT: Dict[str, str] = {
     "acestep-v15-xl-base": "xl_base",
     "acestep-v15-xl-sft": "xl_sft",
     "acestep-v15-xl-turbo": "xl_turbo",
+    "marcorez8/acestep-v15-xl-turbo-bf16": "xl_turbo",
 }
 
 
@@ -301,6 +302,7 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
     "acestep-v15-xl-base": "ACE-Step/acestep-v15-xl-base",
     "acestep-v15-xl-sft": "ACE-Step/acestep-v15-xl-sft",
     "acestep-v15-xl-turbo": "ACE-Step/acestep-v15-xl-turbo",
+    "marcorez8/acestep-v15-xl-turbo-bf16": "marcorez8/acestep-v15-xl-turbo-bf16",
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
