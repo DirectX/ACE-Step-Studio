@@ -418,9 +418,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                             <div className="min-w-0">
                                                 <div className="text-xs text-zinc-500">
                                                     {song.generationParams?.taskType === 'repaint' ? 'Repaint' : 'Cover'}
-                                                    {song.generationParams?.audioCoverStrength !== undefined && (
-                                                        <span className="ml-1 text-zinc-400">· {Math.round((song.generationParams.audioCoverStrength ?? 1) * 100)}%</span>
-                                                    )}
+                                                    <span className="ml-1 text-zinc-400">
+                                                        · влияние {Math.round((song.generationParams?.audioCoverStrength ?? 1) * 100)}%
+                                                        {song.generationParams?.taskType === 'repaint' && (
+                                                            <>
+                                                                {song.generationParams?.repaintStrength !== undefined && ` · сила ${Math.round((song.generationParams.repaintStrength ?? 0.5) * 100)}%`}
+                                                                {(song.generationParams?.repaintingStart > 0 || (song.generationParams?.repaintingEnd > 0)) && ` · ${song.generationParams?.repaintingStart || 0}s—${song.generationParams?.repaintingEnd > 0 ? `${song.generationParams.repaintingEnd}s` : 'end'}`}
+                                                            </>
+                                                        )}
+                                                    </span>
                                                 </div>
                                                 <div className="text-sm font-medium text-zinc-900 dark:text-white truncate">
                                                     {song.generationParams?.sourceAudioTitle || getSourceLabel(song.generationParams?.sourceAudioUrl)}
