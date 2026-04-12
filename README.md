@@ -3,21 +3,45 @@
 [![Stars](https://img.shields.io/github/stars/timoncool/ACE-Step-Studio?style=social)](https://github.com/timoncool/ACE-Step-Studio/stargazers)
 [![License](https://img.shields.io/github/license/timoncool/ACE-Step-Studio)](LICENSE)
 
-Portable music generation studio powered by [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) (4B DiT). Full-featured UI with hot model switching, real-time GPU monitoring, 5-language interface, and one-click portable installation for Windows.
+**[Русская версия](README_RU.md)**
+
+Portable AI music generation studio. Create songs with vocals, lyrics, and music videos — all running locally on your GPU. No cloud, no subscriptions, no internet required.
+
+Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) (4B DiT model) with a full-featured web interface.
 
 ## Features
 
-- **Single Terminal** — one `run.bat`, everything managed by Express (Python auto-spawned, auto-restarted on crash)
+### Music Generation
+- **Full songs with vocals** — up to 8 minutes, any language, any genre
+- **Simple & Custom modes** — describe what you want or fine-tune every parameter
 - **3 XL Models** — XL Turbo (8 steps, fast), XL SFT (50 steps, max quality), XL Turbo BF16 (compact, 7.5 GB)
-- **Hot Model Switching** — change DiT/LM models without restart via in-process `/v1/init` API
-- **Portable** — everything in one folder. Delete folder = uninstall. No system pollution
-- **Generation Time Tracking** — stopwatch icon shows how long each track took to generate
-- **System Monitor** — live GPU/VRAM/RAM/CPU stats in sidebar via nvidia-smi
-- **Multi-language** — English, Russian, Chinese, Japanese, Korean (auto-detect)
-- **Built-in Tools** — audio editor (AudioMass), stem extraction (Demucs), video generator
-- **AI Enhance** — LLM-powered style enrichment for better genre accuracy
-- **LAN Access** — use from any device on your network
-- **Advanced Controls** — inference steps, CFG, shift, sampler, LM temperature, batch generation
+- **AI Lyrics & Style** — LLM generates lyrics and enriches style descriptions
+- **Hot Model Switching** — change DiT/LM models without restart
+- **Batch generation** — create multiple variations at once
+- **ID3 tags** — MP3 files include title, artist, cover art, lyrics, BPM
+
+### Video Studio
+- **Music video generator** — NCS-style visualizers with 10 presets
+- **Karaoke lyrics** — synchronized LRC subtitles with 3 styles (lines, scroll, karaoke fill)
+- **WYSIWYG editor** — drag elements, scroll to resize, selection frames
+- **Aspect ratios** — 16:9, 9:16 (Reels/TikTok), 1:1 (Instagram)
+- **Effects** — shake, glitch, VHS, scanlines, bloom, film grain, and more
+- **Server-side rendering** — native ffmpeg.exe with NVENC GPU acceleration
+
+### Audio Tools
+- **Audio editor** — trim, fade, effects (AudioMass)
+- **Stem extraction** — separate vocals, drums, bass, other (Demucs)
+- **Cover & Remix** — transform existing audio with new styles
+- **Audio repainting** — regenerate specific sections
+
+### Interface
+- **Single terminal** — one `run.bat`, Express manages Python/Gradio
+- **Portable** — everything in one folder, delete = uninstall
+- **5 languages** — English, Russian, Chinese, Japanese, Korean
+- **LAN access** — use from any device on your network
+- **GPU monitoring** — live VRAM/RAM/CPU stats
+- **Generation time tracking** — per-song stopwatch
+- **LRC download** — export synchronized lyrics for Apple Music
 
 ## System Requirements
 
@@ -109,8 +133,18 @@ See [AGENTS.md](AGENTS.md) for architecture details, coding conventions, and pit
 
 ## Authors
 
-- **Nerual Dreming** ([t.me/nerual_dreming](https://t.me/nerual_dreming)) — [neuro-cartel.com](https://neuro-cartel.com) | founder of [ArtGeneration.me](https://artgeneration.me)
-- **Neiro-Soft** ([t.me/neuroport](https://t.me/neuroport)) — portable neural network builds
+- **Nerual Dreming** — [Telegram channel](https://t.me/nerual_dreming) | [neuro-cartel.com](https://neuro-cartel.com) | founder of [ArtGeneration.me](https://artgeneration.me)
+- **Neiro-Soft** — [Telegram channel](https://t.me/neuroport) | portable neural network builds
+
+## Acknowledgments
+
+- **[ACE-Step Team](https://github.com/ace-step)** — for the open source ACE-Step 1.5 music generation model
+- **[fspecii](https://github.com/fspecii/ace-step-ui)** — original ACE-Step UI that this project is built upon
+- [AudioMass](https://audiomass.co/) — browser-based audio editor
+- [Demucs](https://github.com/facebookresearch/demucs) by Meta Research — stem extraction model
+- [Pexels](https://www.pexels.com/) — free stock photos and videos for music video backgrounds
+- [Gradio](https://gradio.app/) — ML model serving framework
+- [FFmpeg](https://ffmpeg.org/) — video encoding
 
 ---
 
