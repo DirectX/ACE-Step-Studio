@@ -82,7 +82,7 @@ REM === Build frontend if dist/ missing ===
 if not exist "app\dist" (
     echo Building frontend...
     cd app
-    "%SCRIPT_DIR%node\npx.cmd" vite build
+    call "%SCRIPT_DIR%node\npx.cmd" vite build
     cd "%SCRIPT_DIR%"
 )
 

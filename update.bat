@@ -35,13 +35,13 @@ set "PATH=%SCRIPT_DIR%node;%PATH%"
 if exist "app\package.json" (
     echo Updating frontend dependencies...
     cd app
-    "%SCRIPT_DIR%node\npm.cmd" install
+    call "%SCRIPT_DIR%node\npm.cmd" install
     cd "%SCRIPT_DIR%"
 )
 if exist "app\server\package.json" (
     echo Updating server dependencies...
     cd app\server
-    "%SCRIPT_DIR%node\npm.cmd" install
+    call "%SCRIPT_DIR%node\npm.cmd" install
     cd "%SCRIPT_DIR%"
 )
 
@@ -49,7 +49,7 @@ REM Rebuild frontend
 if exist "app\vite.config.ts" (
     echo Rebuilding frontend...
     cd app
-    "%SCRIPT_DIR%node\npx.cmd" vite build
+    call "%SCRIPT_DIR%node\npx.cmd" vite build
     cd "%SCRIPT_DIR%"
 )
 
