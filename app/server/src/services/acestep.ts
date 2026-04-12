@@ -512,8 +512,10 @@ async function processQueue(): Promise<void> {
     if (job && job.status === 'queued') {
       try {
         await processGeneration(jobId, job.params, job);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Queue processing error for ${jobId}:`, error);
+        job.status = 'failed';
+        job.error = error?.message || String(error);
       }
     }
 
