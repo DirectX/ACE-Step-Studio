@@ -392,17 +392,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   // Fallback model list when backend is unavailable
   const availableModels = useMemo(() => {
     // Fixed order - never reorder models
-    const FIXED_ORDER = ['acestep-v15-xl-turbo', 'acestep-v15-xl-sft', 'marcorez8/acestep-v15-xl-turbo-bf16'];
-    if (fetchedModels.length > 0) {
-      return FIXED_ORDER
-        .filter(id => fetchedModels.some(m => m.name === id))
-        .map(id => ({ id, name: id }));
-    }
-    return [
-      { id: 'acestep-v15-xl-turbo', name: 'acestep-v15-xl-turbo' },
-      { id: 'acestep-v15-xl-sft', name: 'acestep-v15-xl-sft' },
-      { id: 'marcorez8/acestep-v15-xl-turbo-bf16', name: 'marcorez8/acestep-v15-xl-turbo-bf16' },
+    // Fixed order + any extra models from server not in the list
+    const FIXED_ORDER = [
+      'acestep-v15-xl-turbo',
+      'acestep-v15-xl-sft',
+      'marcorez8/acestep-v15-xl-turbo-bf16',
+      'acestep-v15-xl-merge-sft-turbo',
     ];
+    if (fetchedModels.length > 0) {
+      const ordered = FIXED_ORDER.filter(id => fetchedModels.some(m => m.name === id));
+      // Add any server models not in fixed order
+      for (const m of fetchedModels) {
+        if (!ordered.includes(m.name)) ordered.push(m.name);
+      }
+      return ordered.map(id => ({ id, name: id }));
+    }
+    return FIXED_ORDER.map(id => ({ id, name: id }));
   }, [fetchedModels]);
 
   // Model metadata
@@ -410,6 +415,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     'acestep-v15-xl-turbo': { size: '18.8 GB', steps: 8, descKey: 'modelDescTurbo', descFallback: '4B, fast' },
     'acestep-v15-xl-sft': { size: '18.8 GB', steps: 50, descKey: 'modelDescSft', descFallback: '4B, max quality' },
     'marcorez8/acestep-v15-xl-turbo-bf16': { size: '7.5 GB', steps: 8, descKey: 'modelDescBf16', descFallback: '4B BF16, compact' },
+    'acestep-v15-xl-merge-sft-turbo': { size: '19.9 GB', steps: 50, descKey: 'modelDescMerge', descFallback: '4B SFT+Turbo merge' },
   };
 
   // Map model ID to short display name
@@ -418,6 +424,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       'acestep-v15-xl-turbo': 'XL Turbo',
       'acestep-v15-xl-sft': 'XL SFT',
       'marcorez8/acestep-v15-xl-turbo-bf16': 'XL Turbo BF16',
+      'acestep-v15-xl-merge-sft-turbo': 'XL Merge SFT+Turbo',
     };
     return mapping[modelId] || modelId;
   };
