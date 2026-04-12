@@ -117,14 +117,19 @@ class LLMHandler:
     def unload(self) -> None:
         """Release LM weights/tokenizer and clear caches to free memory."""
         try:
-            if self.llm_backend == "vllm" and self.llm is not None:
-                # Unregister atexit handler that holds a reference to the engine,
-                # preventing Python GC from collecting it and freeing CUDA memory.
-                import atexit
+            if self.llm_backend == "vllm":
                 try:
-                    atexit.unregister(self.llm.exit)
+                    if hasattr(self.llm, "reset"):
+                        self.llm.reset()
                 except Exception:
                     pass
+                # Unregister atexit handler so GC can free the engine
+                if self.llm is not None:
+                    import atexit
+                    try:
+                        atexit.unregister(self.llm.exit)
+                    except Exception:
+                        pass
                 self._cleanup_torch_distributed_state()
             self.llm = None
             self.llm_tokenizer = None
