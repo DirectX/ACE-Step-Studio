@@ -30,18 +30,32 @@ echo ERROR: Cannot download files. Install curl, certutil, or powershell.
 exit /b 1
 :skip_download_func
 
-REM === Unzip helper — tries tar, then powershell ===
+REM === Get 7-Zip portable if not present ===
+if not exist "tools\7za.exe" (
+    echo [0/6] Downloading 7-Zip portable...
+    if not exist "tools" mkdir tools
+    call :download "https://www.7-zip.org/a/7zr.exe" "tools\7za.exe"
+    if errorlevel 1 (
+        echo WARNING: Could not download 7-Zip. Will try tar/powershell as fallback.
+    )
+)
+
+REM === Unzip helper — tries 7za, then tar, then powershell ===
 goto :skip_unzip_func
 :unzip
 set "_ZIP=%~1"
 set "_DEST=%~2"
+if not exist "%_DEST%" mkdir "%_DEST%"
+if exist "tools\7za.exe" (
+    "tools\7za.exe" x "%_ZIP%" -o"%_DEST%" -y >nul 2>&1 && exit /b 0
+)
 where tar >nul 2>&1 && (
     tar -xf "%_ZIP%" -C "%_DEST%" 2>nul && exit /b 0
 )
 where powershell >nul 2>&1 && (
     powershell -Command "Expand-Archive -Path '%_ZIP%' -DestinationPath '%_DEST%' -Force" 2>nul && exit /b 0
 )
-echo ERROR: Cannot extract archives. Install tar or powershell.
+echo ERROR: Cannot extract archives.
 exit /b 1
 :skip_unzip_func
 
