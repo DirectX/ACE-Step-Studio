@@ -143,9 +143,12 @@ REM  Step 5: ACE-Step dependencies
 REM ============================================================
 echo [4/7] Installing ACE-Step dependencies...
 python\python.exe -m pip install hatchling editables --no-warn-script-location
-python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
-python\python.exe -m pip install "transformers>=4.51.0,<4.58.0" diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec "torchao>=0.16.0,<0.17.0" toml peft modelscope tensorboard typer-slim hf_transfer lightning lycoris-lora --no-warn-script-location
+REM Install nano-vllm first (local package, needed before ace-step)
 python\python.exe -m pip install -e ACE-Step-1.5/acestep/third_parts/nano-vllm/ --no-warn-script-location
+REM Install all deps before ace-step to avoid resolver warnings
+python\python.exe -m pip install "transformers>=4.51.0,<4.58.0" diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec "torchao>=0.16.0,<0.17.0" toml peft modelscope tensorboard typer-slim hf_transfer lightning lycoris-lora --no-warn-script-location
+REM Install ace-step last (all deps already satisfied, no warnings)
+python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
 
 REM ============================================================
 REM  Step 6: Node.js
