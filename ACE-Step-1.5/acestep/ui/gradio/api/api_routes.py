@@ -379,6 +379,10 @@ async def init_model(request: Request):
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
 
+    # Track current DiT model to avoid unnecessary reload
+    current_dit = getattr(request.app.state, '_active_dit_model', None)
+    dit_changed = current_dit != model
+
     try:
         import gc as gc_mod
         import torch
@@ -386,33 +390,40 @@ async def init_model(request: Request):
 
         gpu_cfg = get_global_gpu_config()
 
-        # Unload old LM first to free VRAM before loading new DiT
-        if llm_handler:
-            llm_handler.unload()
-            gc_mod.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+        # Only unload LM + reload DiT if the DiT model actually changed
+        if dit_changed:
+            # Unload old LM first to free VRAM before loading new DiT
+            if llm_handler:
+                llm_handler.unload()
+                gc_mod.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
-        # FP32 XL models (19GB) need int8 quantization to fit on GPU
-        # int8 reduces 19GB → ~10GB, fits on 24GB without offload
-        # BF16 models (9GB) don't need quantization
-        is_fp32_xl = "xl" in model and "bf16" not in model
-        quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
+            # FP32 XL models (19GB) need int8 quantization to fit on GPU
+            is_fp32_xl = "xl" in model and "bf16" not in model
+            quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
 
-        # No offload — int8 DiT (~10GB) + LM (~4GB) = ~14GB, fits in 24GB
-        # Offload causes CPU↔GPU thrashing and 85s LRC times instead of 3s
-        status, ok = dit_handler.initialize_service(
-            project_root=project_root,
-            config_path=model,
-            device="auto",
-            use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-            offload_to_cpu=gpu_cfg.offload_to_cpu_default,
-            offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
-            quantization=quantization,
-        )
+            status, ok = dit_handler.initialize_service(
+                project_root=project_root,
+                config_path=model,
+                device="auto",
+                use_flash_attention=dit_handler.is_flash_attention_available("auto"),
+                offload_to_cpu=gpu_cfg.offload_to_cpu_default,
+                offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
+                quantization=quantization,
+            )
 
-        if not ok:
-            return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
+            if not ok:
+                return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
+
+            request.app.state._active_dit_model = model
+        else:
+            # Same DiT — only switch LM, unload old LM first
+            if init_llm and llm_handler:
+                llm_handler.unload()
+                gc_mod.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
         # Initialize LM if requested
         lm_status = ""
@@ -721,10 +732,13 @@ def setup_api_routes(demo, dit_handler, llm_handler, api_key: Optional[str] = No
         llm_handler: LLM handler
         api_key: Optional API key for authentication
     """
+    import os
     set_api_key(api_key)
     app = demo.app
     _add_cors_middleware_post_launch(app)
     app.state.dit_handler = dit_handler
     app.state.llm_handler = llm_handler
+    # Track initial DiT model for hot-swap skip logic
+    app.state._active_dit_model = os.environ.get("ACESTEP_CONFIG_PATH") or "acestep-v15-xl-turbo"
     app.include_router(router)
 

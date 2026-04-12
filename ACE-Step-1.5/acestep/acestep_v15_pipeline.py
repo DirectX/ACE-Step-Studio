@@ -669,6 +669,8 @@ def main():
             )
 
             # Now add API routes to Gradio's FastAPI app (app is available after launch)
+            # Set config_path in env so /v1/init knows the initial DiT model
+            os.environ["ACESTEP_CONFIG_PATH"] = args.config_path or ""
             setup_api_routes(demo, dit_handler, llm_handler, api_key=args.api_key)
 
             if args.api_key:
