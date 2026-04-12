@@ -1827,7 +1827,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             <div onDrop={(e) => handleDrop(e, 'reference')} onDragOver={handleDragOver}
               className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
               <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
-                <span className="text-[11px] font-bold text-pink-500 uppercase tracking-wide">{t('reference')}</span>
+                <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('reference')}</span>
                 {!referenceAudioUrl && <div className="flex gap-1">
                   <button type="button" onClick={() => openAudioModal('reference', 'uploads')} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('fromLibrary')}</button>
                   <button type="button" onClick={() => referenceInputRef.current?.click()} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('upload')}</button>
@@ -1869,7 +1869,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             <div onDrop={(e) => handleDrop(e, 'source')} onDragOver={handleDragOver}
               className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
               <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wide">{t('cover')}</span>
+                <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('cover')}</span>
                 {!sourceAudioUrl && <div className="flex gap-1">
                   <button type="button" onClick={() => openAudioModal('source', 'uploads')} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('fromLibrary')}</button>
                   <button type="button" onClick={() => sourceInputRef.current?.click()} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('upload')}</button>
