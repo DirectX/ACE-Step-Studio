@@ -383,7 +383,14 @@ async def init_model(request: Request):
         from acestep.gpu_config import get_global_gpu_config
 
         gc = get_global_gpu_config()
-        quantization = "int8_weight_only" if gc.quantization_default else None
+
+        # FP32 XL models (19GB) need int8 quantization on 24GB GPUs
+        # BF16 models (9GB) don't need it
+        is_fp32_xl = "xl" in model and "bf16" not in model
+        quantization = "int8_weight_only" if (gc.quantization_default or is_fp32_xl) else None
+
+        # FP32 XL models also need CPU offload on <=24GB GPUs
+        offload = gc.offload_to_cpu_default or is_fp32_xl
 
         # Initialize DiT with new model — respect GPU VRAM limits
         status, ok = dit_handler.initialize_service(
@@ -391,8 +398,8 @@ async def init_model(request: Request):
             config_path=model,
             device="auto",
             use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-            offload_to_cpu=gc.offload_to_cpu_default,
-            offload_dit_to_cpu=gc.offload_dit_to_cpu_default,
+            offload_to_cpu=offload,
+            offload_dit_to_cpu=gc.offload_dit_to_cpu_default or is_fp32_xl,
             quantization=quantization,
         )
 
