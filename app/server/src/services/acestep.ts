@@ -762,8 +762,8 @@ function parseGenerationDetails(details: string | undefined): {
     // Generation details may contain key-value pairs
     const bpmMatch = details.match(/BPM:\s*(\d+)/i);
     const durationMatch = details.match(/Duration:\s*([\d.]+)/i);
-    const keyMatch = details.match(/Key:\s*([A-G][#b]?\s*(?:major|minor))/i);
-    const timeMatch = details.match(/Time Signature:\s*(\d+\/\d+)/i);
+    const keyMatch = details.match(/Key:\s*([A-G][#b♯♭]?\s*(?:major|minor))/i);
+    const timeMatch = details.match(/Time Signature:\s*(\d+(?:\/\d+)?)/i);
     return {
       bpm: bpmMatch ? parseInt(bpmMatch[1]) : undefined,
       duration: durationMatch ? parseFloat(durationMatch[1]) : undefined,

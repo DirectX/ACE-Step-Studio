@@ -892,10 +892,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       } else {
         if (sample.caption) setStyle(sample.caption);
       }
-      if (sample.bpm && sample.bpm > 0) setBpm(sample.bpm);
-      if (sample.duration && sample.duration > 0) setDuration(sample.duration);
-      if (sample.keyScale) setKeyScale(sample.keyScale);
-      if (sample.timeSignature) {
+      // Only fill from AI if user left it on Auto
+      if (sample.bpm && sample.bpm > 0 && bpm === 0) setBpm(sample.bpm);
+      if (sample.duration && sample.duration > 0 && duration <= 0) setDuration(sample.duration);
+      if (sample.keyScale && !keyScale) setKeyScale(sample.keyScale);
+      if (sample.timeSignature && !timeSignature) {
         const ts = String(sample.timeSignature);
         setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
       }
@@ -933,10 +934,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           lmBackend: lmBackend || 'pt',
         }, token);
         if (result.lyrics) setLyrics(result.lyrics);
-        if (result.bpm && result.bpm > 0) setBpm(result.bpm);
-        if (result.duration && result.duration > 0) setDuration(result.duration);
-        if (result.key_scale) setKeyScale(result.key_scale);
-        if (result.time_signature) {
+        if (result.bpm && result.bpm > 0 && bpm === 0) setBpm(result.bpm);
+        if (result.duration && result.duration > 0 && duration <= 0) setDuration(result.duration);
+        if (result.key_scale && !keyScale) setKeyScale(result.key_scale);
+        if (result.time_signature && !timeSignature) {
           const ts = String(result.time_signature);
           setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
         }
@@ -960,10 +961,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         if (result.caption || result.lyrics || result.bpm || result.duration) {
           if (result.caption) setStyle(result.caption);
           if (result.lyrics) setLyrics(result.lyrics);
-          if (result.bpm && result.bpm > 0) setBpm(result.bpm);
-          if (result.duration && result.duration > 0) setDuration(result.duration);
-          if (result.key_scale) setKeyScale(result.key_scale);
-          if (result.time_signature) {
+          if (result.bpm && result.bpm > 0 && bpm === 0) setBpm(result.bpm);
+          if (result.duration && result.duration > 0 && duration <= 0) setDuration(result.duration);
+          if (result.key_scale && !keyScale) setKeyScale(result.key_scale);
+          if (result.time_signature && !timeSignature) {
             const ts = String(result.time_signature);
             setTimeSignature(ts.includes('/') ? ts : `${ts}/4`);
           }
