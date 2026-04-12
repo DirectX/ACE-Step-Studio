@@ -84,13 +84,22 @@ class PipelineManager {
 
     this.process.stdout!.on('data', (data: Buffer) => {
       const text = data.toString();
-      process.stdout.write(`[Gradio] ${text}`);
+      if (text.includes('\r') || text.includes('%|') || text.includes('it/s')) {
+        process.stdout.write(text);
+      } else {
+        process.stdout.write(`[Gradio] ${text}`);
+      }
       this.parseStdout(text);
     });
 
     this.process.stderr!.on('data', (data: Buffer) => {
       const text = data.toString();
-      process.stderr.write(`[Gradio] ${text}`);
+      // Pass through progress bars (tqdm) without prefix to preserve \r behavior
+      if (text.includes('\r') || text.includes('%|') || text.includes('it/s')) {
+        process.stderr.write(text);
+      } else {
+        process.stderr.write(`[Gradio] ${text}`);
+      }
       this.parseStderr(text);
     });
 
