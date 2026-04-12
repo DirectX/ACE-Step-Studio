@@ -117,9 +117,15 @@ class LLMHandler:
     def unload(self) -> None:
         """Release LM weights/tokenizer and clear caches to free memory."""
         try:
-            if self.llm_backend == "vllm":
+            if self.llm_backend == "vllm" and self.llm is not None:
+                # nano-vllm requires explicit exit() to free KV cache CUDA tensors
                 try:
-                    if hasattr(self.llm, "reset"):
+                    engine = getattr(self.llm, 'engine', None)
+                    if engine is not None and hasattr(engine, 'exit'):
+                        engine.exit()
+                    elif hasattr(self.llm, 'exit'):
+                        self.llm.exit()
+                    elif hasattr(self.llm, 'reset'):
                         self.llm.reset()
                 except Exception:
                     pass
