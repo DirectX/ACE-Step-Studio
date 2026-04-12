@@ -841,6 +841,7 @@ router.get('/download-model', authMiddleware, async (req: AuthenticatedRequest, 
     'acestep-v15-xl-turbo': 'ACE-Step/acestep-v15-xl-turbo',
     'acestep-v15-xl-sft': 'ACE-Step/acestep-v15-xl-sft',
     'marcorez8/acestep-v15-xl-turbo-bf16': 'marcorez8/acestep-v15-xl-turbo-bf16',
+    'acestep-v15-xl-merge-sft-turbo': 'jeankassio/acestep_v1.5_merge_sft_turbo_xl',
   };
 
   const hfRepo = MODEL_HF_REPOS[model];
