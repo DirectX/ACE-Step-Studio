@@ -1909,16 +1909,22 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                         <button type="button" onClick={() => setTaskType('repaint')} className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'repaint' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>Repaint</button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('audioCoverStrength') || 'Influence'}</span>
-                      <input type="range" min="0" max="1" step="0.01" value={audioCoverStrength} onChange={(e) => setAudioCoverStrength(Number(e.target.value))} className="flex-1 h-1 accent-pink-500 cursor-pointer" />
-                      <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('audioCoverStrength') || 'Influence'}</span>
+                        <input type="range" min="0" max="1" step="0.01" value={audioCoverStrength} onChange={(e) => setAudioCoverStrength(Number(e.target.value))} className="flex-1 h-1 accent-pink-500 cursor-pointer" />
+                        <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
+                      </div>
+                      <p className="text-[9px] text-zinc-400 dark:text-zinc-500 pl-12">0% — свобода модели, 100% — максимально похоже на оригинал</p>
                     </div>
                     {taskType === 'repaint' && (<>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('strength') || 'Strength'}</span>
-                        <input type="range" min="0" max="1" step="0.05" value={repaintStrength} onChange={(e) => setRepaintStrength(Number(e.target.value))} className="flex-1 h-1 accent-purple-500 cursor-pointer" />
-                        <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('strength') || 'Strength'}</span>
+                          <input type="range" min="0" max="1" step="0.05" value={repaintStrength} onChange={(e) => setRepaintStrength(Number(e.target.value))} className="flex-1 h-1 accent-purple-500 cursor-pointer" />
+                          <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                        </div>
+                        <p className="text-[9px] text-zinc-400 dark:text-zinc-500 pl-12">0% — полностью перегенерить регион, 100% — почти не менять</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('region') || 'Region'}</span>
