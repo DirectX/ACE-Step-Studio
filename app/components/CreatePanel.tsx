@@ -1822,230 +1822,113 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         {/* CUSTOM MODE */}
         {customMode && (
           <div className="space-y-5">
-            {/* Audio Section */}
-            <div
-              onDrop={(e) => handleDrop(e, audioTab)}
-              onDragOver={handleDragOver}
-              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden"
-            >
-              {/* Header with Audio label and tabs */}
-              <div className="px-3 py-2.5 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('audio')}</span>
-                  <div className="flex items-center gap-1 bg-zinc-200/50 dark:bg-black/30 rounded-lg p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setAudioTab('reference')}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
-                        audioTab === 'reference'
-                          ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      {t('reference')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAudioTab('source')}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
-                        audioTab === 'source'
-                          ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      {t('cover')}
-                    </button>
-                  </div>
-                </div>
+            {/* Reference Audio */}
+            <div onDrop={(e) => handleDrop(e, 'reference')} onDragOver={handleDragOver}
+              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
+              <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
+                <span className="text-[11px] font-bold text-pink-500 uppercase tracking-wide">{t('reference')}</span>
+                {!referenceAudioUrl && <div className="flex gap-1">
+                  <button type="button" onClick={() => openAudioModal('reference', 'uploads')} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('fromLibrary')}</button>
+                  <button type="button" onClick={() => referenceInputRef.current?.click()} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('upload')}</button>
+                </div>}
               </div>
-
-              {/* Audio Content */}
-              <div className="p-3 space-y-2">
-                {/* Reference Audio Player */}
-                {audioTab === 'reference' && referenceAudioUrl && (
+              {referenceAudioUrl ? (
+                <div className="p-2">
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-zinc-50 dark:bg-white/[0.03] border border-zinc-100 dark:border-white/5">
-                    <button
-                      type="button"
-                      onClick={() => toggleAudio('reference')}
-                      className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20 hover:scale-105 transition-transform"
-                    >
-                      {referencePlaying ? (
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
-                      ) : (
-                        <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                      )}
-                      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">
-                        {formatTime(referenceDuration)}
-                      </span>
+                    <button type="button" onClick={() => toggleAudio('reference')} className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20 hover:scale-105 transition-transform">
+                      {referencePlaying ? <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> : <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
+                      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">{formatTime(referenceDuration)}</span>
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">
-                        {referenceAudioTitle || getAudioLabel(referenceAudioUrl)}
-                      </div>
+                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">{referenceAudioTitle || getAudioLabel(referenceAudioUrl)}</div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(referenceTime)}</span>
-                        <div
-                          className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek"
-                          onClick={(e) => {
-                            if (referenceAudioRef.current && referenceDuration > 0) {
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const percent = (e.clientX - rect.left) / rect.width;
-                              referenceAudioRef.current.currentTime = percent * referenceDuration;
-                            }
-                          }}
-                        >
-                          <div
-                            className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all relative"
-                            style={{ width: referenceDuration ? `${Math.min(100, (referenceTime / referenceDuration) * 100)}%` : '0%' }}
-                          >
+                        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek" onClick={(e) => { if (referenceAudioRef.current && referenceDuration > 0) { const rect = e.currentTarget.getBoundingClientRect(); referenceAudioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * referenceDuration; } }}>
+                          <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all relative" style={{ width: referenceDuration ? `${Math.min(100, (referenceTime / referenceDuration) * 100)}%` : '0%' }}>
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
                           </div>
                         </div>
                         <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(referenceDuration)}</span>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => { setReferenceAudioUrl(''); setReferenceAudioTitle(''); setReferencePlaying(false); setReferenceTime(0); setReferenceDuration(0); }}
-                      className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
-                    >
+                    <button type="button" onClick={() => { setReferenceAudioUrl(''); setReferenceAudioTitle(''); setReferencePlaying(false); setReferenceTime(0); setReferenceDuration(0); }} className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                   </div>
-                )}
+                </div>
+              ) : (
+                <div className="px-3 py-3 text-center text-[10px] text-zinc-400">{t('dropAudioHere') || 'Drop audio or use buttons above'}</div>
+              )}
+            </div>
 
-                {/* Source/Cover Audio Player */}
-                {audioTab === 'source' && sourceAudioUrl && (
+            {/* Cover / Source Audio */}
+            <div onDrop={(e) => handleDrop(e, 'source')} onDragOver={handleDragOver}
+              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
+              <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
+                <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wide">{t('cover')}</span>
+                {!sourceAudioUrl && <div className="flex gap-1">
+                  <button type="button" onClick={() => openAudioModal('source', 'uploads')} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('fromLibrary')}</button>
+                  <button type="button" onClick={() => sourceInputRef.current?.click()} className="px-2 py-0.5 rounded text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-colors">{t('upload')}</button>
+                </div>}
+              </div>
+              {sourceAudioUrl ? (
+                <div className="p-2 space-y-2">
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-zinc-50 dark:bg-white/[0.03] border border-zinc-100 dark:border-white/5">
-                    <button
-                      type="button"
-                      onClick={() => toggleAudio('source')}
-                      className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
-                    >
-                      {sourcePlaying ? (
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
-                      ) : (
-                        <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                      )}
-                      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">
-                        {formatTime(sourceDuration)}
-                      </span>
+                    <button type="button" onClick={() => toggleAudio('source')} className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform">
+                      {sourcePlaying ? <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> : <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
+                      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">{formatTime(sourceDuration)}</span>
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">
-                        {sourceAudioTitle || getAudioLabel(sourceAudioUrl)}
-                      </div>
+                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">{sourceAudioTitle || getAudioLabel(sourceAudioUrl)}</div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(sourceTime)}</span>
-                        <div
-                          className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek"
-                          onClick={(e) => {
-                            if (sourceAudioRef.current && sourceDuration > 0) {
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const percent = (e.clientX - rect.left) / rect.width;
-                              sourceAudioRef.current.currentTime = percent * sourceDuration;
-                            }
-                          }}
-                        >
-                          <div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all relative"
-                            style={{ width: sourceDuration ? `${Math.min(100, (sourceTime / sourceDuration) * 100)}%` : '0%' }}
-                          >
+                        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek" onClick={(e) => { if (sourceAudioRef.current && sourceDuration > 0) { const rect = e.currentTarget.getBoundingClientRect(); sourceAudioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * sourceDuration; } }}>
+                          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all relative" style={{ width: sourceDuration ? `${Math.min(100, (sourceTime / sourceDuration) * 100)}%` : '0%' }}>
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
                           </div>
                         </div>
                         <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(sourceDuration)}</span>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => { setSourceAudioUrl(''); setSourceAudioTitle(''); setSourcePlaying(false); setSourceTime(0); setSourceDuration(0); }}
-                      className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
-                    >
+                    <button type="button" onClick={() => { setSourceAudioUrl(''); setSourceAudioTitle(''); setSourcePlaying(false); setSourceTime(0); setSourceDuration(0); setTaskType('text2music'); }} className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                   </div>
-                )}
-
-                {/* Inline Cover/Repaint controls (shown when source audio loaded) */}
-                {audioTab === 'source' && sourceAudioUrl && (
-                  <div className="space-y-2 pt-1">
+                  {/* Cover/Repaint controls */}
+                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('mode') || 'Mode'}</span>
                       <div className="flex items-center gap-1 bg-zinc-100 dark:bg-black/20 rounded-lg p-0.5 flex-1">
-                        <button type="button" onClick={() => setTaskType('cover')}
-                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'cover' || taskType === 'audio2audio' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>
-                          Cover
-                        </button>
-                        <button type="button" onClick={() => setTaskType('repaint')}
-                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'repaint' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>
-                          Repaint
-                        </button>
+                        <button type="button" onClick={() => setTaskType('cover')} className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'cover' || taskType === 'audio2audio' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>Cover</button>
+                        <button type="button" onClick={() => setTaskType('repaint')} className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all text-center ${taskType === 'repaint' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500'}`}>Repaint</button>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('audioCoverStrength') || 'Influence'}</span>
-                      <input type="range" min="0" max="1" step="0.01" value={audioCoverStrength}
-                        onChange={(e) => setAudioCoverStrength(Number(e.target.value))}
-                        className="flex-1 h-1 accent-pink-500 cursor-pointer" />
+                      <input type="range" min="0" max="1" step="0.01" value={audioCoverStrength} onChange={(e) => setAudioCoverStrength(Number(e.target.value))} className="flex-1 h-1 accent-pink-500 cursor-pointer" />
                       <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
                     </div>
-                    {taskType === 'repaint' && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('strength') || 'Strength'}</span>
-                          <input type="range" min="0" max="1" step="0.05" value={repaintStrength}
-                            onChange={(e) => setRepaintStrength(Number(e.target.value))}
-                            className="flex-1 h-1 accent-purple-500 cursor-pointer" />
-                          <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                    {taskType === 'repaint' && (<>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('strength') || 'Strength'}</span>
+                        <input type="range" min="0" max="1" step="0.05" value={repaintStrength} onChange={(e) => setRepaintStrength(Number(e.target.value))} className="flex-1 h-1 accent-purple-500 cursor-pointer" />
+                        <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(repaintStrength * 100)}%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('region') || 'Region'}</span>
+                        <div className="flex items-center gap-1 flex-1">
+                          <input type="number" step="0.1" min="0" placeholder="0s" value={repaintingStart || ''} onChange={(e) => setRepaintingStart(Number(e.target.value))} className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
+                          <span className="text-[10px] text-zinc-400">—</span>
+                          <input type="number" step="0.1" min="-1" placeholder={t('end') || 'end'} value={repaintingEnd === -1 ? '' : repaintingEnd} onChange={(e) => setRepaintingEnd(e.target.value === '' ? -1 : Number(e.target.value))} className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
+                          <span className="text-[10px] text-zinc-400">{t('seconds') || 'sec'}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('region') || 'Region'}</span>
-                          <div className="flex items-center gap-1 flex-1">
-                            <input type="number" step="0.1" min="0" placeholder="0s"
-                              value={repaintingStart || ''}
-                              onChange={(e) => setRepaintingStart(Number(e.target.value))}
-                              className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
-                            <span className="text-[10px] text-zinc-400">—</span>
-                            <input type="number" step="0.1" min="-1" placeholder={t('end') || 'end'}
-                              value={repaintingEnd === -1 ? '' : repaintingEnd}
-                              onChange={(e) => setRepaintingEnd(e.target.value === '' ? -1 : Number(e.target.value))}
-                              className="w-16 bg-zinc-100 dark:bg-black/30 border border-zinc-200 dark:border-white/10 rounded px-1.5 py-0.5 text-[10px] text-zinc-900 dark:text-white text-center focus:outline-none focus:border-purple-500" />
-                            <span className="text-[10px] text-zinc-400">{t('seconds') || 'sec'}</span>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                      </div>
+                    </>)}
                   </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openAudioModal(audioTab, 'uploads')}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 px-3 py-2 text-xs font-medium transition-colors border border-zinc-200 dark:border-white/5"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
-                    {t('fromLibrary')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const input = audioTab === 'reference' ? referenceInputRef.current : sourceInputRef.current;
-                      input?.click();
-                    }}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 px-3 py-2 text-xs font-medium transition-colors border border-zinc-200 dark:border-white/5"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                    </svg>
-                    {t('upload')}
-                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="px-3 py-3 text-center text-[10px] text-zinc-400">{t('dropAudioForCover') || 'Drop audio for Cover / Remix'}</div>
+              )}
             </div>
 
             {/* Lyrics Input */}
