@@ -9,6 +9,12 @@ set "HF_HOME=%SCRIPT_DIR%models"
 set "HUGGINGFACE_HUB_CACHE=%SCRIPT_DIR%models"
 set "HF_HUB_ENABLE_HF_TRANSFER=1"
 
+if not exist "python\python.exe" (
+    echo ERROR: Python not found! Run install.bat first.
+    pause
+    exit /b 1
+)
+
 echo ========================================
 echo   ACE-Step-Studio - Download Models
 echo ========================================

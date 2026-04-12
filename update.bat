@@ -19,7 +19,9 @@ if errorlevel 1 (
 REM Update ACE-Step Studio (includes ACE-Step-1.5 backend)
 if exist ".git" (
     echo Updating ACE-Step Studio...
+    git stash >nul 2>&1
     git pull
+    git stash pop >nul 2>&1
 )
 
 REM Reinstall Python deps (in case ACE-Step-1.5 was updated)
@@ -29,11 +31,25 @@ if exist "python\python.exe" (
 )
 
 REM Update npm deps
+set "PATH=%SCRIPT_DIR%node;%PATH%"
 if exist "app\package.json" (
-    echo Updating npm dependencies...
-    set "PATH=%SCRIPT_DIR%node;%PATH%"
+    echo Updating frontend dependencies...
     cd app
     "%SCRIPT_DIR%node\npm.cmd" install
+    cd "%SCRIPT_DIR%"
+)
+if exist "app\server\package.json" (
+    echo Updating server dependencies...
+    cd app\server
+    "%SCRIPT_DIR%node\npm.cmd" install
+    cd "%SCRIPT_DIR%"
+)
+
+REM Rebuild frontend
+if exist "app\vite.config.ts" (
+    echo Rebuilding frontend...
+    cd app
+    "%SCRIPT_DIR%node\npx.cmd" vite build
     cd "%SCRIPT_DIR%"
 )
 
