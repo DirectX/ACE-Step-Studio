@@ -164,6 +164,7 @@ def _download_from_huggingface_internal(
     repo_id: str,
     local_dir: Path,
     token: Optional[str] = None,
+    ignore_patterns: Optional[List[str]] = None,
 ) -> None:
     """
     Internal function to download from HuggingFace Hub.
@@ -172,6 +173,7 @@ def _download_from_huggingface_internal(
         repo_id: HuggingFace repository ID (e.g., "ACE-Step/Ace-Step1.5")
         local_dir: Local directory to save the model
         token: HuggingFace token for private repos (optional)
+        ignore_patterns: File patterns to exclude from download (optional)
 
     Raises:
         Exception: If download fails
@@ -180,12 +182,16 @@ def _download_from_huggingface_internal(
 
     logger.info(f"[Model Download] Downloading from HuggingFace: {repo_id} -> {local_dir}")
 
-    snapshot_download(
+    kwargs = dict(
         repo_id=repo_id,
         local_dir=str(local_dir),
         local_dir_use_symlinks="auto",
         token=token,
     )
+    if ignore_patterns:
+        kwargs["ignore_patterns"] = ignore_patterns
+
+    snapshot_download(**kwargs)
 
 
 def _download_from_modelscope_internal(
@@ -217,6 +223,7 @@ def _smart_download(
     local_dir: Path,
     token: Optional[str] = None,
     prefer_source: Optional[str] = None,
+    ignore_patterns: Optional[List[str]] = None,
 ) -> Tuple[bool, str]:
     """
     Smart download with automatic fallback between HuggingFace and ModelScope.
@@ -252,7 +259,7 @@ def _smart_download(
     if use_huggingface_first:
         logger.info("[Model Download] Using HuggingFace Hub...")
         try:
-            _download_from_huggingface_internal(repo_id, local_dir, token)
+            _download_from_huggingface_internal(repo_id, local_dir, token, ignore_patterns)
             return True, f"Successfully downloaded from HuggingFace: {repo_id}"
         except Exception as e:
             logger.warning(f"[Model Download] HuggingFace download failed: {e}")
@@ -273,7 +280,7 @@ def _smart_download(
             logger.warning(f"[Model Download] ModelScope download failed: {e}")
             logger.info("[Model Download] Falling back to HuggingFace Hub...")
             try:
-                _download_from_huggingface_internal(repo_id, local_dir, token)
+                _download_from_huggingface_internal(repo_id, local_dir, token, ignore_patterns)
                 return True, f"Successfully downloaded from HuggingFace: {repo_id}"
             except Exception as e2:
                 error_msg = f"Both ModelScope and HuggingFace downloads failed. MS: {e}, HF: {e2}"
@@ -306,8 +313,8 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
+# Shared components from main model repo — DiT is downloaded separately via ensure_dit_model
 MAIN_MODEL_COMPONENTS = [
-    "acestep-v15-turbo",      # Default DiT model
     "vae",                     # VAE for audio encoding/decoding
     "Qwen3-Embedding-0.6B",    # Text encoder
     "acestep-5Hz-lm-1.7B",     # Default LM model (1.7B)
@@ -440,7 +447,6 @@ def download_main_model(
     Download the main ACE-Step model from HuggingFace or ModelScope.
 
     The main model includes:
-    - acestep-v15-turbo (default DiT model)
     - vae (audio encoder/decoder)
     - Qwen3-Embedding-0.6B (text encoder)
     - acestep-5Hz-lm-1.7B (default LM model)
@@ -470,7 +476,11 @@ def download_main_model(
     print("This may take a while depending on your internet connection...")
 
     # Use smart download with automatic fallback
-    success, msg = _smart_download(MAIN_MODEL_REPO, checkpoints_dir, token, prefer_source)
+    # Skip acestep-v15-turbo — legacy 2.4B DiT not used in XL builds (saves ~4.5 GB)
+    success, msg = _smart_download(
+        MAIN_MODEL_REPO, checkpoints_dir, token, prefer_source,
+        ignore_patterns=["acestep-v15-turbo/*"],
+    )
     if success:
         # Sync model code files for all DiT components in the main model
         for component in MAIN_MODEL_COMPONENTS:
@@ -683,7 +693,7 @@ def ensure_dit_model(
     if check_model_exists(model_name, checkpoints_dir):
         return True, f"DiT model '{model_name}' is available"
 
-    # Check if this is the default turbo model (part of main)
+    # Check if this is a model bundled in the main repo
     if model_name == "acestep-v15-turbo":
         return ensure_main_model(checkpoints_dir, token, prefer_source)
 
@@ -707,7 +717,7 @@ def print_model_list():
 
     print("\n[Main Model]")
     print(f"  main -> {MAIN_MODEL_REPO}")
-    print("  Contains: vae, Qwen3-Embedding-0.6B, acestep-v15-turbo, acestep-5Hz-lm-1.7B")
+    print("  Contains: vae, Qwen3-Embedding-0.6B, acestep-5Hz-lm-1.7B")
 
     print("\n[Optional LM Models]")
     for name, repo in SUBMODEL_REGISTRY.items():

@@ -466,8 +466,8 @@ def main():
                 available_models = dit_handler.get_available_acestep_v15_models()
                 if available_models:
                     args.config_path = (
-                        "acestep-v15-turbo"
-                        if "acestep-v15-turbo" in available_models
+                        "acestep-v15-xl-turbo"
+                        if "acestep-v15-xl-turbo" in available_models
                         else available_models[0]
                     )
                     print(f"Auto-selected config_path: {args.config_path}")

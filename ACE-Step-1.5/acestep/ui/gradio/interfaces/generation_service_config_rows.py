@@ -110,11 +110,7 @@ def build_model_device_controls(
         default_model = (
             "acestep-v15-xl-turbo"
             if "acestep-v15-xl-turbo" in available_models
-            else (
-                "acestep-v15-turbo"
-                if "acestep-v15-turbo" in available_models
-                else (available_models[0] if available_models else None)
-            )
+            else (available_models[0] if available_models else None)
         )
         config_path = gr.Dropdown(
             label=t("service.model_path_label"),

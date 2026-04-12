@@ -120,11 +120,7 @@ def resolve_is_pure_base_model(
     default_model = (
         "acestep-v15-xl-turbo"
         if "acestep-v15-xl-turbo" in available_models
-        else (
-            "acestep-v15-turbo"
-            if "acestep-v15-turbo" in available_models
-            else (available_models[0] if available_models else None)
-        )
+        else (available_models[0] if available_models else None)
     )
     actual_model = init_params.get("config_path", default_model) if init_params else default_model
     return is_pure_base_model((actual_model or "").lower())
