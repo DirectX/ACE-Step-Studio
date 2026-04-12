@@ -1893,8 +1893,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                         duration={sourceDuration}
                         activeColor="#10b981"
                         inactiveColor="rgba(255,255,255,0.08)"
-                        height={28}
-                        onClick={(pct) => { if (sourceAudioRef.current && sourceDuration > 0) sourceAudioRef.current.currentTime = pct * sourceDuration; }}
+                        height={taskType === 'repaint' ? 48 : 28}
+                        onClick={taskType !== 'repaint' ? ((pct) => { if (sourceAudioRef.current && sourceDuration > 0) sourceAudioRef.current.currentTime = pct * sourceDuration; }) : undefined}
+                        regionStart={taskType === 'repaint' ? repaintingStart : undefined}
+                        regionEnd={taskType === 'repaint' ? repaintingEnd : undefined}
+                        onRegionChange={taskType === 'repaint' ? ((s, e) => { setRepaintingStart(Math.round(s * 10) / 10); setRepaintingEnd(e < 0 ? -1 : Math.round(e * 10) / 10); }) : undefined}
                       />
                     </div>
                     <button type="button" onClick={() => { setSourceAudioUrl(''); setSourceAudioTitle(''); setSourcePlaying(false); setSourceTime(0); setSourceDuration(0); setTaskType('text2music'); }} className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
