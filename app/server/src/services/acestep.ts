@@ -115,18 +115,20 @@ async function prepareAudioFile(audioUrl: string | undefined): Promise<unknown> 
   const filePath = resolveAudioPath(audioUrl);
 
   try {
-    const buffer = await readFile(filePath);
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeMap: Record<string, string> = {
-      '.flac': 'audio/flac', '.wav': 'audio/wav', '.ogg': 'audio/ogg',
-      '.opus': 'audio/opus', '.m4a': 'audio/mp4', '.mp4': 'audio/mp4',
-    };
-    const mimeType = mimeMap[ext] || 'audio/mpeg';
-    const blob = new Blob([buffer], { type: mimeType });
-    return handle_file(blob);
+    // Pass file path directly — handle_file in Node.js uses Command("upload_file")
+    // which preserves the filename. Blob-based upload loses the filename and
+    // Gradio saves it as "blob" without extension, breaking soundfile/torchaudio.
+    if (existsSync(filePath)) {
+      return handle_file(filePath);
+    }
+    // Fall back to URL-based reference
+    if (audioUrl.startsWith('http')) {
+      return handle_file(audioUrl);
+    }
+    console.warn(`[Gradio] Audio file not found: ${filePath}`);
+    return null;
   } catch (error) {
-    console.warn(`[Gradio] Failed to read audio file ${filePath}:`, error);
-    // Fall back to URL-based reference if file can't be read locally
+    console.warn(`[Gradio] Failed to prepare audio file ${filePath}:`, error);
     if (audioUrl.startsWith('http')) {
       return handle_file(audioUrl);
     }
