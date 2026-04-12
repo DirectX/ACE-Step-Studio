@@ -1,16 +1,66 @@
 [
   {
+    "id": "v2-ace-step-studio",
+    "date": "2026-04-12",
+    "title": {
+      "en": "ACE-Step Studio — Major Update by Nerual Dreming",
+      "ru": "ACE-Step Studio — Большое обновление от Nerual Dreming",
+      "zh": "ACE-Step Studio — Nerual Dreming 重大更新",
+      "ja": "ACE-Step Studio — Nerual Dreamingによる大型アップデート",
+      "ko": "ACE-Step Studio — Nerual Dreming의 대규모 업데이트"
+    },
+    "body": {
+      "en": "The project has been forked and massively upgraded into ACE-Step Studio — a full-featured portable music generation app for Windows. New features: XL model support (4B DiT) with BF16, single-terminal mode, model hot-swap via API, LRC timestamped lyrics with karaoke video overlay, Video Studio with WYSIWYG editor, server-side FFmpeg rendering with GPU acceleration, ID3 tags in MP3, internationalization (5 languages), Flash Attention 2 + Triton acceleration, and a one-click portable installer.",
+      "ru": "Проект форкнут и полностью переработан в ACE-Step Studio — портативное приложение для генерации музыки под Windows. Что нового: поддержка XL моделей (4B DiT) с BF16, единый терминал, горячая замена моделей через API, LRC-субтитры с караоке-видео, Video Studio с WYSIWYG-редактором, серверный рендеринг FFmpeg с GPU-ускорением, ID3-теги в MP3, интернационализация (5 языков), Flash Attention 2 + Triton, портативный установщик в один клик.",
+      "zh": "该项目已被 fork 并全面升级为 ACE-Step Studio——一款功能齐全的 Windows 便携式音乐生成应用。新功能：XL 模型支持（4B DiT）含 BF16、单终端模式、API 热切换模型、LRC 时间戳歌词卡拉OK视频叠加、Video Studio WYSIWYG 编辑器、服务端 FFmpeg GPU 加速渲染、MP3 ID3 标签、国际化（5种语言）、Flash Attention 2 + Triton 加速、一键便携安装器。",
+      "ja": "プロジェクトをフォークし、ACE-Step Studio として大幅にアップグレードしました。Windows 向けのフル機能ポータブル音楽生成アプリです。新機能：XL モデル対応（4B DiT）BF16、シングルターミナルモード、API によるモデルホットスワップ、LRC タイムスタンプ歌詞カラオケビデオオーバーレイ、WYSIWYG エディター付き Video Studio、GPU 加速 FFmpeg サーバーサイドレンダリング、MP3 ID3 タグ、国際化（5言語）、Flash Attention 2 + Triton 高速化、ワンクリックポータブルインストーラー。",
+      "ko": "프로젝트를 포크하여 ACE-Step Studio로 대폭 업그레이드했습니다 — Windows용 풀기능 포터블 음악 생성 앱입니다. 새 기능: XL 모델 지원 (4B DiT) BF16, 단일 터미널 모드, API 모델 핫스왑, LRC 타임스탬프 가사 노래방 비디오 오버레이, WYSIWYG 편집기 Video Studio, GPU 가속 FFmpeg 서버 렌더링, MP3 ID3 태그, 국제화 (5개 언어), Flash Attention 2 + Triton 가속, 원클릭 포터블 설치."
+    },
+    "tags": ["release", "feature"],
+    "links": [
+      { "label": "ACE-Step Studio on GitHub", "url": "https://github.com/timoncool/ACE-Step-Studio" },
+      { "label": "Nerual Dreming — Telegram", "url": "https://t.me/nerual_dreming" },
+      { "label": "neuro-cartel.com", "url": "https://neuro-cartel.com" },
+      { "label": "ArtGeneration.me", "url": "https://artgeneration.me" },
+      { "label": "Neiro-Soft — Telegram", "url": "https://t.me/neiro_soft" }
+    ]
+  },
+  {
     "id": "v1-gradio-migration",
     "date": "2025-02-09",
-    "title": "Switched to Gradio API Backend",
-    "body": "We migrated the backend from REST API to Gradio API for direct communication with ACE-Step. This version is experimental — if you encounter any bugs, please report them or open a PR on our GitHub repo.",
+    "title": {
+      "en": "Switched to Gradio API Backend",
+      "ru": "Переход на Gradio API Backend",
+      "zh": "切换到 Gradio API 后端",
+      "ja": "Gradio API バックエンドに切り替え",
+      "ko": "Gradio API 백엔드로 전환"
+    },
+    "body": {
+      "en": "We migrated the backend from REST API to Gradio API for direct communication with ACE-Step. This version is experimental — if you encounter any bugs, please report them or open a PR on our GitHub repo.",
+      "ru": "Бэкенд переведён с REST API на Gradio API для прямого взаимодействия с ACE-Step. Версия экспериментальная — если найдёте баги, создайте issue или PR в нашем GitHub-репозитории.",
+      "zh": "我们将后端从 REST API 迁移到 Gradio API，以直接与 ACE-Step 通信。此版本为实验性版本——如遇到任何错误，请在 GitHub 上提交 issue 或 PR。",
+      "ja": "バックエンドを REST API から Gradio API に移行し、ACE-Step と直接通信できるようになりました。このバージョンは実験的です — バグを見つけた場合は GitHub で issue または PR を作成してください。",
+      "ko": "백엔드를 REST API에서 Gradio API로 마이그레이션하여 ACE-Step과 직접 통신합니다. 이 버전은 실험적입니다 — 버그를 발견하면 GitHub에서 issue 또는 PR을 생성해 주세요."
+    },
     "tags": ["backend", "experimental"]
   },
   {
     "id": "v1-training-experimental",
     "date": "2025-02-09",
-    "title": "LoRA Training (Experimental)",
-    "body": "The training feature is now available but still experimental. You may encounter bugs during dataset building, preprocessing, or training. Bug reports and PRs are welcome!",
+    "title": {
+      "en": "LoRA Training (Experimental)",
+      "ru": "LoRA-обучение (экспериментально)",
+      "zh": "LoRA 训练（实验性）",
+      "ja": "LoRA トレーニング（実験的）",
+      "ko": "LoRA 훈련 (실험적)"
+    },
+    "body": {
+      "en": "The training feature is now available but still experimental. You may encounter bugs during dataset building, preprocessing, or training. Bug reports and PRs are welcome!",
+      "ru": "Функция обучения теперь доступна, но пока экспериментальная. Возможны баги при создании датасета, предобработке или обучении. Баг-репорты и PR приветствуются!",
+      "zh": "训练功能现已可用，但仍处于实验阶段。在数据集构建、预处理或训练过程中可能会遇到错误。欢迎提交 bug 报告和 PR！",
+      "ja": "トレーニング機能が利用可能になりましたが、まだ実験的です。データセット構築、前処理、トレーニング中にバグが発生する可能性があります。バグレポートと PR を歓迎します！",
+      "ko": "훈련 기능이 사용 가능하지만 아직 실험적입니다. 데이터셋 구축, 전처리, 훈련 중 버그가 발생할 수 있습니다. 버그 리포트와 PR을 환영합니다!"
+    },
     "tags": ["training", "experimental"]
   }
 ]

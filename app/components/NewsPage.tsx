@@ -3,16 +3,29 @@ import { Newspaper, X, Star, Github } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import newsData from '../data/news.json';
 
+interface NewsLink {
+  label: string;
+  url: string;
+}
+
+type LocalizedString = string | Record<string, string>;
+
 interface NewsItem {
   id: string;
   date: string;
-  title: string;
-  body: string;
+  title: LocalizedString;
+  body: LocalizedString;
   tags: string[];
+  links?: NewsLink[];
 }
 
 export const NewsPage: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+
+  const localize = (value: LocalizedString): string => {
+    if (typeof value === 'string') return value;
+    return value[language] || value['en'] || Object.values(value)[0] || '';
+  };
   const [dismissedNews, setDismissedNews] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('ace-dismissed-news');
@@ -52,6 +65,8 @@ export const NewsPage: React.FC = () => {
         return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
       case 'training':
         return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
+      case 'release':
+        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
       case 'feature':
         return 'bg-green-500/15 text-green-600 dark:text-green-400';
       case 'bugfix':
@@ -77,7 +92,7 @@ export const NewsPage: React.FC = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
-              {item.title}
+              {localize(item.title)}
             </h3>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{item.date}</p>
           </div>
@@ -101,8 +116,26 @@ export const NewsPage: React.FC = () => {
 
         {/* Body */}
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">
-          {item.body}
+          {localize(item.body)}
         </p>
+
+        {/* Links */}
+        {item.links && item.links.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {item.links.map(link => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors"
+              >
+                {link.label}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            ))}
+          </div>
+        )}
 
         {/* Tags */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -135,14 +168,14 @@ export const NewsPage: React.FC = () => {
 
         {/* Star Repo */}
         <a
-          href="https://github.com/fspecii/ace-step-ui"
+          href="https://github.com/timoncool/ACE-Step-Studio"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 mb-8 px-5 py-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-suno-card hover:border-zinc-300 dark:hover:border-white/10 transition-all group"
         >
           <Github size={20} className="text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">fspecii/ace-step-ui</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">timoncool/ACE-Step-Studio</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Star the repo to support the project</p>
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 text-sm font-medium group-hover:bg-amber-500/15 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors flex-shrink-0">
