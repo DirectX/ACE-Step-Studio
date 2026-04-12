@@ -34,7 +34,7 @@ REM === Get 7-Zip portable if not present ===
 if not exist "tools\7za.exe" (
     echo [0/6] Downloading 7-Zip portable...
     if not exist "tools" mkdir tools
-    call :download "https://www.7-zip.org/a/7zr.exe" "tools\7za.exe"
+    call :download "https://github.com/nicholasgasior/7za-static/releases/download/v24.09/7za-win-x64.exe" "tools\7za.exe"
     if errorlevel 1 (
         echo WARNING: Could not download 7-Zip. Will try tar/powershell as fallback.
     )
@@ -46,11 +46,11 @@ goto :skip_unzip_func
 set "_ZIP=%~1"
 set "_DEST=%~2"
 if not exist "%_DEST%" mkdir "%_DEST%"
+if exist "%SCRIPT_DIR%tools\7za.exe" (
+    "%SCRIPT_DIR%tools\7za.exe" x "%_ZIP%" -o"%_DEST%" -y >nul 2>&1 && exit /b 0
+)
 where tar >nul 2>&1 && (
     tar -xf "%_ZIP%" -C "%_DEST%" 2>nul && exit /b 0
-)
-if exist "tools\7za.exe" (
-    "tools\7za.exe" x "%_ZIP%" -o"%_DEST%" -y >nul 2>&1 && exit /b 0
 )
 where powershell >nul 2>&1 && (
     powershell -Command "Expand-Archive -Path '%_ZIP%' -DestinationPath '%_DEST%' -Force" 2>nul && exit /b 0
@@ -200,9 +200,9 @@ REM ============================================================
 if exist "node\node.exe" (
     echo [OK] Node.js already installed
 ) else (
-    echo [5/6] Downloading Node.js 24...
+    echo [5/6] Downloading Node.js 22 LTS...
     if not exist "node" mkdir node
-    call :download "https://nodejs.org/dist/v24.11.0/node-v24.11.0-win-x64.zip" "downloads\node.zip"
+    call :download "https://nodejs.org/dist/v22.18.0/node-v22.18.0-win-x64.zip" "downloads\node.zip"
     if errorlevel 1 ( echo Failed to download Node.js! & pause & exit /b 1 )
     call :unzip "downloads\node.zip" "downloads\node-extract"
     REM Move contents from nested folder to node/
@@ -210,7 +210,7 @@ if exist "node\node.exe" (
         xcopy "%%D\*" "node\" /E /Y /Q >nul 2>&1
     )
     if exist "downloads\node-extract" rmdir /s /q "downloads\node-extract"
-    echo [OK] Node.js 24 installed
+    echo [OK] Node.js 22 LTS installed
 )
 
 REM ============================================================
