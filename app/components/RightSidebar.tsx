@@ -416,7 +416,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                         <div className="flex items-center gap-2 min-w-0">
                                             <Layers size={14} className="text-zinc-400" />
                                             <div className="min-w-0">
-                                                <div className="text-xs text-zinc-500">Cover</div>
+                                                <div className="text-xs text-zinc-500">
+                                                    {song.generationParams?.taskType === 'repaint' ? 'Repaint' : 'Cover'}
+                                                    {song.generationParams?.audioCoverStrength !== undefined && (
+                                                        <span className="ml-1 text-zinc-400">· {Math.round((song.generationParams.audioCoverStrength ?? 1) * 100)}%</span>
+                                                    )}
+                                                </div>
                                                 <div className="text-sm font-medium text-zinc-900 dark:text-white truncate">
                                                     {song.generationParams?.sourceAudioTitle || getSourceLabel(song.generationParams?.sourceAudioUrl)}
                                                 </div>
