@@ -353,6 +353,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               }
               return prev;
             });
+            // Sync LM model and backend with real server state
+            if (data.activeLmModel) {
+              setLmModel(prev => prev !== data.activeLmModel ? data.activeLmModel : prev);
+            }
+            if (data.activeLmBackend) {
+              setLmBackend(prev => prev !== data.activeLmBackend ? data.activeLmBackend : prev);
+            }
           }
           // During loading, show the target model
           if (data.state === 'loading' && data.model) {
