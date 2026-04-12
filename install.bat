@@ -167,18 +167,22 @@ if not "%CUDA_VERSION%"=="cpu" (
         )
     )
 )
-REM Install Flash Attention 2
+REM Install Flash Attention 2 (optional — speeds up LLM inference, not required)
 if not "%CUDA_VERSION%"=="cpu" (
-    echo Installing Flash Attention 2...
-    python\python.exe -m pip install flash-attn --no-build-isolation --no-warn-script-location
+    echo Installing Flash Attention 2 ^(optional^)...
+    python\python.exe -m pip install wheel --no-warn-script-location
+    python\python.exe -m pip install flash-attn --no-build-isolation --no-warn-script-location 2>nul
     if errorlevel 1 (
-        echo ERROR: Flash Attention failed to install!
-        echo Trying pre-built wheel from HuggingFace...
-        python\python.exe -m pip install "https://huggingface.co/lldacing/flash-attention-windows-wheel/resolve/main/flash_attn-2.7.4.post1%%2Bcu128torch2.7.0cxx11abiFALSE-cp312-cp312-win_amd64.whl" --no-warn-script-location
+        echo Flash Attention source build failed, trying pre-built wheel...
+        python\python.exe -m pip install "https://huggingface.co/lldacing/flash-attention-windows-wheel/resolve/main/flash_attn-2.7.4.post1%%2Bcu128torch2.7.0cxx11abiFALSE-cp312-cp312-win_amd64.whl" --no-warn-script-location 2>nul
         if errorlevel 1 (
-            echo ERROR: Flash Attention could not be installed!
-            pause
+            echo [SKIP] Flash Attention not available for this configuration
+            echo        ACE-Step will use standard attention ^(SDPA^) instead - works fine
+        ) else (
+            echo [OK] Flash Attention installed from pre-built wheel
         )
+    ) else (
+        echo [OK] Flash Attention installed
     )
 )
 REM Install ace-step last (all deps already satisfied, no warnings)
