@@ -186,8 +186,13 @@ REM ============================================================
 REM  Step 5: ACE-Step dependencies
 REM ============================================================
 echo [4/6] Installing ACE-Step dependencies...
-python\python.exe -m pip install -e ACE-Step-1.5/ --no-warn-script-location
-python\python.exe -m pip install hf_transfer --no-warn-script-location
+python\python.exe -m pip install hatchling --no-warn-script-location
+REM Install ACE-Step without deps (torch version conflict with pyproject.toml)
+python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
+REM Install remaining deps manually (without torch/torchvision/torchaudio — already installed)
+python\python.exe -m pip install transformers diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec torchao toml peft modelscope tensorboard typer-slim hf_transfer --no-warn-script-location
+REM Install nano-vllm (local LM inference engine)
+python\python.exe -m pip install -e ACE-Step-1.5/acestep/third_parts/nano-vllm/ --no-warn-script-location
 
 REM ============================================================
 REM  Step 6: Node.js
@@ -213,12 +218,7 @@ REM  Step 7: npm dependencies
 REM ============================================================
 echo [6/7] Installing npm dependencies...
 set "PATH=%SCRIPT_DIR%node;%PATH%"
-REM Force native modules to build for portable node, not system node
-for /f "tokens=*" %%v in ('"%SCRIPT_DIR%node\node.exe" -v') do set "NODE_VER=%%v"
-set "NODE_VER=%NODE_VER:~1%"
-set "npm_config_target=%NODE_VER%"
-set "npm_config_target_arch=x64"
-set "npm_config_runtime=node"
+REM Use portable node for npm
 
 REM Frontend deps
 cd app
