@@ -379,6 +379,10 @@ async def init_model(request: Request):
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
 
+    # Check if DiT model actually changed
+    current_dit = getattr(request.app.state, '_active_dit_model', None)
+    dit_changed = (current_dit is None) or (current_dit != model)
+
     try:
         import gc as gc_mod
         import torch
@@ -386,31 +390,34 @@ async def init_model(request: Request):
 
         gpu_cfg = get_global_gpu_config()
 
-        # Always unload LM first — vLLM KV cache doesn't free on its own
+        # Unload LM — call unload twice + gc to ensure vLLM KV cache is freed
         if llm_handler:
             llm_handler.unload()
-            gc_mod.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+        gc_mod.collect()
+        gc_mod.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
 
-        # FP32 XL models (19GB) need int8 quantization to fit on GPU
-        is_fp32_xl = "xl" in model and "bf16" not in model
-        quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
+        if dit_changed:
+            # DiT model changed — reload (initialize_service does del + empty_cache internally)
+            is_fp32_xl = "xl" in model and "bf16" not in model
+            quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
 
-        # Always call initialize_service — it handles del self.model + empty_cache
-        # internally before loading. Skipping it leaves CUDA memory fragmented.
-        status, ok = dit_handler.initialize_service(
-            project_root=project_root,
-            config_path=model,
-            device="auto",
-            use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-            offload_to_cpu=gpu_cfg.offload_to_cpu_default,
-            offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
-            quantization=quantization,
-        )
+            status, ok = dit_handler.initialize_service(
+                project_root=project_root,
+                config_path=model,
+                device="auto",
+                use_flash_attention=dit_handler.is_flash_attention_available("auto"),
+                offload_to_cpu=gpu_cfg.offload_to_cpu_default,
+                offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
+                quantization=quantization,
+            )
 
-        if not ok:
-            return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
+            if not ok:
+                return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
+
+            request.app.state._active_dit_model = model
 
         # Initialize LM if requested
         lm_status = ""
