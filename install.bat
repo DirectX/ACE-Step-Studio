@@ -186,7 +186,7 @@ REM ============================================================
 REM  Step 5: ACE-Step dependencies
 REM ============================================================
 echo [4/6] Installing ACE-Step dependencies...
-python\python.exe -m pip install hatchling --no-warn-script-location
+python\python.exe -m pip install hatchling editables --no-warn-script-location
 REM Install ACE-Step without deps (torch version conflict with pyproject.toml)
 python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
 REM Install remaining deps manually (without torch/torchvision/torchaudio — already installed)
@@ -221,14 +221,16 @@ set "PATH=%SCRIPT_DIR%node;%PATH%"
 REM Use portable node for npm
 
 REM Frontend deps
-cd app
+echo   Installing frontend deps...
+cd /d "%SCRIPT_DIR%app"
 "%SCRIPT_DIR%node\npm.cmd" install
-cd "%SCRIPT_DIR%"
+cd /d "%SCRIPT_DIR%"
 
-REM Server deps (better-sqlite3, node-id3, etc.)
-cd app\server
+REM Server deps (better-sqlite3, tsx, node-id3, etc.)
+echo   Installing server deps...
+cd /d "%SCRIPT_DIR%app\server"
 "%SCRIPT_DIR%node\npm.cmd" install
-cd "%SCRIPT_DIR%"
+cd /d "%SCRIPT_DIR%"
 
 REM ============================================================
 REM  Step 8: Build frontend
