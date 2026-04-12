@@ -1717,6 +1717,20 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               </div>
             </div>}
 
+            {/* LRC Toggle */}
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                LRC
+              </label>
+              <button
+                type="button"
+                onClick={() => setGetLrc(!getLrc)}
+                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${getLrc ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+              >
+                <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${getLrc ? 'left-[22px]' : 'left-[2px]'}`} />
+              </button>
+            </div>
+
             {/* Quick Settings (Simple Mode) */}
             <div className="bg-white dark:bg-suno-card rounded-xl border border-zinc-200 dark:border-white/5 p-4 space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide flex items-center gap-2">
@@ -2148,13 +2162,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     >
                       <Sparkles size={9} />
                       <span>{enhance ? 'ON' : 'OFF'}</span>
-                    </button>
-                    <button
-                      onClick={() => setGetLrc(!getLrc)}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${getLrc ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
-                      title="LRC — auto-generate timestamped lyrics (uses extra VRAM for cross-attention)"
-                    >
-                      <span>LRC {getLrc ? 'ON' : 'OFF'}</span>
                     </button>
                   </div>
                 </div>
