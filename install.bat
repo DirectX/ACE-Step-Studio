@@ -136,7 +136,7 @@ REM ============================================================
 REM  Step 4: PyTorch
 REM ============================================================
 echo [3/7] Installing PyTorch %TORCH_VERSION% (%CUDA_NAME%)...
-python\python.exe -m pip install torch==%TORCH_VERSION% torchaudio==%TORCHAUDIO_VERSION% --index-url https://download.pytorch.org/whl/%CUDA_VERSION% --no-warn-script-location
+python\python.exe -m pip install torch==%TORCH_VERSION% torchaudio==%TORCHAUDIO_VERSION% torchvision --index-url https://download.pytorch.org/whl/%CUDA_VERSION% --no-warn-script-location
 
 REM ============================================================
 REM  Step 5: ACE-Step dependencies
@@ -144,7 +144,7 @@ REM ============================================================
 echo [4/7] Installing ACE-Step dependencies...
 python\python.exe -m pip install hatchling editables --no-warn-script-location
 python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
-python\python.exe -m pip install "transformers>=4.51.0,<4.58.0" diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec "torchao>=0.16.0,<0.17.0" toml peft modelscope tensorboard typer-slim hf_transfer --no-warn-script-location
+python\python.exe -m pip install "transformers>=4.51.0,<4.58.0" diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec "torchao>=0.16.0,<0.17.0" toml peft modelscope tensorboard typer-slim hf_transfer lightning lycoris-lora --no-warn-script-location
 python\python.exe -m pip install -e ACE-Step-1.5/acestep/third_parts/nano-vllm/ --no-warn-script-location
 
 REM ============================================================
