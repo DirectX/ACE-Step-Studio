@@ -1153,12 +1153,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (taskType === 'text2music') {
         setTaskType('cover');
       }
-      // Auto-fill reference if empty (source audio works as reference too)
-      if (!referenceAudioUrl) {
-        setReferenceAudioUrl(url);
-        setReferenceAudioTitle(derivedTitle);
-        setReferenceTime(0);
-        setReferenceDuration(0);
+      // Reference and Cover are now independent — don't auto-fill
+      if (false) {
       }
     }
   };
