@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Sparkles, ChevronDown, Settings2, Trash2, Music2, Sliders, Dices, Hash, RefreshCw, Plus, Upload, Play, Pause, Loader2, Disc3, Undo2, Wand2 } from 'lucide-react';
+import { AudioWaveform } from './AudioWaveform';
 import { GenerationParams, Song } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -1840,16 +1841,19 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">{formatTime(referenceDuration)}</span>
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">{referenceAudioTitle || getAudioLabel(referenceAudioUrl)}</div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(referenceTime)}</span>
-                        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek" onClick={(e) => { if (referenceAudioRef.current && referenceDuration > 0) { const rect = e.currentTarget.getBoundingClientRect(); referenceAudioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * referenceDuration; } }}>
-                          <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all relative" style={{ width: referenceDuration ? `${Math.min(100, (referenceTime / referenceDuration) * 100)}%` : '0%' }}>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(referenceDuration)}</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{referenceAudioTitle || getAudioLabel(referenceAudioUrl)}</div>
+                        <span className="text-[10px] text-zinc-400 tabular-nums ml-2 flex-shrink-0">{formatTime(referenceTime)} / {formatTime(referenceDuration)}</span>
                       </div>
+                      <AudioWaveform
+                        url={referenceAudioUrl}
+                        currentTime={referenceTime}
+                        duration={referenceDuration}
+                        activeColor="#ec4899"
+                        inactiveColor="rgba(255,255,255,0.08)"
+                        height={28}
+                        onClick={(pct) => { if (referenceAudioRef.current && referenceDuration > 0) referenceAudioRef.current.currentTime = pct * referenceDuration; }}
+                      />
                     </div>
                     <button type="button" onClick={() => { setReferenceAudioUrl(''); setReferenceAudioTitle(''); setReferencePlaying(false); setReferenceTime(0); setReferenceDuration(0); }} className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1879,16 +1883,19 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-zinc-900 text-white px-1 py-0.5 rounded">{formatTime(sourceDuration)}</span>
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate mb-1.5">{sourceAudioTitle || getAudioLabel(sourceAudioUrl)}</div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(sourceTime)}</span>
-                        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-white/10 cursor-pointer group/seek" onClick={(e) => { if (sourceAudioRef.current && sourceDuration > 0) { const rect = e.currentTarget.getBoundingClientRect(); sourceAudioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * sourceDuration; } }}>
-                          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all relative" style={{ width: sourceDuration ? `${Math.min(100, (sourceTime / sourceDuration) * 100)}%` : '0%' }}>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-zinc-400 tabular-nums">{formatTime(sourceDuration)}</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{sourceAudioTitle || getAudioLabel(sourceAudioUrl)}</div>
+                        <span className="text-[10px] text-zinc-400 tabular-nums ml-2 flex-shrink-0">{formatTime(sourceTime)} / {formatTime(sourceDuration)}</span>
                       </div>
+                      <AudioWaveform
+                        url={sourceAudioUrl}
+                        currentTime={sourceTime}
+                        duration={sourceDuration}
+                        activeColor="#10b981"
+                        inactiveColor="rgba(255,255,255,0.08)"
+                        height={28}
+                        onClick={(pct) => { if (sourceAudioRef.current && sourceDuration > 0) sourceAudioRef.current.currentTime = pct * sourceDuration; }}
+                      />
                     </div>
                     <button type="button" onClick={() => { setSourceAudioUrl(''); setSourceAudioTitle(''); setSourcePlaying(false); setSourceTime(0); setSourceDuration(0); setTaskType('text2music'); }} className="p-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
