@@ -11,6 +11,40 @@ cd /d "%SCRIPT_DIR%"
 set "TEMP=%SCRIPT_DIR%temp"
 set "TMP=%SCRIPT_DIR%temp"
 
+REM === Download helper — tries curl, then certutil, then powershell ===
+REM Usage: call :download URL OUTFILE
+goto :skip_download_func
+:download
+set "_URL=%~1"
+set "_OUT=%~2"
+where curl >nul 2>&1 && (
+    curl -L -o "%_OUT%" "%_URL%" 2>nul && exit /b 0
+)
+where certutil >nul 2>&1 && (
+    certutil -urlcache -split -f "%_URL%" "%_OUT%" >nul 2>&1 && exit /b 0
+)
+where powershell >nul 2>&1 && (
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%_URL%' -OutFile '%_OUT%'" 2>nul && exit /b 0
+)
+echo ERROR: Cannot download files. Install curl, certutil, or powershell.
+exit /b 1
+:skip_download_func
+
+REM === Unzip helper — tries tar, then powershell ===
+goto :skip_unzip_func
+:unzip
+set "_ZIP=%~1"
+set "_DEST=%~2"
+where tar >nul 2>&1 && (
+    tar -xf "%_ZIP%" -C "%_DEST%" 2>nul && exit /b 0
+)
+where powershell >nul 2>&1 && (
+    powershell -Command "Expand-Archive -Path '%_ZIP%' -DestinationPath '%_DEST%' -Force" 2>nul && exit /b 0
+)
+echo ERROR: Cannot extract archives. Install tar or powershell.
+exit /b 1
+:skip_unzip_func
+
 REM === Create directories ===
 if not exist "downloads" mkdir downloads
 if not exist "temp" mkdir temp
@@ -99,8 +133,9 @@ if exist "python\python.exe" (
 ) else (
     echo [1/6] Downloading Python 3.12.9...
     if not exist "python" mkdir python
-    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip' -OutFile 'downloads\python.zip'}"
-    powershell -Command "& {Expand-Archive -Path 'downloads\python.zip' -DestinationPath 'python' -Force}"
+    call :download "https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip" "downloads\python.zip"
+    if errorlevel 1 ( echo Failed to download Python! & pause & exit /b 1 )
+    call :unzip "downloads\python.zip" "python"
 
     REM Patch _pth for site-packages
     cd python
@@ -122,7 +157,7 @@ if exist "python\Scripts\pip.exe" (
     echo [OK] pip already installed
 ) else (
     echo [2/6] Installing pip...
-    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'downloads\get-pip.py'}"
+    call :download "https://bootstrap.pypa.io/get-pip.py" "downloads\get-pip.py"
     python\python.exe downloads\get-pip.py --no-warn-script-location
 )
 python\python.exe -m pip install --upgrade pip --no-warn-script-location
@@ -148,9 +183,13 @@ if exist "node\node.exe" (
 ) else (
     echo [5/6] Downloading Node.js 24...
     if not exist "node" mkdir node
-    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v24.11.0/node-v24.11.0-win-x64.zip' -OutFile 'downloads\node.zip'}"
-    powershell -Command "& {Expand-Archive -Path 'downloads\node.zip' -DestinationPath 'downloads\node-extract' -Force}"
-    powershell -Command "& {Get-ChildItem 'downloads\node-extract\node-*\*' | Move-Item -Destination 'node' -Force}"
+    call :download "https://nodejs.org/dist/v24.11.0/node-v24.11.0-win-x64.zip" "downloads\node.zip"
+    if errorlevel 1 ( echo Failed to download Node.js! & pause & exit /b 1 )
+    call :unzip "downloads\node.zip" "downloads\node-extract"
+    REM Move contents from nested folder to node/
+    for /d %%D in ("downloads\node-extract\node-*") do (
+        xcopy "%%D\*" "node\" /E /Y /Q >nul 2>&1
+    )
     if exist "downloads\node-extract" rmdir /s /q "downloads\node-extract"
     echo [OK] Node.js 24 installed
 )
