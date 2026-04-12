@@ -380,10 +380,10 @@ async def init_model(request: Request):
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
 
     try:
-        from acestep.gpu_config import gpu_config
+        from acestep.gpu_config import get_global_gpu_config
 
-        # Determine quantization (same logic as pipeline startup)
-        quantization = "int8_weight_only" if gpu_config.quantization_default else None
+        gc = get_global_gpu_config()
+        quantization = "int8_weight_only" if gc.quantization_default else None
 
         # Initialize DiT with new model — respect GPU VRAM limits
         status, ok = dit_handler.initialize_service(
@@ -391,8 +391,8 @@ async def init_model(request: Request):
             config_path=model,
             device="auto",
             use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-            offload_to_cpu=gpu_config.offload_to_cpu_default,
-            offload_dit_to_cpu=gpu_config.offload_dit_to_cpu_default,
+            offload_to_cpu=gc.offload_to_cpu_default,
+            offload_dit_to_cpu=gc.offload_dit_to_cpu_default,
             quantization=quantization,
         )
 
