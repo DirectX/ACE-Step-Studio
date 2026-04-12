@@ -301,10 +301,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.vocalLanguage !== undefined) setVocalLanguage(s.vocalLanguage as string);
       if (s.vocalGender !== undefined) setVocalGender(s.vocalGender as 'male' | 'female' | '');
       // BPM/Key/Duration — persist user's manual values
-      if (s.bpm !== undefined) setBpm(s.bpm as number);
-      if (s.keyScale !== undefined) setKeyScale(s.keyScale as string);
-      if (s.timeSignature !== undefined) setTimeSignature(s.timeSignature as string);
-      if (s.duration !== undefined) setDuration(s.duration as number);
+      if (s.bpm != null) setBpm(Number(s.bpm) || 0);
+      if (s.keyScale != null) setKeyScale(String(s.keyScale || ''));
+      if (s.timeSignature != null) setTimeSignature(String(s.timeSignature || ''));
+      if (s.duration != null) setDuration(Number(s.duration) || -1);
       if (s.batchSize !== undefined) setBatchSize(s.batchSize as number);
       if (s.bulkCount !== undefined) setBulkCount(s.bulkCount as number);
       if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
@@ -1759,7 +1759,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 max={300}
                 step={5}
                 onChange={setBpm}
-                formatDisplay={(val) => val === 0 ? 'Auto' : val.toString()}
+                formatDisplay={(val) => !val ? 'Auto' : String(val)}
                 autoLabel="Auto"
               />
 
@@ -2269,7 +2269,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             max={300}
             step={5}
             onChange={setBpm}
-            formatDisplay={(val) => val === 0 ? t('auto') : val.toString()}
+            formatDisplay={(val) => !val ? t('auto') : String(val)}
             autoLabel={t('auto')}
           />
 
