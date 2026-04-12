@@ -74,7 +74,7 @@ class PipelineManager {
     this.process = spawn(pythonPath, args, {
       cwd: aceStepDir,
       windowsHide: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'inherit'],  // stderr=inherit for tqdm progress bars
       env: {
         ...process.env,
         PYTHONUNBUFFERED: '1',
@@ -84,24 +84,11 @@ class PipelineManager {
 
     this.process.stdout!.on('data', (data: Buffer) => {
       const text = data.toString();
-      if (text.includes('\r') || text.includes('%|') || text.includes('it/s')) {
-        process.stdout.write(text);
-      } else {
-        process.stdout.write(`[Gradio] ${text}`);
-      }
+      process.stdout.write(`[Gradio] ${text}`);
       this.parseStdout(text);
     });
 
-    this.process.stderr!.on('data', (data: Buffer) => {
-      const text = data.toString();
-      // Pass through progress bars (tqdm) without prefix to preserve \r behavior
-      if (text.includes('\r') || text.includes('%|') || text.includes('it/s')) {
-        process.stderr.write(text);
-      } else {
-        process.stderr.write(`[Gradio] ${text}`);
-      }
-      this.parseStderr(text);
-    });
+    // stderr is inherited — writes directly to console (tqdm works)
 
     this.process.on('exit', (code, signal) => {
       console.log(`[Pipeline] Process exited: code=${code} signal=${signal}`);
