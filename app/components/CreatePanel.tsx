@@ -267,7 +267,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     saveTimerRef.current = setTimeout(() => {
       const settings: Record<string, unknown> = {
         customMode, instrumental, vocalLanguage, vocalGender, batchSize, bulkCount,
-        guidanceScale, thinking, enhance, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
+        guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
         shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
@@ -305,6 +305,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
       if (s.thinking !== undefined) setThinking(s.thinking as boolean);
       if (s.enhance !== undefined) setEnhance(s.enhance as boolean);
+      if (s.getLrc !== undefined) setGetLrc(s.getLrc as boolean);
       if (s.audioFormat !== undefined) setAudioFormat(s.audioFormat as 'mp3' | 'flac');
       if (s.inferenceSteps !== undefined) setInferenceSteps(s.inferenceSteps as number);
       if (s.inferMethod !== undefined) setInferMethod(s.inferMethod as 'ode' | 'sde');
@@ -2147,6 +2148,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     >
                       <Sparkles size={9} />
                       <span>{enhance ? 'ON' : 'OFF'}</span>
+                    </button>
+                    <button
+                      onClick={() => setGetLrc(!getLrc)}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${getLrc ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                      title="LRC — auto-generate timestamped lyrics (uses extra VRAM for cross-attention)"
+                    >
+                      <span>LRC {getLrc ? 'ON' : 'OFF'}</span>
                     </button>
                   </div>
                 </div>
