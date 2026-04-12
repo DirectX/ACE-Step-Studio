@@ -222,23 +222,23 @@ REM Use portable node for npm
 
 REM Frontend deps
 echo   Installing frontend deps...
-cd /d "%SCRIPT_DIR%app"
-"%SCRIPT_DIR%node\npm.cmd" install
 cd /d "%SCRIPT_DIR%"
+cd app
+call "%SCRIPT_DIR%node\npm.cmd" install
 
 REM Server deps (better-sqlite3, tsx, node-id3, etc.)
 echo   Installing server deps...
-cd /d "%SCRIPT_DIR%app\server"
-"%SCRIPT_DIR%node\npm.cmd" install
 cd /d "%SCRIPT_DIR%"
+cd app\server
+call "%SCRIPT_DIR%node\npm.cmd" install
 
 REM ============================================================
 REM  Step 8: Build frontend
 REM ============================================================
 echo [7/7] Building frontend...
+cd /d "%SCRIPT_DIR%"
 cd app
-"%SCRIPT_DIR%node\npx.cmd" vite build
-cd "%SCRIPT_DIR%"
+call "%SCRIPT_DIR%node\npx.cmd" vite build
 
 REM ============================================================
 REM  Step 9: FFmpeg (for video rendering)
