@@ -791,7 +791,12 @@ function AppContent() {
         } else if (status.status === 'failed') {
           cleanupJob(jobId, tempId);
           console.error(`Job ${jobId} failed:`, status.error);
-          showToast(`${t('generationFailed')}: ${status.error || 'Unknown error'}`, 'error');
+          const err = status.error || 'Unknown error';
+          if (err.includes('VRAM') || err.includes('Insufficient free')) {
+            showToast(`⛔ Не хватает видеопамяти GPU. Уменьшите длительность, размер батча или переключитесь на более лёгкую модель.`, 'error');
+          } else {
+            showToast(`${t('generationFailed')}: ${err}`, 'error');
+          }
         }
       } catch (pollError) {
         console.error(`Polling error for job ${jobId}:`, pollError);
@@ -1607,6 +1612,7 @@ function AppContent() {
         type={toast.type}
         isVisible={toast.isVisible}
         onClose={closeToast}
+        duration={toast.type === 'error' ? 8000 : 3000}
       />
       <VideoGeneratorModal
         isOpen={isVideoModalOpen}
