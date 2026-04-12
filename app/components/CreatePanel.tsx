@@ -1962,7 +1962,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 w-10">{t('audioCoverStrength') || 'Influence'}</span>
-                      <input type="range" min="0" max="1" step="0.05" value={audioCoverStrength}
+                      <input type="range" min="0" max="1" step="0.01" value={audioCoverStrength}
                         onChange={(e) => setAudioCoverStrength(Number(e.target.value))}
                         className="flex-1 h-1 accent-pink-500 cursor-pointer" />
                       <span className="text-[10px] text-zinc-500 tabular-nums w-8 text-right">{Math.round(audioCoverStrength * 100)}%</span>
