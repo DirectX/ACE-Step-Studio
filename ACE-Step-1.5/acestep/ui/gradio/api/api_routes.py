@@ -361,9 +361,11 @@ async def format_input(request: Request, authorization: Optional[str] = Header(N
 @router.post("/v1/init")
 async def init_model(request: Request):
     """Initialize or switch DiT/LM models on demand (hot-swap)."""
+    import os
+    from acestep.gpu_config import get_global_gpu_config
+
     dit_handler = request.app.state.dit_handler
     llm_handler = request.app.state.llm_handler
-
     if not dit_handler:
         raise HTTPException(status_code=500, detail="DiT handler not initialized")
 
@@ -371,36 +373,22 @@ async def init_model(request: Request):
     model = body.get("model")
     init_llm = body.get("init_llm", False)
     lm_model_path = body.get("lm_model_path")
-
     if not model:
         raise HTTPException(status_code=400, detail="model is required")
 
-    import os
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file)))))
-
-    # Check if DiT model actually changed
+    checkpoints_dir = os.path.join(project_root, "checkpoints")
+    gpu_cfg = get_global_gpu_config()
     current_dit = getattr(request.app.state, '_active_dit_model', None)
-    dit_changed = (current_dit is None) or (current_dit != model)
 
     try:
-        import gc as gc_mod
-        import torch
-        from acestep.gpu_config import get_global_gpu_config
-
-        gpu_cfg = get_global_gpu_config()
-
-        # Unload LM — call unload twice + gc to ensure vLLM KV cache is freed
+        # 1. Always unload LM first (frees nano-vllm KV cache via exit())
         if llm_handler:
             llm_handler.unload()
-        gc_mod.collect()
-        gc_mod.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-            torch.cuda.synchronize()
 
-        if dit_changed:
-            # DiT model changed — reload (initialize_service does del + empty_cache internally)
+        # 2. Reload DiT only if model changed
+        if current_dit != model:
             is_fp32_xl = "xl" in model and "bf16" not in model
             quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
 
@@ -413,20 +401,16 @@ async def init_model(request: Request):
                 offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
                 quantization=quantization,
             )
-
             if not ok:
                 return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
-
             request.app.state._active_dit_model = model
 
-        # Initialize LM if requested
+        # 3. Load new LM
         lm_status = ""
         if init_llm and llm_handler and lm_model_path:
-            checkpoints_dir = os.path.join(project_root, "checkpoints")
-            lm_full_path = os.path.join(checkpoints_dir, lm_model_path)
             lm_status, _ = llm_handler.initialize(
                 checkpoint_dir=checkpoints_dir,
-                lm_model_path=lm_full_path,
+                lm_model_path=os.path.join(checkpoints_dir, lm_model_path),
             )
 
         return _wrap_response({
