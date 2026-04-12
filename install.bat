@@ -147,6 +147,33 @@ REM Install nano-vllm first (local package, needed before ace-step)
 python\python.exe -m pip install -e ACE-Step-1.5/acestep/third_parts/nano-vllm/ --no-warn-script-location
 REM Install all deps before ace-step to avoid resolver warnings
 python\python.exe -m pip install "transformers>=4.51.0,<4.58.0" diffusers gradio==6.2.0 matplotlib scipy soundfile loguru einops accelerate fastapi diskcache "uvicorn[standard]" numba vector-quantize-pytorch torchcodec "torchao>=0.16.0,<0.17.0" toml peft modelscope tensorboard typer-slim hf_transfer hf_xet lightning lycoris-lora --no-warn-script-location
+REM Install triton-windows for torch.compile + CUDA graphs (skip on CPU-only)
+if not "%CUDA_VERSION%"=="cpu" (
+    echo Installing Triton for torch.compile...
+    python\python.exe -m pip install "triton-windows>=3.0.0,<3.4" --no-warn-script-location
+    REM Python headers needed for Triton launcher compilation
+    if not exist "python\Include\Python.h" (
+        echo Installing Python headers for Triton...
+        for /f "tokens=*" %%v in ('python\python.exe -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"') do set "PY_VER=%%v"
+        powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/!PY_VER!/amd64/dev.msi' -OutFile 'downloads\pydev.msi'}"
+        if exist "downloads\pydev.msi" (
+            msiexec /a "downloads\pydev.msi" /qn TARGETDIR="%SCRIPT_DIR%downloads\pydev_extract"
+            if not exist "python\Include" mkdir "python\Include"
+            if not exist "python\libs" mkdir "python\libs"
+            xcopy /E /Y "downloads\pydev_extract\include\*" "python\Include\" >nul 2>&1
+            xcopy /E /Y "downloads\pydev_extract\libs\*" "python\libs\" >nul 2>&1
+            if exist "downloads\pydev_extract" rmdir /s /q "downloads\pydev_extract"
+            echo [OK] Python headers installed
+        )
+    )
+)
+REM Install Flash Attention 2 (pre-built wheel for Windows, skip if unavailable)
+if not "%CUDA_VERSION%"=="cpu" (
+    echo Installing Flash Attention 2...
+    python\python.exe -m pip install flash-attn --no-build-isolation --no-warn-script-location 2>nul || (
+        echo Flash Attention wheel not available for this Python/CUDA combo, using SDPA fallback
+    )
+)
 REM Install ace-step last (all deps already satisfied, no warnings)
 python\python.exe -m pip install -e ACE-Step-1.5/ --no-deps --no-warn-script-location
 
