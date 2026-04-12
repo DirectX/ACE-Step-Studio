@@ -903,6 +903,7 @@ router.get('/models', async (_req, res: Response) => {
       'acestep-v15-xl-turbo',                    // XL Turbo (8 steps, no CFG)
       'acestep-v15-xl-sft',                      // XL SFT (50 steps, with CFG)
       'marcorez8/acestep-v15-xl-turbo-bf16',     // XL Turbo BF16 (community, smaller)
+      'acestep-v15-xl-merge-sft-turbo',          // XL SFT+Turbo merge (community, 50 steps)
     ];
 
     // Query Gradio /v1/models to get the currently loaded/active model

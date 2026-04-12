@@ -41,6 +41,7 @@ _CHECKPOINT_TO_VARIANT: Dict[str, str] = {
     "acestep-v15-xl-sft": "xl_sft",
     "acestep-v15-xl-turbo": "xl_turbo",
     "marcorez8/acestep-v15-xl-turbo-bf16": "xl_turbo",
+    "acestep-v15-xl-merge-sft-turbo": "xl_sft",
 }
 
 
@@ -310,6 +311,7 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
     "acestep-v15-xl-sft": "ACE-Step/acestep-v15-xl-sft",
     "acestep-v15-xl-turbo": "ACE-Step/acestep-v15-xl-turbo",
     "marcorez8/acestep-v15-xl-turbo-bf16": "marcorez8/acestep-v15-xl-turbo-bf16",
+    "acestep-v15-xl-merge-sft-turbo": "jeankassio/acestep_v1.5_merge_sft_turbo_xl",
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
@@ -541,11 +543,35 @@ def download_submodel(
 
     # Use smart download with automatic fallback
     success, msg = _smart_download(repo_id, model_path, token, prefer_source)
-    if success and model_name in _CHECKPOINT_TO_VARIANT:
-        # Sync model code files after successful download
-        synced = _sync_model_code_files(model_name, checkpoints_dir)
-        if synced:
-            logger.info(f"[Model Download] Synced code files for {model_name}: {synced}")
+    if success:
+        # If downloaded repo has no model.safetensors, rename the first .safetensors found
+        if not (model_path / "model.safetensors").exists():
+            safetensors_files = list(model_path.glob("*.safetensors"))
+            if safetensors_files:
+                src = safetensors_files[0]
+                logger.info(f"[Model Download] Renaming {src.name} → model.safetensors")
+                src.rename(model_path / "model.safetensors")
+
+        # If downloaded repo has no config.json, copy from reference model (same architecture)
+        if not (model_path / "config.json").exists() and model_name in _CHECKPOINT_TO_VARIANT:
+            variant = _CHECKPOINT_TO_VARIANT[model_name]
+            # Find a reference model with same variant that has config.json
+            for ref_name, ref_variant in _CHECKPOINT_TO_VARIANT.items():
+                if ref_variant == variant and ref_name != model_name:
+                    ref_path = checkpoints_dir / ref_name
+                    if (ref_path / "config.json").exists():
+                        for fname in ["config.json", "configuration_acestep_v15.py", "silence_latent.pt"]:
+                            src_file = ref_path / fname
+                            if src_file.exists():
+                                shutil.copy2(src_file, model_path / fname)
+                                logger.info(f"[Model Download] Copied {fname} from {ref_name}")
+                        break
+
+        # Sync model code files
+        if model_name in _CHECKPOINT_TO_VARIANT:
+            synced = _sync_model_code_files(model_name, checkpoints_dir)
+            if synced:
+                logger.info(f"[Model Download] Synced code files for {model_name}: {synced}")
     return success, msg
 
 
