@@ -431,6 +431,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
   // Check if model is a turbo variant
   const isTurboModel = (modelId: string): boolean => {
+    // Merge SFT+Turbo behaves like SFT (50 steps, uses CFG)
+    if (modelId.includes('merge')) return false;
     return modelId.includes('turbo');
   };
 
@@ -2404,13 +2406,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             <EditableSlider
               label={t('guidanceScale')}
               value={guidanceScale}
-              min={1}
-              max={15}
+              min={0}
+              max={20}
               step={0.1}
               onChange={setGuidanceScale}
               formatDisplay={(val) => val.toFixed(1)}
               helpText={t('howCloselyFollowPrompt')}
-              title={t('hintGuidanceScale') || 'How strongly the model follows the prompt. Higher = stricter, lower = freer.'}
+              title={t('hintGuidanceScale') || 'How strongly the model follows the prompt. Higher = stricter, lower = freer. 0 = no guidance (turbo).'}
             />
 
             {/* Audio Format, Inference Method, Sampler */}

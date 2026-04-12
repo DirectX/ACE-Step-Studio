@@ -170,7 +170,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
 
   // CoT features are gated by enhance OR thinking (either enables LLM enrichment)
   const useCot = isEnhance || isThinking;
-  const isTurbo = (params.ditModel || '').includes('turbo');
+  const isTurbo = (params.ditModel || '').includes('turbo') && !(params.ditModel || '').includes('merge');
 
   return [
     prompt,                                                       //  0: captions
