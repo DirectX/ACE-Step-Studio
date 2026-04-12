@@ -515,8 +515,14 @@ def download_submodel(
 
     model_path = checkpoints_dir / model_name
 
-    if not force and model_path.exists():
+    if not force and _contains_model_weights(model_path):
         return True, f"Model '{model_name}' already exists at {model_path}"
+
+    # Directory exists but no weights — incomplete download, clean up and re-download
+    if model_path.exists() and not _contains_model_weights(model_path):
+        logger.warning(f"[Model Download] Directory exists but no weight files found: {model_path}")
+        logger.info(f"[Model Download] Removing incomplete download and re-downloading...")
+        shutil.rmtree(model_path, ignore_errors=True)
 
     repo_id = SUBMODEL_REGISTRY[model_name]
 
