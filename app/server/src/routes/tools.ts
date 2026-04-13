@@ -329,7 +329,7 @@ router.post('/merge/start', authMiddleware, async (req: AuthenticatedRequest, re
       return;
     }
 
-    const { modelA, modelB, outputDir, alpha = 0.5 } = req.body;
+    const { modelA, modelB, outputDir, alpha = 0.5, method = 'weighted_sum' } = req.body;
     if (!modelA || !modelB || !outputDir) {
       res.status(400).json({ error: 'modelA, modelB, and outputDir are required' });
       return;
@@ -354,6 +354,7 @@ router.post('/merge/start', authMiddleware, async (req: AuthenticatedRequest, re
       '--model-b', modelB,
       '--output', outputDir,
       '--alpha', String(alpha),
+      '--method', String(method),
     ], {
       cwd: aceStepDir,
       env: { ...process.env },
@@ -445,6 +446,171 @@ router.post('/merge/stop', authMiddleware, async (_req: AuthenticatedRequest, re
 router.post('/merge/reset', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
   if (activeMerge?.done) activeMerge = null;
   res.json({ status: 'ok' });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Bake LoRA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let activeBake: {
+  process: ChildProcess;
+  events: Array<Record<string, unknown>>;
+  done: boolean;
+  error: string | null;
+  startedAt: number;
+} | null = null;
+
+router.post('/bake/start', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (activeBake && !activeBake.done) {
+      res.status(409).json({ error: 'A bake operation is already in progress' });
+      return;
+    }
+
+    const { basePath, loraPath, outputDir, strength = 1.0 } = req.body;
+    if (!basePath || !loraPath || !outputDir) {
+      res.status(400).json({ error: 'basePath, loraPath, and outputDir are required' });
+      return;
+    }
+    if (!existsSync(basePath)) {
+      res.status(400).json({ error: `Base model not found: ${basePath}` });
+      return;
+    }
+    if (!existsSync(loraPath)) {
+      res.status(400).json({ error: `LoRA not found: ${loraPath}` });
+      return;
+    }
+
+    const aceStepDir = getAceStepDir();
+    const scriptPath = path.resolve(__dirname, '../../scripts/bake_lora.py');
+    const pythonPath = resolvePythonPath(aceStepDir);
+
+    const child = spawn(pythonPath, [
+      scriptPath,
+      '--base', basePath,
+      '--lora', loraPath,
+      '--output', outputDir,
+      '--strength', String(strength),
+    ], {
+      cwd: aceStepDir,
+      env: { ...process.env },
+    });
+
+    activeBake = { process: child, events: [], done: false, error: null, startedAt: Date.now() };
+
+    let buffer = '';
+    child.stdout.on('data', (data: Buffer) => {
+      buffer += data.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          if (activeBake) {
+            activeBake.events.push(JSON.parse(line));
+            if (activeBake.events.length > 100) activeBake.events = activeBake.events.slice(-50);
+          }
+        } catch {}
+      }
+    });
+    child.stderr.on('data', (data: Buffer) => { console.error('[Bake] stderr:', data.toString()); });
+    child.on('close', (code: number | null) => {
+      if (activeBake) { activeBake.done = true; if (code !== 0) activeBake.error = `Process exited with code ${code}`; }
+    });
+    child.on('error', (err: Error) => {
+      if (activeBake) { activeBake.done = true; activeBake.error = err.message; }
+    });
+
+    res.json({ status: 'started' });
+  } catch (error) {
+    console.error('[Bake] Start error:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to start' });
+  }
+});
+
+router.get('/bake/status', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+  if (!activeBake) { res.json({ status: 'idle' }); return; }
+  res.json({
+    status: activeBake.done ? (activeBake.error ? 'error' : 'done') : 'running',
+    error: activeBake.error,
+    events: activeBake.events.slice(-20),
+    lastEvent: activeBake.events[activeBake.events.length - 1],
+    totalEvents: activeBake.events.length,
+    elapsed: Date.now() - activeBake.startedAt,
+  });
+});
+
+router.post('/bake/stop', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+  if (!activeBake || activeBake.done) { res.json({ status: 'no active bake' }); return; }
+  activeBake.process.kill('SIGTERM');
+  activeBake.done = true;
+  activeBake.error = 'Cancelled by user';
+  res.json({ status: 'stopped' });
+});
+
+router.post('/bake/reset', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+  if (activeBake?.done) activeBake = null;
+  res.json({ status: 'ok' });
+});
+
+// GET /api/tools/loras — List available LoRA adapters
+router.get('/loras', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const loraOutputDir = path.resolve(process.cwd(), 'lora_output');
+    const loras: Array<{ name: string; path: string; sizeMb: number }> = [];
+
+    // Scan lora_output/ for exported LoRAs
+    if (existsSync(loraOutputDir)) {
+      for (const entry of readdirSync(loraOutputDir)) {
+        const entryPath = path.join(loraOutputDir, entry);
+        try {
+          const st = statSync(entryPath);
+          if (st.isDirectory()) {
+            // Check for safetensors inside
+            const files = readdirSync(entryPath);
+            const hasSt = files.some((f: string) => f.endsWith('.safetensors'));
+            if (hasSt) {
+              let size = 0;
+              for (const f of files) {
+                if (f.endsWith('.safetensors')) {
+                  try { size += statSync(path.join(entryPath, f)).size; } catch {}
+                }
+              }
+              loras.push({ name: entry, path: entryPath, sizeMb: Math.round(size / 1024 / 1024 * 10) / 10 });
+            }
+          } else if (entry.endsWith('.safetensors')) {
+            loras.push({ name: entry.replace('.safetensors', ''), path: entryPath, sizeMb: Math.round(st.size / 1024 / 1024 * 10) / 10 });
+          }
+        } catch {}
+      }
+    }
+
+    // Also scan checkpoints for lora subfolders
+    const checkpointsDir = path.join(getAceStepDir(), 'checkpoints');
+    if (existsSync(checkpointsDir)) {
+      for (const entry of readdirSync(checkpointsDir)) {
+        const entryPath = path.join(checkpointsDir, entry);
+        // Look for lora-specific folders (typically smaller, contain adapter_config.json)
+        try {
+          if (!statSync(entryPath).isDirectory()) continue;
+          const files = readdirSync(entryPath);
+          if (files.includes('adapter_config.json') || files.includes('adapter_model.safetensors')) {
+            let size = 0;
+            for (const f of files) {
+              if (f.endsWith('.safetensors')) {
+                try { size += statSync(path.join(entryPath, f)).size; } catch {}
+              }
+            }
+            loras.push({ name: entry, path: entryPath, sizeMb: Math.round(size / 1024 / 1024 * 10) / 10 });
+          }
+        } catch {}
+      }
+    }
+
+    res.json({ loras });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to list LoRAs' });
+  }
 });
 
 export default router;

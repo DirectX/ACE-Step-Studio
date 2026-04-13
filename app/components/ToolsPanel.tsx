@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Square, FolderOpen, Loader2,
-  AlertCircle, CheckCircle2, ArrowRightLeft, GitMerge,
+  AlertCircle, CheckCircle2, ArrowRightLeft, GitMerge, Layers,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 
-type ToolTab = 'bf16' | 'merge';
+type ToolTab = 'bf16' | 'merge' | 'bake';
 
 interface AnalyzeResult {
   sourceType: string;
@@ -328,6 +328,7 @@ const MergeTool: React.FC = () => {
   const [modelBName, setModelBName] = useState('');
   const [outputName, setOutputName] = useState('');
   const [alpha, setAlpha] = useState(0.5);
+  const [method, setMethod] = useState('weighted_sum');
 
   const { status, log, logEndRef, startPolling, stopPolling, reset, setStatus, setLog } =
     useToolPolling('/api/tools/merge/status');
@@ -354,7 +355,7 @@ const MergeTool: React.FC = () => {
     try {
       const res = await fetch('/api/tools/merge/start', {
         method: 'POST', headers: headersRef.current,
-        body: JSON.stringify({ modelA: modelA.path, modelB: modelB.path, outputDir: outputPath, alpha }),
+        body: JSON.stringify({ modelA: modelA.path, modelB: modelB.path, outputDir: outputPath, alpha, method }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start');
@@ -403,14 +404,18 @@ const MergeTool: React.FC = () => {
         </Section>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Section title={`${t('mergeOutput')} (${t('optional')})`}>
-          <input type="text" value={outputName} onChange={e => setOutputName(e.target.value)}
-            placeholder={autoOutputName || 'my-merged-model'}
-            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
-          {finalOutputName && (
-            <p className="text-[10px] text-zinc-500 mt-1 truncate">→ checkpoints/{finalOutputName}</p>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <Section title={t('mergeMethod')}>
+          <select value={method} onChange={e => setMethod(e.target.value)} className={selectClass}>
+            <option value="weighted_sum">Weighted Sum</option>
+            <option value="add_difference">Add Difference</option>
+            <option value="multiply">Multiply</option>
+          </select>
+          <p className="text-[10px] text-zinc-500 mt-1">
+            {method === 'weighted_sum' && '(1-α)×A + α×B'}
+            {method === 'add_difference' && 'A + α×(B-A)'}
+            {method === 'multiply' && 'A × (B/A)^α'}
+          </p>
         </Section>
         <Section title={`${t('mergeAlpha')} (${alpha.toFixed(2)})`}>
           <input type="range" min={0} max={1} step={0.05} value={alpha}
@@ -420,6 +425,14 @@ const MergeTool: React.FC = () => {
             <span>0 = {t('mergeModelA')}</span>
             <span>1 = {t('mergeModelB')}</span>
           </div>
+        </Section>
+        <Section title={`${t('mergeOutput')} (${t('optional')})`}>
+          <input type="text" value={outputName} onChange={e => setOutputName(e.target.value)}
+            placeholder={autoOutputName || 'my-merged-model'}
+            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
+          {finalOutputName && (
+            <p className="text-[10px] text-zinc-500 mt-1 truncate">→ checkpoints/{finalOutputName}</p>
+          )}
         </Section>
       </div>
 
@@ -449,6 +462,151 @@ const MergeTool: React.FC = () => {
   );
 };
 
+// ── Bake LoRA Tool ───────────────────────────────────────────────────
+
+interface LoraEntry { name: string; path: string; sizeMb: number }
+
+const BakeLoRATool: React.FC = () => {
+  const headersRef = useAuthHeaders();
+  const { t } = useI18n();
+  const { models, checkpointsDir, refresh: refreshModels } = useModelList();
+
+  const [baseModelName, setBaseModelName] = useState('');
+  const [loraName, setLoraName] = useState('');
+  const [outputName, setOutputName] = useState('');
+  const [strength, setStrength] = useState(1.0);
+  const [loras, setLoras] = useState<LoraEntry[]>([]);
+
+  const { status, log, logEndRef, startPolling, stopPolling, reset, setStatus, setLog } =
+    useToolPolling('/api/tools/bake/status');
+
+  // Fetch LoRAs
+  useEffect(() => {
+    fetch('/api/tools/loras', { headers: headersRef.current })
+      .then(r => r.ok ? r.json() : { loras: [] })
+      .then(d => setLoras(d.loras || []))
+      .catch(() => {});
+  }, []);
+
+  const baseModel = models.find(m => m.name === baseModelName);
+  const lora = loras.find(l => l.name === loraName);
+
+  const autoOutputName = baseModelName && loraName
+    ? `${baseModelName.replace(/\//g, '-')}-${loraName}-s${strength.toFixed(1)}`
+    : '';
+  const finalOutputName = outputName.trim() || autoOutputName;
+
+  const handleStart = useCallback(async () => {
+    if (!baseModel || !lora || !finalOutputName) return;
+    reset();
+    setStatus({ status: 'running' });
+    setLog([`${t('bakeTitle')} ${t('toolStarted')}`]);
+
+    const outputPath = `${checkpointsDir}/${finalOutputName}`;
+    await fetch('/api/tools/bake/reset', { method: 'POST', headers: headersRef.current }).catch(() => {});
+
+    try {
+      const res = await fetch('/api/tools/bake/start', {
+        method: 'POST', headers: headersRef.current,
+        body: JSON.stringify({ basePath: baseModel.path, loraPath: lora.path, outputDir: outputPath, strength }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to start');
+      startPolling();
+    } catch (e) {
+      setStatus({ status: 'error', error: e instanceof Error ? e.message : 'Failed' });
+    }
+  }, [baseModel, lora, finalOutputName, checkpointsDir, strength, startPolling, reset, setStatus, setLog]);
+
+  const handleStop = useCallback(async () => {
+    await fetch('/api/tools/bake/stop', { method: 'POST', headers: headersRef.current }).catch(() => {});
+    stopPolling();
+    setStatus({ status: 'error', error: t('toolCancelled') });
+    setLog(prev => [...prev, t('toolCancelled')]);
+  }, [stopPolling, setStatus, setLog]);
+
+  useEffect(() => {
+    if (status.status === 'done') refreshModels();
+  }, [status.status, refreshModels]);
+
+  const isRunning = status.status === 'running';
+  const selectClass = "w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50 [&>option]:bg-white [&>option]:dark:bg-zinc-800";
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3">
+        <p className="text-xs text-orange-300">{t('bakeDescription')}</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <Section title={t('bakeBaseModel')}>
+          <select value={baseModelName} onChange={e => setBaseModelName(e.target.value)} className={selectClass}>
+            <option value="">{t('bf16SelectModel')}</option>
+            {models.map(m => (
+              <option key={m.name} value={m.name}>{m.name} — {m.sizeMb} MB</option>
+            ))}
+          </select>
+        </Section>
+        <Section title={t('bakeLoraAdapter')}>
+          <select value={loraName} onChange={e => setLoraName(e.target.value)} className={selectClass}>
+            <option value="">{t('bakeSelectLora')}</option>
+            {loras.map(l => (
+              <option key={l.name} value={l.name}>{l.name} — {l.sizeMb} MB</option>
+            ))}
+          </select>
+          {loras.length === 0 && (
+            <p className="text-[10px] text-zinc-500 mt-1">{t('bakeNoLoras')}</p>
+          )}
+        </Section>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <Section title={`${t('bakeStrength')} (${strength.toFixed(2)})`}>
+          <input type="range" min={0} max={2} step={0.05} value={strength}
+            onChange={e => setStrength(parseFloat(e.target.value))}
+            className="w-full accent-orange-500 h-1.5" />
+          <div className="flex justify-between text-[10px] text-zinc-500 mt-0.5">
+            <span>0 = {t('bakeNoEffect')}</span>
+            <span>1 = {t('bakeFull')}</span>
+            <span>2 = {t('bakeDouble')}</span>
+          </div>
+        </Section>
+        <Section title={`${t('mergeOutput')} (${t('optional')})`}>
+          <input type="text" value={outputName} onChange={e => setOutputName(e.target.value)}
+            placeholder={autoOutputName || 'my-baked-model'}
+            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
+          {finalOutputName && (
+            <p className="text-[10px] text-zinc-500 mt-1 truncate">→ checkpoints/{finalOutputName}</p>
+          )}
+        </Section>
+      </div>
+
+      <div className="flex gap-2">
+        {!isRunning ? (
+          <button onClick={handleStart} disabled={!baseModel || !lora}
+            className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50">
+            <Layers size={16} />
+            {t('bakeStart')}
+          </button>
+        ) : (
+          <button onClick={handleStop}
+            className="flex-1 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+            <Square size={16} />
+            {t('bakeStop')}
+          </button>
+        )}
+      </div>
+
+      {status.status !== 'idle' && (
+        <ProgressSection
+          title={t('bakeProgress')} status={status} log={log} logEndRef={logEndRef}
+          barColor="bg-orange-500" spinnerColor="text-orange-400" doneText={t('bakeDone')} runningText={t('bakeRunning')}
+        />
+      )}
+    </div>
+  );
+};
+
 // ── Main ToolsPanel ──────────────────────────────────────────────────
 
 export const ToolsPanel: React.FC = () => {
@@ -458,6 +616,7 @@ export const ToolsPanel: React.FC = () => {
   const tabs: { id: ToolTab; label: string; icon: React.ReactNode }[] = [
     { id: 'bf16', label: t('bf16Title'), icon: <ArrowRightLeft size={14} /> },
     { id: 'merge', label: t('mergeTitle'), icon: <GitMerge size={14} /> },
+    { id: 'bake', label: t('bakeTitle'), icon: <Layers size={14} /> },
   ];
 
   return (
@@ -483,6 +642,7 @@ export const ToolsPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-hide max-w-6xl mx-auto w-full">
         {activeTab === 'bf16' && <BF16Tool />}
         {activeTab === 'merge' && <MergeTool />}
+        {activeTab === 'bake' && <BakeLoRATool />}
       </div>
     </div>
   );
