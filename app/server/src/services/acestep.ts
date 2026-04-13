@@ -907,6 +907,53 @@ export async function downloadAudioToBuffer(remoteUrl: string): Promise<{ buffer
   return { buffer, size: buffer.length };
 }
 
+export function cancelJob(jobId: string): boolean {
+  // Remove from queue if still queued
+  const queueIdx = jobQueue.indexOf(jobId);
+  if (queueIdx !== -1) {
+    jobQueue.splice(queueIdx, 1);
+    // Update positions for remaining jobs
+    jobQueue.forEach((id, index) => {
+      const queuedJob = activeJobs.get(id);
+      if (queuedJob) queuedJob.queuePosition = index + 1;
+    });
+  }
+
+  const job = activeJobs.get(jobId);
+  if (!job) return false;
+
+  job.status = 'failed';
+  job.error = 'Cancelled by user';
+  return true;
+}
+
+export function cancelAllJobs(): number {
+  let cancelled = 0;
+
+  // Cancel all queued jobs
+  while (jobQueue.length > 0) {
+    const id = jobQueue.pop()!;
+    const job = activeJobs.get(id);
+    if (job && job.status === 'queued') {
+      job.status = 'failed';
+      job.error = 'Cancelled by user';
+      cancelled++;
+    }
+  }
+
+  // Mark running jobs as failed too (Gradio predict can't be aborted mid-flight,
+  // but the job will be marked as cancelled so the frontend stops polling)
+  for (const [id, job] of activeJobs) {
+    if (job.status === 'running') {
+      job.status = 'failed';
+      job.error = 'Cancelled by user';
+      cancelled++;
+    }
+  }
+
+  return cancelled;
+}
+
 export function cleanupJob(jobId: string): void {
   activeJobs.delete(jobId);
 }

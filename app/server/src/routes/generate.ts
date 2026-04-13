@@ -15,6 +15,8 @@ import {
   discoverEndpoints,
   checkSpaceHealth,
   cleanupJob,
+  cancelJob,
+  cancelAllJobs,
   getJobRawResponse,
   downloadAudioToBuffer,
   resolvePythonPath,
@@ -603,6 +605,48 @@ router.get('/status/:jobId', authMiddleware, async (req: AuthenticatedRequest, r
   } catch (error) {
     console.error('Status check error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/generate/cancel/:jobId — Cancel a single job
+router.post('/cancel/:jobId', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { jobId } = req.params;
+
+    // Cancel in the acestep queue
+    const cancelled = cancelJob(jobId);
+
+    // Also update DB status
+    await pool.query(
+      `UPDATE generation_jobs SET status = 'failed', error = 'Cancelled by user', updated_at = datetime('now')
+       WHERE id = ? AND user_id = ? AND status IN ('queued', 'running', 'pending')`,
+      [jobId, req.user!.id]
+    );
+
+    res.json({ cancelled });
+  } catch (error) {
+    console.error('Cancel error:', error);
+    res.status(500).json({ error: 'Failed to cancel' });
+  }
+});
+
+// POST /api/generate/cancel-all — Cancel all queued and running jobs for the user
+router.post('/cancel-all', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Cancel all in the acestep queue
+    const count = cancelAllJobs();
+
+    // Also update DB
+    const result = await pool.query(
+      `UPDATE generation_jobs SET status = 'failed', error = 'Cancelled by user', updated_at = datetime('now')
+       WHERE user_id = ? AND status IN ('queued', 'running', 'pending')`,
+      [req.user!.id]
+    );
+
+    res.json({ cancelled: count || result.rowCount || 0 });
+  } catch (error) {
+    console.error('Cancel all error:', error);
+    res.status(500).json({ error: 'Failed to cancel' });
   }
 });
 

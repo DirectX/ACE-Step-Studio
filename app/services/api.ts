@@ -325,6 +325,7 @@ export interface GenerationParams {
   // v1.5 XL parameters
   coverNoiseStrength?: number;
   samplerMode?: 'euler' | 'heun';
+  schedulerType?: string;
   velocityNormThreshold?: number;
   velocityEmaFactor?: number;
   mp3Bitrate?: string;

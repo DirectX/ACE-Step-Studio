@@ -694,6 +694,50 @@ function AppContent() {
     }
   }, []);
 
+  // Cancel a single generation job
+  const cancelGeneration = useCallback(async (jobId: string) => {
+    if (!token) return;
+    try {
+      await fetch(`/api/generate/cancel/${jobId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch { /* ignore */ }
+
+    // Clean up the polling and temp song
+    const jobData = activeJobsRef.current.get(jobId);
+    if (jobData) {
+      clearInterval(jobData.pollInterval);
+      activeJobsRef.current.delete(jobId);
+      setSongs(prev => prev.filter(s => s.id !== jobData.tempId));
+      setActiveJobCount(activeJobsRef.current.size);
+      if (activeJobsRef.current.size === 0) {
+        setIsGenerating(false);
+      }
+    }
+  }, [token]);
+
+  // Cancel all generation jobs
+  const cancelAllGenerations = useCallback(async () => {
+    if (!token) return;
+    try {
+      await fetch('/api/generate/cancel-all', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch { /* ignore */ }
+
+    // Clean up all active jobs
+    activeJobsRef.current.forEach(({ tempId, pollInterval }) => {
+      clearInterval(pollInterval);
+    });
+    const tempIds = new Set([...activeJobsRef.current.values()].map(j => j.tempId));
+    activeJobsRef.current.clear();
+    setSongs(prev => prev.filter(s => !tempIds.has(s.id)));
+    setActiveJobCount(0);
+    setIsGenerating(false);
+  }, [token]);
+
   // Refresh songs list (called when any job completes successfully)
   const refreshSongsList = useCallback(async () => {
     if (!token) return;
@@ -956,6 +1000,7 @@ function AppContent() {
         isFormatCaption: enrichedParams.isFormatCaption ?? params.isFormatCaption,
         coverNoiseStrength: params.coverNoiseStrength,
         samplerMode: params.samplerMode as 'euler' | 'heun',
+        schedulerType: params.schedulerType,
         velocityNormThreshold: params.velocityNormThreshold,
         velocityEmaFactor: params.velocityEmaFactor,
         mp3Bitrate: params.mp3Bitrate,
@@ -970,6 +1015,9 @@ function AppContent() {
         repaintStrength: params.repaintStrength,
         ditModel: params.ditModel,
       }, token);
+
+      // Store jobId on the temp song so cancel button works
+      setSongs(prev => prev.map(s => s.id === tempId ? { ...s, jobId: job.jobId } : s));
 
       beginPollingJob(job.jobId, tempId);
 
@@ -1473,6 +1521,9 @@ function AppContent() {
                 onUseUploadAsReference={handleUseUploadAsReference}
                 onCoverUpload={handleCoverUpload}
                 onSongUpdate={handleSongUpdate}
+                onCancelJob={cancelGeneration}
+                onCancelAll={cancelAllGenerations}
+                activeJobCount={activeJobCount}
               />
             </div>
 

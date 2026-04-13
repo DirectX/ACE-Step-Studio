@@ -30,6 +30,9 @@ interface SongListProps {
     onCoverSong?: (song: Song) => void;
     onUseUploadAsReference?: (track: { audio_url: string; filename: string }) => void;
     onCoverUpload?: (track: { audio_url: string; filename: string }) => void;
+    onCancelJob?: (jobId: string) => void;
+    onCancelAll?: () => void;
+    activeJobCount?: number;
 }
 
 // ... existing code ...
@@ -104,7 +107,10 @@ export const SongList: React.FC<SongListProps> = ({
     onUseAsReference,
     onCoverSong,
     onUseUploadAsReference,
-    onCoverUpload
+    onCoverUpload,
+    onCancelJob,
+    onCancelAll,
+    activeJobCount = 0,
 }) => {
     const { user } = useAuth();
     const { t } = useI18n();
@@ -296,6 +302,16 @@ export const SongList: React.FC<SongListProps> = ({
                         >
                             Select
                         </button>
+
+                        {activeJobCount > 0 && onCancelAll && (
+                            <button
+                                onClick={onCancelAll}
+                                className="border text-xs font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all select-none bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                {t('cancelAll') || 'Cancel All'} ({activeJobCount})
+                            </button>
+                        )}
                     </div>
 
                     {isSelecting && (
@@ -385,6 +401,7 @@ export const SongList: React.FC<SongListProps> = ({
                                     onSongUpdate={onSongUpdate}
                                     onUseAsReference={() => onUseAsReference?.(item.song)}
                                     onCoverSong={() => onCoverSong?.(item.song)}
+                                    onCancelJob={item.song.isGenerating && item.song.jobId ? () => onCancelJob?.(item.song.jobId!) : undefined}
                                 />
                             ) : (
                                 <UploadItem
@@ -438,6 +455,7 @@ interface SongItemProps {
     onSongUpdate?: (updatedSong: Song) => void;
     onUseAsReference?: () => void;
     onCoverSong?: () => void;
+    onCancelJob?: () => void;
 }
 
 const SongItem: React.FC<SongItemProps> = ({
@@ -461,7 +479,8 @@ const SongItem: React.FC<SongItemProps> = ({
     onDelete,
     onSongUpdate,
     onUseAsReference,
-    onCoverSong
+    onCoverSong,
+    onCancelJob,
 }) => {
     const { token } = useAuth();
     const { t } = useI18n();
@@ -571,6 +590,16 @@ const SongItem: React.FC<SongItemProps> = ({
 
                 {song.isGenerating ? (
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1">
+                        {/* Cancel button */}
+                        {onCancelJob && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onCancelJob(); }}
+                                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors z-10"
+                                title={t('cancelGeneration') || 'Cancel'}
+                            >
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        )}
                         {song.queuePosition ? (
                             /* Queue indicator */
                             <>
