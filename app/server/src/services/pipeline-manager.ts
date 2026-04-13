@@ -72,6 +72,7 @@ class PipelineManager {
       '--init_service', 'true',
       '--init_llm', 'true',
       '--enable-api',
+      '--offload_to_cpu', 'true',
     ];
 
     console.log(`[Pipeline] Starting: ${pythonPath} ${args.join(' ')}`);
