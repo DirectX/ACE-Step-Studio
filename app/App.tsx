@@ -851,14 +851,8 @@ function AppContent() {
 
     activeJobsRef.current.set(jobId, { tempId, pollInterval });
     setActiveJobCount(activeJobsRef.current.size);
-
-    setTimeout(() => {
-      if (activeJobsRef.current.has(jobId)) {
-        console.warn(`Job ${jobId} timed out`);
-        cleanupJob(jobId, tempId);
-        showToast(t('generationTimedOut'), 'error');
-      }
-    }, 600000);
+    // No client-side timeout — backend reports status='failed' if something goes wrong.
+    // Long generations (XL SFT 50 steps, batch, covers) can take 15+ minutes legitimately.
   }, [token, cleanupJob, refreshSongsList]);
 
   const buildTempSongFromParams = (params: GenerationParams, tempId: string, createdAt?: string) => ({
