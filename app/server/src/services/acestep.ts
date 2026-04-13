@@ -84,7 +84,7 @@ const SCRIPTS_DIR = path.join(__dirname, '../../scripts');
 const PYTHON_SCRIPT = path.join(SCRIPTS_DIR, 'simple_generate.py');
 
 // ---------------------------------------------------------------------------
-// Gradio generation: map params to the 51 positional args for /generation_wrapper
+// Gradio generation: named args for /generation_wrapper
 // ---------------------------------------------------------------------------
 
 /**
@@ -147,94 +147,90 @@ async function prepareAudioFile(audioUrl: string | undefined): Promise<unknown> 
 }
 
 /**
- * Build the 59 positional arguments for the Gradio /generation_wrapper endpoint.
- * Order MUST match generation_run_wiring.py inputs[] (visible components only).
- * is_format_caption_state + 4 batch state vars are hidden Gradio State — NOT passed.
+ * Build named arguments for the Gradio /generation_wrapper endpoint.
+ * Keys match the Python function signature in generation_run_wiring.py.
+ * gr.State params (is_format_caption, batch states) are handled by Gradio automatically.
  */
-async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
+async function buildGradioArgs(params: GenerationParams): Promise<Record<string, unknown>> {
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
   const lyrics = params.instrumental ? '' : (params.lyrics || '');
   const isThinking = params.thinking ?? false;
   const isEnhance = params.enhance ?? false;
 
-  // Prepare audio files (async — reads from disk)
   const referenceAudio = await prepareAudioFile(params.referenceAudioUrl);
   const sourceAudio = await prepareAudioFile(params.sourceAudioUrl);
 
-  // Guard: cover/repaint modes require source audio to be loadable
   const needsSource = params.taskType === 'cover' || params.taskType === 'audio2audio' || params.taskType === 'repaint';
   if (needsSource && params.sourceAudioUrl && sourceAudio === null) {
     throw new Error(`Source audio file could not be loaded from: ${params.sourceAudioUrl}. Make sure the file was uploaded successfully.`);
   }
 
-  // CoT features are gated by enhance OR thinking (either enables LLM enrichment)
   const useCot = isEnhance || isThinking;
   const isTurbo = (params.ditModel || '').includes('turbo') && !(params.ditModel || '').includes('merge');
 
-  return [
-    prompt,                                                       //  0: captions
-    lyrics,                                                       //  1: lyrics
-    params.bpm && params.bpm > 0 ? params.bpm : 0,               //  2: bpm (0 = auto)
-    params.keyScale || '',                                        //  3: key_scale
-    params.timeSignature || '',                                   //  4: time_signature
-    params.vocalLanguage || 'en',                                 //  5: vocal_language
-    Math.min(params.inferenceSteps ?? 8, isTurbo ? 20 : 200),     //  6: inference_steps (clamped to model max)
-    params.guidanceScale ?? 7.0,                                    //  7: guidance_scale (0 = no guidance / turbo)
-    params.randomSeed !== false,                                  //  8: random_seed_checkbox
-    String(params.seed ?? -1),                                    //  9: seed
-    referenceAudio,                                               // 10: reference_audio
-    params.duration && params.duration > 0 ? params.duration : -1, // 11: audio_duration
-    Math.min(Math.max(params.batchSize ?? 1, 1), 16),            // 12: batch_size_input
-    sourceAudio,                                                  // 13: src_audio
-    params.audioCodes || '',                                      // 14: text2music_audio_code_string
-    params.repaintingStart ?? 0.0,                                // 15: repainting_start
-    params.repaintingEnd ?? -1,                                   // 16: repainting_end
-    params.instruction || 'Fill the audio semantic mask with the style described in the text prompt.', // 17: instruction_display_gen
-    params.audioCoverStrength ?? 1.0,                             // 18: audio_cover_strength
-    params.coverNoiseStrength ?? 0.0,                               // 19: cover_noise_strength
-    (params.taskType === 'audio2audio' ? 'cover' : params.taskType) || 'text2music', // 20: task_type
-    params.useAdg ?? false,                                       // 21: use_adg
-    params.cfgIntervalStart ?? 0.0,                               // 22: cfg_interval_start
-    params.cfgIntervalEnd ?? 1.0,                                 // 23: cfg_interval_end
-    Math.max(params.shift ?? 3.0, 1.0),                            // 24: shift (Gradio slider min=1.0)
-    params.inferMethod || 'ode',                                  // 25: infer_method
-    params.samplerMode || 'euler',                                  // 26: sampler_mode
-    params.schedulerType || 'linear',                               // 27: scheduler_type (linear/karras/cosine/beta)
-    params.velocityNormThreshold ?? 0.0,                            // 28: velocity_norm_threshold
-    params.velocityEmaFactor ?? 0.0,                                // 29: velocity_ema_factor
-    params.customTimesteps || '',                                 // 30: custom_timesteps
-    params.audioFormat || 'mp3',                                  // 31: audio_format
-    params.mp3Bitrate || '128k',                                    // 32: mp3_bitrate
-    params.mp3SampleRate ?? 48000,                                  // 33: mp3_sample_rate
-    params.lmTemperature ?? 0.85,                                 // 34: lm_temperature
-    isThinking,                                                   // 35: think_checkbox
-    Math.max(params.lmCfgScale ?? 2.0, 1.0),                      // 36: lm_cfg_scale (Gradio slider min=1.0)
-    params.lmTopK ?? 0,                                           // 37: lm_top_k
-    params.lmTopP ?? 0.9,                                         // 38: lm_top_p
-    params.lmNegativePrompt || 'NO USER INPUT',                   // 39: lm_negative_prompt
-    useCot ? (params.useCotMetas ?? true) : false,                // 40: use_cot_metas
-    useCot ? (params.useCotCaption ?? true) : false,              // 41: use_cot_caption
-    useCot ? (params.useCotLanguage ?? true) : false,             // 42: use_cot_language
-    true,                                                         // 43: is_format_caption (gr.State — always true from API)
-    params.constrainedDecodingDebug ?? false,                     // 44: constrained_decoding_debug
-    params.allowLmBatch ?? true,                                  // 44: allow_lm_batch
-    params.getScores ?? false,                                    // 45: auto_score
-    params.getLrc ?? true,                                        // 46: auto_lrc (enabled by default)
-    params.scoreScale ?? 0.5,                                     // 47: score_scale
-    params.lmBatchChunkSize ?? 8,                                 // 48: lm_batch_chunk_size
-    params.trackName || null,                                     // 49: track_name
-    params.completeTrackClasses || [],                            // 50: complete_track_classes
-    params.enableNormalization ?? true,                            // 51: enable_normalization
-    params.normalizationDb ?? -1.0,                               // 52: normalization_db
-    params.fadeInDuration ?? 0.0,                                 // 53: fade_in_duration
-    params.fadeOutDuration ?? 0.0,                                // 54: fade_out_duration
-    params.latentShift ?? 0.0,                                    // 55: latent_shift
-    params.latentRescale ?? 1.0,                                  // 55: latent_rescale
-    params.repaintMode || 'balanced',                             // 56: repaint_mode
-    params.repaintStrength ?? 0.5,                                // 57: repaint_strength
-    params.autogen ?? false,                                      // 58: autogen_checkbox
-  ];
+  return {
+    captions: prompt,
+    lyrics,
+    bpm: params.bpm && params.bpm > 0 ? params.bpm : 0,
+    key_scale: params.keyScale || '',
+    time_signature: params.timeSignature || '',
+    vocal_language: params.vocalLanguage || 'en',
+    inference_steps: Math.min(params.inferenceSteps ?? 8, isTurbo ? 20 : 200),
+    guidance_scale: params.guidanceScale ?? 7.0,
+    random_seed_checkbox: params.randomSeed !== false,
+    seed: String(params.seed ?? -1),
+    reference_audio: referenceAudio,
+    audio_duration: params.duration && params.duration > 0 ? params.duration : -1,
+    batch_size_input: Math.min(Math.max(params.batchSize ?? 1, 1), 16),
+    src_audio: sourceAudio,
+    text2music_audio_code_string: params.audioCodes || '',
+    repainting_start: params.repaintingStart ?? 0.0,
+    repainting_end: params.repaintingEnd ?? -1,
+    instruction_display_gen: params.instruction || 'Fill the audio semantic mask with the style described in the text prompt.',
+    audio_cover_strength: params.audioCoverStrength ?? 1.0,
+    cover_noise_strength: params.coverNoiseStrength ?? 0.0,
+    task_type: (params.taskType === 'audio2audio' ? 'cover' : params.taskType) || 'text2music',
+    use_adg: params.useAdg ?? false,
+    cfg_interval_start: params.cfgIntervalStart ?? 0.0,
+    cfg_interval_end: params.cfgIntervalEnd ?? 1.0,
+    shift: Math.max(params.shift ?? 3.0, 1.0),
+    infer_method: params.inferMethod || 'ode',
+    sampler_mode: params.samplerMode || 'euler',
+    scheduler_type: params.schedulerType || 'linear',
+    velocity_norm_threshold: params.velocityNormThreshold ?? 0.0,
+    velocity_ema_factor: params.velocityEmaFactor ?? 0.0,
+    custom_timesteps: params.customTimesteps || '',
+    audio_format: params.audioFormat || 'mp3',
+    mp3_bitrate: params.mp3Bitrate || '128k',
+    mp3_sample_rate: params.mp3SampleRate ?? 48000,
+    lm_temperature: params.lmTemperature ?? 0.85,
+    think_checkbox: isThinking,
+    lm_cfg_scale: Math.max(params.lmCfgScale ?? 2.0, 1.0),
+    lm_top_k: params.lmTopK ?? 0,
+    lm_top_p: params.lmTopP ?? 0.9,
+    lm_negative_prompt: params.lmNegativePrompt || 'NO USER INPUT',
+    use_cot_metas: useCot ? (params.useCotMetas ?? true) : false,
+    use_cot_caption: useCot ? (params.useCotCaption ?? true) : false,
+    use_cot_language: useCot ? (params.useCotLanguage ?? true) : false,
+    constrained_decoding_debug: params.constrainedDecodingDebug ?? false,
+    allow_lm_batch: params.allowLmBatch ?? true,
+    auto_score: params.getScores ?? false,
+    auto_lrc: params.getLrc ?? true,
+    score_scale: params.scoreScale ?? 0.5,
+    lm_batch_chunk_size: params.lmBatchChunkSize ?? 8,
+    track_name: params.trackName || null,
+    complete_track_classes: params.completeTrackClasses || [],
+    enable_normalization: params.enableNormalization ?? true,
+    normalization_db: params.normalizationDb ?? -1.0,
+    fade_in_duration: params.fadeInDuration ?? 0.0,
+    fade_out_duration: params.fadeOutDuration ?? 0.0,
+    latent_shift: params.latentShift ?? 0.0,
+    latent_rescale: params.latentRescale ?? 1.0,
+    repaint_mode: params.repaintMode || 'balanced',
+    repaint_strength: params.repaintStrength ?? 0.5,
+    autogen_checkbox: params.autogen ?? false,
+  };
 }
 
 /**
@@ -620,14 +616,27 @@ async function processGenerationViaGradio(
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
-  console.log(`[GEN] Total args: ${args.length}, auto_lrc at [47]=${args[47]}, auto_score at [45]=${args[45]}`);
+  console.log(`[GEN] Named args: auto_lrc=${args.auto_lrc}, auto_score=${args.auto_score}, keys=${Object.keys(args).length}`);
 
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
 
   job.stage = 'generating';
 
-  const result = await client.predict('/generation_wrapper', args);
+  // Signal that generation is in progress (blocks model switch)
+  let setGenFlag: ((v: boolean) => void) | undefined;
+  try {
+    const genModule = await import('../routes/generate.js');
+    setGenFlag = genModule.setGenerationInProgress;
+    setGenFlag?.(true);
+  } catch {}
+
+  let result;
+  try {
+    result = await client.predict('/generation_wrapper', args);
+  } finally {
+    setGenFlag?.(false);
+  }
   const data = result.data as unknown[];
 
   if (!Array.isArray(data) || data.length === 0) {

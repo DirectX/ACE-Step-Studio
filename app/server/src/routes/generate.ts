@@ -853,16 +853,22 @@ let activeChunkedFfn: number = 2;
 let activePinnedMemory: boolean = false;
 
 // Reset model state when pipeline restarts after crash
+// Only reset variables — do NOT call resetGradioClient or switch-model here,
+// Gradio isn't ready yet. The next health poll will reconnect automatically.
 import('../services/pipeline-manager.js').then(({ pipelineManager }) => {
   pipelineManager.onRestart(() => {
     console.log('[Model] Pipeline restarted — resetting model state to defaults');
     activeLoadedModel = DEFAULT_MODEL;
     activeLmModel = 'acestep-5Hz-lm-1.7B';
     activeLmBackend = 'vllm';
-    modelLoadingStatus = { state: 'idle' };
-    import('../services/gradio-client.js').then(({ resetGradioClient }) => resetGradioClient());
+    modelLoadingStatus = { state: 'idle', model: '' };
+    generationInProgress = false;
   });
 }).catch(() => {});
+
+// Generation lock — prevents switch-model during active generation
+let generationInProgress = false;
+export function setGenerationInProgress(v: boolean) { generationInProgress = v; }
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const { model, lmModel, lmBackend } = req.body;
@@ -874,6 +880,22 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   const { resetGradioClient } = await import('../services/gradio-client.js');
   const { pipelineManager } = await import('../services/pipeline-manager.js');
   const ACESTEP_API = config.acestep.apiUrl;
+
+  // Wait for active generation to finish before switching model
+  // CUDA graph capture during generation = instant crash
+  if (generationInProgress) {
+    console.log('[Model] Waiting for active generation to finish before switching...');
+    const maxWait = 600_000; // 10 min max
+    const start = Date.now();
+    while (generationInProgress && Date.now() - start < maxWait) {
+      await new Promise(r => setTimeout(r, 500));
+    }
+    if (generationInProgress) {
+      res.status(503).json({ error: 'Generation still in progress after timeout' });
+      return;
+    }
+    console.log('[Model] Generation finished, proceeding with switch');
+  }
 
   // Pause health checks during model switch to prevent zombie kill
   pipelineManager.pauseHealthCheck();

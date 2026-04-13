@@ -26,23 +26,42 @@ def register_generation_run_handlers(context: GenerationWiringContext) -> None:
     dit_handler = context.dit_handler
     llm_handler = context.llm_handler
 
-    def generation_wrapper(*args):
-        """Proxy passthrough to `res_h.generate_with_batch_management`.
-
-        Args:
-            *args (Any): Positional passthrough inputs forwarded unchanged to
-                `res_h.generate_with_batch_management(dit_handler, llm_handler, *args)`.
-
-        Yields:
-            Any: Streamed generation updates yielded by
-            `res_h.generate_with_batch_management`.
-
-        Raises:
-            Exception: Propagates exceptions raised by
-            `res_h.generate_with_batch_management`.
-        """
-
-        yield from res_h.generate_with_batch_management(dit_handler, llm_handler, *args)
+    def generation_wrapper(
+        captions, lyrics, bpm, key_scale, time_signature, vocal_language,
+        inference_steps, guidance_scale, random_seed_checkbox, seed,
+        reference_audio, audio_duration, batch_size_input, src_audio,
+        text2music_audio_code_string, repainting_start, repainting_end,
+        instruction_display_gen, audio_cover_strength, cover_noise_strength, task_type,
+        use_adg, cfg_interval_start, cfg_interval_end, shift, infer_method,
+        sampler_mode, scheduler_type, velocity_norm_threshold, velocity_ema_factor,
+        custom_timesteps, audio_format, mp3_bitrate, mp3_sample_rate, lm_temperature,
+        think_checkbox, lm_cfg_scale, lm_top_k, lm_top_p, lm_negative_prompt,
+        use_cot_metas, use_cot_caption, use_cot_language, is_format_caption,
+        constrained_decoding_debug, allow_lm_batch, auto_score, auto_lrc,
+        score_scale, lm_batch_chunk_size, track_name, complete_track_classes,
+        enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
+        latent_shift, latent_rescale, repaint_mode, repaint_strength, autogen_checkbox,
+        current_batch_index, total_batches, batch_queue, generation_params_state,
+    ):
+        """Proxy passthrough to ``res_h.generate_with_batch_management``."""
+        yield from res_h.generate_with_batch_management(
+            dit_handler, llm_handler,
+            captions, lyrics, bpm, key_scale, time_signature, vocal_language,
+            inference_steps, guidance_scale, random_seed_checkbox, seed,
+            reference_audio, audio_duration, batch_size_input, src_audio,
+            text2music_audio_code_string, repainting_start, repainting_end,
+            instruction_display_gen, audio_cover_strength, cover_noise_strength, task_type,
+            use_adg, cfg_interval_start, cfg_interval_end, shift, infer_method,
+            sampler_mode, scheduler_type, velocity_norm_threshold, velocity_ema_factor,
+            custom_timesteps, audio_format, mp3_bitrate, mp3_sample_rate, lm_temperature,
+            think_checkbox, lm_cfg_scale, lm_top_k, lm_top_p, lm_negative_prompt,
+            use_cot_metas, use_cot_caption, use_cot_language, is_format_caption,
+            constrained_decoding_debug, allow_lm_batch, auto_score, auto_lrc,
+            score_scale, lm_batch_chunk_size, track_name, complete_track_classes,
+            enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
+            latent_shift, latent_rescale, repaint_mode, repaint_strength, autogen_checkbox,
+            current_batch_index, total_batches, batch_queue, generation_params_state,
+        )
 
     generation_section["generate_btn"].click(
         fn=res_h.clear_audio_outputs_for_new_generation,
