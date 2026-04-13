@@ -2083,10 +2083,15 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
                 # Update x_t based on inference method
                 if infer_method == "sde":
                     # Stochastic Differential Equation: predict clean, then re-add noise
+                    # Use t_prev from the scheduler (not hardcoded linear) so non-linear
+                    # schedulers (karras, cosine, sway, etc.) work correctly with SDE.
                     t_curr_bsz = t_curr * torch.ones((bsz,), device=device, dtype=dtype)
                     pred_clean = self.get_x0_from_noise(xt, vt, t_curr_bsz)
-                    next_timestep = 1.0 - (float(step_idx + 1) / infer_steps)
-                    xt = self.renoise(pred_clean, next_timestep)
+                    next_timestep = float(t_prev)
+                    if next_timestep > 0:
+                        xt = self.renoise(pred_clean, next_timestep)
+                    else:
+                        xt = pred_clean  # Last step: no re-noise, output clean signal
                     t_after_step = next_timestep
                 elif use_heun and infer_method == "ode":
                     # Heun (second-order) ODE step via trapezoidal rule
