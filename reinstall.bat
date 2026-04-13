@@ -42,9 +42,9 @@ echo ============================================================
 echo  Cleaning software directories...
 echo ============================================================
 
-REM Kill any running Node/Python processes from this directory
-taskkill /f /im node.exe /fi "MODULES eq %SCRIPT_DIR%node\node.exe" >nul 2>&1
-taskkill /f /im python.exe /fi "MODULES eq %SCRIPT_DIR%python\python.exe" >nul 2>&1
+echo IMPORTANT: Close ACE-Step Studio (run.bat) before continuing!
+echo If the app is running, files will be locked and cleanup will fail.
+echo.
 
 REM Remove Python (entire portable install + packages)
 if exist "python" (
@@ -105,6 +105,15 @@ if not errorlevel 1 (
         git stash pop >nul 2>&1
         echo   [OK] Code updated
     )
+)
+
+REM Show saved GPU config as hint
+if exist "cuda_version.txt" (
+    set /p SAVED_CUDA=<cuda_version.txt
+    echo.
+    echo NOTE: Your previous GPU config was: !SAVED_CUDA!
+    echo       install.bat will ask you to select GPU again.
+    echo       Choose the same option to keep your config.
 )
 
 echo.

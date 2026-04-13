@@ -52,35 +52,36 @@ if exist "python\python.exe" (
 )
 
 REM ============================================================
-REM  Step 3: Update npm deps
+REM  Step 3-5: Update npm deps + rebuild frontend
 REM ============================================================
-set "PATH=%SCRIPT_DIR%node;%PATH%"
+if exist "node\node.exe" (
+    set "PATH=%SCRIPT_DIR%node;%PATH%"
 
-echo.
-echo [3/5] Updating frontend dependencies...
-if exist "app\package.json" (
-    cd app
-    call "%SCRIPT_DIR%node\npm.cmd" install
-    cd "%SCRIPT_DIR%"
-)
+    echo.
+    echo [3/5] Updating frontend dependencies...
+    if exist "app\package.json" (
+        cd app
+        call "%SCRIPT_DIR%node\npm.cmd" install
+        cd "%SCRIPT_DIR%"
+    )
 
-echo.
-echo [4/5] Updating server dependencies...
-if exist "app\server\package.json" (
-    cd app\server
-    call "%SCRIPT_DIR%node\npm.cmd" install
-    cd "%SCRIPT_DIR%"
-)
+    echo.
+    echo [4/5] Updating server dependencies...
+    if exist "app\server\package.json" (
+        cd app\server
+        call "%SCRIPT_DIR%node\npm.cmd" install
+        cd "%SCRIPT_DIR%"
+    )
 
-REM ============================================================
-REM  Step 4: Rebuild frontend
-REM ============================================================
-echo.
-echo [5/5] Rebuilding frontend...
-if exist "app\vite.config.ts" (
-    cd app
-    call "%SCRIPT_DIR%node\npx.cmd" vite build
-    cd "%SCRIPT_DIR%"
+    echo.
+    echo [5/5] Rebuilding frontend...
+    if exist "app\vite.config.ts" (
+        cd app
+        call "%SCRIPT_DIR%node\npx.cmd" vite build
+        cd "%SCRIPT_DIR%"
+    )
+) else (
+    echo [3-5/5] Node.js not found, skipping npm steps. Run install.bat first!
 )
 
 echo.
