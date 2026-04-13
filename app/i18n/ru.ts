@@ -143,6 +143,7 @@ export const ru = {
     dismiss: 'Закрыть',
     cancelGeneration: 'Отменить генерацию',
     cancelAll: 'Отменить всё',
+    resetGeneration: 'Сбросить GPU',
     schedulerType: 'Шедулер',
     copyParams: 'Скопировать параметры',
     genTime: 'Время генерации',

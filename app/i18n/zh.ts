@@ -142,6 +142,7 @@ export const zh = {
     dismiss: '关闭',
     cancelGeneration: '取消生成',
     cancelAll: '取消全部',
+    resetGeneration: '重置 GPU',
     schedulerType: '调度器',
     copyParams: '复制参数',
     genTime: '生成时间',

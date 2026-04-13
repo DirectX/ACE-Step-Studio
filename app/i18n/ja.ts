@@ -142,6 +142,7 @@ export const ja = {
   dismiss: '閉じる',
   cancelGeneration: '生成をキャンセル',
   cancelAll: 'すべてキャンセル',
+  resetGeneration: 'GPU リセット',
   schedulerType: 'スケジューラ',
   copyParams: 'パラメータをコピー',
   genTime: '生成時間',

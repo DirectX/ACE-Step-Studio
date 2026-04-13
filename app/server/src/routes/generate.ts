@@ -650,6 +650,37 @@ router.post('/cancel-all', authMiddleware, async (req: AuthenticatedRequest, res
   }
 });
 
+// POST /api/generate/reset — Hard reset: cancel + interrupt Gradio DiT diffusion
+router.post('/reset', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // 1. Cancel all queued jobs
+    cancelAllJobs();
+
+    // 2. Update DB
+    await pool.query(
+      `UPDATE generation_jobs SET status = 'failed', error = 'Reset by user', updated_at = datetime('now')
+       WHERE user_id = ? AND status IN ('queued', 'running', 'pending')`,
+      [req.user!.id]
+    );
+
+    // 3. Send cancel to Gradio to interrupt DiT diffusion loop
+    let gradioCancel = false;
+    try {
+      const r = await fetch(`${config.acestep.apiUrl}/v1/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (r.ok) gradioCancel = true;
+    } catch {}
+
+    res.json({ reset: true, gradioCancel });
+  } catch (error) {
+    console.error('Reset error:', error);
+    res.status(500).json({ error: 'Failed to reset' });
+  }
+});
+
 // Audio proxy endpoint
 router.get('/audio', async (req, res: Response) => {
   try {

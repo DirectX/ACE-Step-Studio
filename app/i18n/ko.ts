@@ -142,6 +142,7 @@ export const ko = {
     dismiss: '닫기',
     cancelGeneration: '생성 취소',
     cancelAll: '모두 취소',
+    resetGeneration: 'GPU 리셋',
     schedulerType: '스케줄러',
     copyParams: '매개변수 복사',
     genTime: '생성 시간',

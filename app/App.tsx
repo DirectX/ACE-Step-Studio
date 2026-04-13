@@ -738,6 +738,27 @@ function AppContent() {
     setIsGenerating(false);
   }, [token]);
 
+  // Hard reset — cancel + interrupt GPU generation
+  const resetGeneration = useCallback(async () => {
+    if (!token) return;
+    try {
+      await fetch('/api/generate/reset', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch { /* ignore */ }
+
+    // Clean up all active jobs
+    activeJobsRef.current.forEach(({ tempId, pollInterval }) => {
+      clearInterval(pollInterval);
+    });
+    const tempIds = new Set([...activeJobsRef.current.values()].map(j => j.tempId));
+    activeJobsRef.current.clear();
+    setSongs(prev => prev.filter(s => !tempIds.has(s.id)));
+    setActiveJobCount(0);
+    setIsGenerating(false);
+  }, [token]);
+
   // Refresh songs list (called when any job completes successfully)
   const refreshSongsList = useCallback(async () => {
     if (!token) return;
@@ -1517,6 +1538,7 @@ function AppContent() {
                 onSongUpdate={handleSongUpdate}
                 onCancelJob={cancelGeneration}
                 onCancelAll={cancelAllGenerations}
+                onResetAll={resetGeneration}
                 activeJobCount={activeJobCount}
               />
             </div>

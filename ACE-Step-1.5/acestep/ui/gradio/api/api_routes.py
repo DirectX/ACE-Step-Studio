@@ -230,6 +230,16 @@ async def health_check(request: Request):
     })
 
 
+@router.post("/v1/cancel")
+async def cancel_generation(request: Request):
+    """Cancel the currently running generation by setting a flag on the DiT model."""
+    dit_handler = getattr(request.app.state, 'dit_handler', None)
+    if dit_handler and dit_handler.model is not None:
+        dit_handler.model._cancel_generation = True
+        return _wrap_response({"cancelled": True, "message": "Cancel flag set. Generation will stop at next step."})
+    return _wrap_response({"cancelled": False, "message": "No active model to cancel."})
+
+
 @router.get("/v1/models")
 async def list_models(request: Request, _: None = Depends(verify_api_key)):
     """List available DiT models"""

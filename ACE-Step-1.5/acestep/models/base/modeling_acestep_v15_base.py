@@ -1999,6 +1999,11 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
         _switched_to_non_cover = False
         with torch.no_grad():
             for step_idx, (t_curr, t_prev) in enumerate(iterator):
+                if getattr(self, '_cancel_generation', False):
+                    self._cancel_generation = False
+                    logger.warning("[generate_audio] Generation cancelled by user at step %d/%d", step_idx, infer_steps)
+                    raise InterruptedError(f"Generation cancelled at step {step_idx}/{infer_steps}")
+
                 if step_idx >= cover_steps and not _switched_to_non_cover:
                     _switched_to_non_cover = True
                     if do_cfg_guidance:

@@ -141,6 +141,7 @@ export const en = {
     dismiss: 'Dismiss',
     cancelGeneration: 'Cancel generation',
     cancelAll: 'Cancel All',
+    resetGeneration: 'Reset GPU',
     schedulerType: 'Scheduler',
     copyParams: 'Copy Parameters',
     genTime: 'Gen Time',

@@ -32,6 +32,7 @@ interface SongListProps {
     onCoverUpload?: (track: { audio_url: string; filename: string }) => void;
     onCancelJob?: (jobId: string) => void;
     onCancelAll?: () => void;
+    onResetAll?: () => void;
     activeJobCount?: number;
 }
 
@@ -110,6 +111,7 @@ export const SongList: React.FC<SongListProps> = ({
     onCoverUpload,
     onCancelJob,
     onCancelAll,
+    onResetAll,
     activeJobCount = 0,
 }) => {
     const { user } = useAuth();
@@ -118,6 +120,9 @@ export const SongList: React.FC<SongListProps> = ({
     const [activeFilters, setActiveFilters] = useState<Set<FilterType>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSelecting, setIsSelecting] = useState(false);
+    const [cancelStage, setCancelStage] = useState<'cancel' | 'reset'>('cancel');
+    // Reset cancel stage when no jobs left
+    useEffect(() => { if (activeJobCount === 0) setCancelStage('cancel'); }, [activeJobCount]);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const filterRef = useRef<HTMLDivElement>(null);
 
@@ -305,11 +310,23 @@ export const SongList: React.FC<SongListProps> = ({
 
                         {activeJobCount > 0 && onCancelAll && (
                             <button
-                                onClick={onCancelAll}
-                                className="border text-xs font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all select-none bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500"
+                                onClick={() => {
+                                    if (cancelStage === 'cancel') {
+                                        onCancelAll();
+                                        setCancelStage('reset');
+                                    } else {
+                                        onResetAll?.();
+                                        setCancelStage('cancel');
+                                    }
+                                }}
+                                className={`border text-xs font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all select-none ${
+                                    cancelStage === 'reset'
+                                        ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-400 animate-pulse'
+                                        : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500'
+                                }`}
                             >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                {t('cancelAll')} ({activeJobCount})
+                                {cancelStage === 'reset' ? t('resetGeneration') : t('cancelAll')} ({activeJobCount})
                             </button>
                         )}
                     </div>
