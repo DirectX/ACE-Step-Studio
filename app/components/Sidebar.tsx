@@ -44,6 +44,8 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
   const vramPct = info.vram_total > 0 ? Math.round((info.vram_used / info.vram_total) * 100) : 0;
   const ramPct = info.ram_total > 0 ? Math.round((info.ram_used / info.ram_total) * 100) : 0;
   const modelShort = (info.activeModel || '').replace('acestep-v15-', '').replace('marcorez8/', '');
+  const lmShort = (info.activeLmModel || '').replace('acestep-5Hz-lm-', '');
+  const lmBackend = info.activeLmBackend || '';
 
   if (!isOpen) {
     return (
@@ -133,6 +135,14 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
         </span>
         <span className="truncate text-zinc-500">{modelShort || '—'}</span>
       </div>
+
+      {/* LM Model */}
+      {lmShort && (
+        <div className="flex items-center justify-between text-zinc-600">
+          <span className="text-[9px] text-zinc-600">LM</span>
+          <span className="text-[9px] text-zinc-500 truncate">{lmShort}{lmBackend ? ` (${lmBackend})` : ''}</span>
+        </div>
+      )}
 
       {/* Hide button */}
       <button onClick={() => { setHidden(true); localStorage.setItem('hide-system-widget', '1'); }}

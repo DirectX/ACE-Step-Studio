@@ -191,12 +191,42 @@ router = APIRouter()
 
 
 @router.get("/health")
-async def health_check():
-    """Health check endpoint"""
+async def health_check(request: Request):
+    """Health check endpoint with model status"""
+    llm_handler = getattr(request.app.state, 'llm_handler', None)
+    dit_handler = getattr(request.app.state, 'dit_handler', None)
+
+    # DiT model info
+    dit_model = None
+    if dit_handler and dit_handler.model is not None:
+        _params = getattr(dit_handler, 'last_init_params', None) or {}
+        config_path = _params.get('config_path', '')
+        dit_model = os.path.basename(config_path.rstrip("/\\")) if config_path else None
+
+    # LM model info
+    lm_model = None
+    lm_backend = None
+    lm_initialized = False
+    offload_to_cpu = False
+    if llm_handler:
+        lm_initialized = getattr(llm_handler, 'llm', None) is not None
+        lm_model = getattr(llm_handler, 'current_model_name', None)
+        if not lm_model:
+            lm_model = getattr(llm_handler, 'model_path', None)
+            if lm_model:
+                lm_model = os.path.basename(str(lm_model).rstrip("/\\"))
+        lm_backend = getattr(llm_handler, 'backend', None) or 'pt'
+        offload_to_cpu = getattr(llm_handler, 'offload_to_cpu', False)
+
     return _wrap_response({
         "status": "ok",
         "service": "ACE-Step Gradio API",
         "version": "1.0",
+        "dit_model": dit_model,
+        "lm_model": lm_model,
+        "lm_backend": lm_backend,
+        "lm_initialized": lm_initialized,
+        "offload_to_cpu": offload_to_cpu,
     })
 
 

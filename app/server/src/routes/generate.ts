@@ -733,12 +733,21 @@ let modelLoadingStatus: { state: string; model: string; progress?: string } = {
   model: 'marcorez8/acestep-v15-xl-turbo-bf16',
 };
 
+let lmSynced = false;
 router.get('/model-status', async (_req, res: Response) => {
-  // Check real Gradio connection
+  // Check real Gradio health (includes LM info)
   let gradioAlive = false;
   try {
-    const r = await fetch(`${config.acestep.apiUrl}/gradio_api/info`, { signal: AbortSignal.timeout(2000) });
-    gradioAlive = r.ok;
+    const r = await fetch(`${config.acestep.apiUrl}/health`, { signal: AbortSignal.timeout(2000) });
+    if (r.ok) {
+      gradioAlive = true;
+      const health = await r.json() as any;
+      const data = health?.data || health;
+      // Sync model info from Gradio on every poll
+      if (data.dit_model) activeLoadedModel = data.dit_model;
+      if (data.lm_model) activeLmModel = data.lm_model;
+      if (data.lm_backend) activeLmBackend = data.lm_backend;
+    }
   } catch {}
 
   res.json({
@@ -860,9 +869,13 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
     // Reset Gradio client to reconnect with new model state
     resetGradioClient();
 
-    activeLoadedModel = model;
-    if (lmModel) activeLmModel = lmModel;
+    activeLoadedModel = result?.data?.loaded_model || model;
+    activeLmModel = result?.data?.loaded_lm_model || lmModel || activeLmModel;
     if (lmBackend) activeLmBackend = lmBackend;
+    // Parse LM status for backend info (e.g. "Model: ...\nDevice: ...")
+    const lmStatus = result?.data?.lm_status || '';
+    if (lmStatus.includes('Low GPU Memory Mode: True')) activeLmBackend = 'pt';
+    console.log(`[Model] Active: DiT=${activeLoadedModel}, LM=${activeLmModel} (${activeLmBackend})`);
     modelLoadingStatus = { state: 'ready', model };
 
     console.log(`[Model] Switched to ${model} successfully (in-process, no restart)`);
