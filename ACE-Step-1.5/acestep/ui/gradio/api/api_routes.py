@@ -218,6 +218,10 @@ async def health_check(request: Request):
         lm_backend = getattr(llm_handler, 'backend', None) or 'pt'
         offload_to_cpu = getattr(llm_handler, 'offload_to_cpu', False)
 
+    # VRAM optimization flags
+    chunked_ffn = int(os.environ.get("ACESTEP_CHUNKED_FFN", "2"))
+    pinned_memory = os.environ.get("ACESTEP_PINNED_MEMORY", "0") == "1"
+
     return _wrap_response({
         "status": "ok",
         "service": "ACE-Step Gradio API",
@@ -227,6 +231,8 @@ async def health_check(request: Request):
         "lm_backend": lm_backend,
         "lm_initialized": lm_initialized,
         "offload_to_cpu": offload_to_cpu,
+        "chunked_ffn": chunked_ffn,
+        "pinned_memory": pinned_memory,
     })
 
 
@@ -432,13 +438,20 @@ async def init_model(request: Request):
             is_fp32_xl = "xl" in model and "bf16" not in model
             quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
 
+            # Preserve the current offload setting from CLI / previous init,
+            # falling back to the GPU-tier default only when no prior state exists.
+            current_offload = getattr(dit_handler, "offload_to_cpu", None)
+            current_dit_offload = getattr(dit_handler, "offload_dit_to_cpu", None)
+            offload_to_cpu = current_offload if current_offload is not None else gpu_cfg.offload_to_cpu_default
+            offload_dit_to_cpu = current_dit_offload if current_dit_offload is not None else gpu_cfg.offload_dit_to_cpu_default
+
             status, ok = dit_handler.initialize_service(
                 project_root=project_root,
                 config_path=model,
                 device="auto",
                 use_flash_attention=dit_handler.is_flash_attention_available("auto"),
-                offload_to_cpu=gpu_cfg.offload_to_cpu_default,
-                offload_dit_to_cpu=gpu_cfg.offload_dit_to_cpu_default,
+                offload_to_cpu=offload_to_cpu,
+                offload_dit_to_cpu=offload_dit_to_cpu,
                 quantization=quantization,
             )
             if not ok:

@@ -4,6 +4,13 @@ import os
 
 import torch
 
+try:
+    from acestep.models.common.memory_utils import pin_module_memory, PINNED_MEMORY_ENABLED
+except ImportError:
+    PINNED_MEMORY_ENABLED = False
+    def pin_module_memory(module):
+        return 0
+
 
 class InitServiceLoaderComponentsMixin:
     """Load VAE and text components used during service initialization.
@@ -48,6 +55,8 @@ class InitServiceLoaderComponentsMixin:
         else:
             vae_dtype = self._get_vae_dtype("cpu")
             self.vae = self.vae.to("cpu").to(vae_dtype)
+            if PINNED_MEMORY_ENABLED:
+                pin_module_memory(self.vae)
         self.vae.eval()
 
         if compile_model:
@@ -89,5 +98,7 @@ class InitServiceLoaderComponentsMixin:
         else:
             cpu_dtype = self._get_vae_dtype("cpu")
             self.text_encoder = self.text_encoder.to("cpu").to(cpu_dtype)
+            if PINNED_MEMORY_ENABLED:
+                pin_module_memory(self.text_encoder)
         self.text_encoder.eval()
         return text_encoder_path

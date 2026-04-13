@@ -49,14 +49,14 @@ def build_dit_controls(ui_config: dict[str, Any]) -> dict[str, Any]:
                 elem_classes=["has-info-container"],
             )
             sampler_mode = gr.Dropdown(
-                choices=["euler", "heun", "midpoint", "rk4", "bogacki", "deis", "ipndm"],
+                choices=["euler", "heun", "midpoint", "rk4", "bogacki", "dopri5", "a2s", "pingpong", "deis", "ipndm"],
                 value="euler",
                 label=t("generation.sampler_mode_label"),
                 info=t("generation.sampler_mode_info"),
                 elem_classes=["has-info-container"],
             )
             scheduler_type = gr.Dropdown(
-                choices=["linear", "karras", "cosine", "beta"],
+                choices=["linear", "karras", "cosine", "beta", "sway", "logit_normal", "laplace"],
                 value="linear",
                 label=t("generation.scheduler_type_label") or "Scheduler",
                 info=t("generation.scheduler_type_info") or "Timestep distribution strategy",

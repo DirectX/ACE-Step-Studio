@@ -10,6 +10,13 @@ from loguru import logger
 from acestep import gpu_config
 from .init_service_loader_components import InitServiceLoaderComponentsMixin
 
+try:
+    from acestep.models.common.memory_utils import pin_module_memory, PINNED_MEMORY_ENABLED
+except ImportError:
+    PINNED_MEMORY_ENABLED = False
+    def pin_module_memory(module):
+        return 0
+
 
 class InitServiceLoaderMixin(InitServiceLoaderComponentsMixin):
     """Helpers for heavy model component loading."""
@@ -201,6 +208,9 @@ class InitServiceLoaderMixin(InitServiceLoaderComponentsMixin):
             self.model = self.model.to(device).to(self.dtype)
         else:
             self.model = self.model.to("cpu").to(self.dtype)
+            # Pin CPU weights for faster DMA transfers during offload cycles
+            if PINNED_MEMORY_ENABLED:
+                pin_module_memory(self.model)
         self.model.eval()
 
         if compile_model:

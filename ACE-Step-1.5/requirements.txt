@@ -55,5 +55,9 @@ flash-attn @ https://github.com/sdbds/flash-attention-for-windows/releases/downl
 flash-attn; sys_platform == 'linux' and platform_machine == 'x86_64'
 xxhash
 
+# CUDA memory manager — automatic OOM protection via driver-level allocation hooking
+# NVIDIA only, not needed on macOS (MPS uses unified memory)
+comfy-aimdo; sys_platform != 'darwin'
+
 # Local package - install with: pip install -e acestep/third_parts/nano-vllm
 # nano-vllm

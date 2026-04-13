@@ -778,6 +778,10 @@ router.get('/model-status', async (_req, res: Response) => {
       if (data.dit_model) activeLoadedModel = data.dit_model;
       if (data.lm_model) activeLmModel = data.lm_model;
       if (data.lm_backend) activeLmBackend = data.lm_backend;
+      // VRAM optimization flags
+      if (data.offload_to_cpu !== undefined) activeOffloadToCpu = data.offload_to_cpu;
+      if (data.chunked_ffn !== undefined) activeChunkedFfn = data.chunked_ffn;
+      if (data.pinned_memory !== undefined) activePinnedMemory = data.pinned_memory;
     }
   } catch {}
 
@@ -787,6 +791,9 @@ router.get('/model-status', async (_req, res: Response) => {
     activeModel: activeLoadedModel,
     activeLmModel,
     activeLmBackend,
+    offloadToCpu: activeOffloadToCpu,
+    chunkedFfn: activeChunkedFfn,
+    pinnedMemory: activePinnedMemory,
   });
 });
 
@@ -840,6 +847,9 @@ router.get('/system-info', async (_req, res: Response) => {
 let activeLoadedModel: string = process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16';
 let activeLmModel: string = 'acestep-5Hz-lm-1.7B';
 let activeLmBackend: string = 'vllm';
+let activeOffloadToCpu: boolean = false;
+let activeChunkedFfn: number = 2;
+let activePinnedMemory: boolean = false;
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const { model, lmModel, lmBackend } = req.body;

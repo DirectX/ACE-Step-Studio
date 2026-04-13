@@ -144,6 +144,15 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
         </div>
       )}
 
+      {/* VRAM optimizations */}
+      {(info.offloadToCpu || info.chunkedFfn > 1 || info.pinnedMemory) && (
+        <div className="flex items-center gap-1 text-[8px] text-zinc-600 pt-0.5 border-t border-zinc-800/50 flex-wrap">
+          {info.offloadToCpu && <span className="bg-zinc-800/50 text-zinc-500 px-1 rounded">offload</span>}
+          {info.chunkedFfn > 1 && <span className="bg-zinc-800/50 text-zinc-500 px-1 rounded">FFN×{info.chunkedFfn}</span>}
+          {info.pinnedMemory && <span className="bg-zinc-800/50 text-zinc-500 px-1 rounded">pinned</span>}
+        </div>
+      )}
+
       {/* Hide button */}
       <button onClick={() => { setHidden(true); localStorage.setItem('hide-system-widget', '1'); }}
         className="w-full text-center text-[8px] text-zinc-700 hover:text-zinc-500 transition-colors pt-0.5 opacity-50 hover:opacity-100">

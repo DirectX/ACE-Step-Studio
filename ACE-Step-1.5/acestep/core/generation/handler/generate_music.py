@@ -5,6 +5,7 @@ This module provides the public ``generate_music`` entry point extracted from
 """
 
 import gc
+import os
 import traceback
 from typing import Any, Dict, List, Optional, Union
 
@@ -135,6 +136,13 @@ class GenerateMusicMixin:
             )
             return None
 
+        # Release cached CUDA allocations before measuring free VRAM.
+        # Without this, PyTorch's caching allocator retains blocks from
+        # previous generations, causing free_gb to appear much lower than
+        # the actual reclaimable memory.
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         duration_s = audio_duration or 60.0
         # Determine actual model size (XL vs standard) and CFG mode.
         config_path = ""
@@ -148,6 +156,12 @@ class GenerateMusicMixin:
         else:
             dit_key = "xl_turbo" if is_xl else "turbo"
         per_batch_gb = DIT_INFERENCE_VRAM_PER_BATCH.get(dit_key, 0.6)
+
+        # Chunked FFN reduces peak activation memory — account for it.
+        chunked_ffn = int(os.environ.get("ACESTEP_CHUNKED_FFN", "2"))
+        if chunked_ffn > 1:
+            per_batch_gb *= 0.7  # ~30% less peak activations with chunking
+
         # Longer audio = more latent frames (5 Hz rate) = more memory.
         duration_factor = max(1.0, duration_s / 60.0)
         needed_gb = per_batch_gb * actual_batch_size * duration_factor + VRAM_SAFETY_MARGIN_GB
@@ -207,6 +221,7 @@ class GenerateMusicMixin:
         shift: float = 1.0,
         infer_method: str = "ode",
         sampler_mode: str = "euler",
+        scheduler_type: str = "linear",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
         use_tiled_decode: bool = True,
@@ -358,6 +373,7 @@ class GenerateMusicMixin:
                 shift=shift,
                 infer_method=infer_method,
                 sampler_mode=sampler_mode,
+                scheduler_type=scheduler_type,
                 velocity_norm_threshold=velocity_norm_threshold,
                 velocity_ema_factor=velocity_ema_factor,
                 repaint_crossfade_frames=resolved_cf_frames,
@@ -422,6 +438,9 @@ class GenerateMusicMixin:
         except Exception as exc:
             error_msg = f"Error: {exc!s}\n{traceback.format_exc()}"
             logger.exception("[generate_music] Generation failed")
+            # Ensure GPU memory is released even on failure
+            gc.collect()
+            self._empty_cache()
             return {
                 "audios": [],
                 "status_message": error_msg,

@@ -5,6 +5,17 @@ from contextlib import contextmanager
 
 from loguru import logger
 
+try:
+    from acestep.models.common.memory_utils import (
+        pin_module_memory, unpin_module_memory, PINNED_MEMORY_ENABLED,
+    )
+except ImportError:
+    PINNED_MEMORY_ENABLED = False
+    def pin_module_memory(module):
+        return 0
+    def unpin_module_memory(module):
+        return 0
+
 
 class InitServiceOffloadContextMixin:
     """Context-managed model load/offload behavior for CPU offload mode."""
@@ -75,6 +86,10 @@ class InitServiceOffloadContextMixin:
 
             offload_time = time.time() - start_time
             self.current_offload_cost += offload_time
+
+            # Pin CPU weights for faster DMA transfers on next load
+            if PINNED_MEMORY_ENABLED:
+                pin_module_memory(model)
 
             # Aggressively reclaim memory: GPU cache + Python GC + OS heap trim
             # (not counted in offload_time to keep timing accurate)

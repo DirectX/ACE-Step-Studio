@@ -50,6 +50,13 @@ except ImportError:
     from configuration_acestep_v15 import AceStepConfig
     from apg_guidance import adg_forward, apg_forward, cfg_forward, MomentumBuffer
 
+try:
+    from acestep.models.common.memory_utils import chunked_ffn_forward, CHUNKED_FFN_CHUNKS
+except ImportError:
+    CHUNKED_FFN_CHUNKS = 1
+    def chunked_ffn_forward(mlp, hidden_states, num_chunks=1):
+        return mlp(hidden_states)
+
 
 logger = logging.get_logger(__name__)
 
@@ -529,7 +536,7 @@ class AceStepDiTLayer(GradientCheckpointingLayer):
         # Step 3: Feed-forward (MLP) with adaptive layer norm
         # Apply adaptive normalization for MLP: norm(x) * (1 + scale) + shift
         norm_hidden_states = (self.mlp_norm(hidden_states) * (1 + c_scale_msa) + c_shift_msa).type_as(hidden_states)
-        ff_output = self.mlp(norm_hidden_states)
+        ff_output = chunked_ffn_forward(self.mlp, norm_hidden_states, CHUNKED_FFN_CHUNKS)
         # Apply gated residual connection: x = x + mlp_output * gate
         hidden_states = (hidden_states + ff_output * c_gate_msa).type_as(hidden_states)
 

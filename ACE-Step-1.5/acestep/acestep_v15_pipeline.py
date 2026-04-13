@@ -41,6 +41,21 @@ for proxy_var in [
 # Force torchaudio to use ffmpeg backend (torchcodec not available on XPU/Windows)
 os.environ["TORCHAUDIO_USE_BACKEND"] = "ffmpeg"
 
+# Initialize comfy-aimdo CUDA memory manager BEFORE importing torch.
+# This hooks into CUDA driver-level allocations (cuMemAlloc/cuMemFree)
+# and provides automatic VRAM pressure relief — instead of OOM crashes,
+# aimdo evicts least-recently-used allocations to make room.
+# Set ACESTEP_AIMDO=0 to disable.
+if os.environ.get("ACESTEP_AIMDO", "1") == "1":
+    try:
+        import comfy_aimdo.control
+        comfy_aimdo.control.init()
+        print("[aimdo] CUDA memory manager initialized (OOM protection active)")
+    except ImportError:
+        pass
+    except Exception as _aimdo_err:
+        print(f"[aimdo] Failed to initialize: {_aimdo_err} (continuing without it)")
+
 try:
     # When executed as a module: `python -m acestep.acestep_v15_pipeline`
     from .cli_args import parse_quantization_arg

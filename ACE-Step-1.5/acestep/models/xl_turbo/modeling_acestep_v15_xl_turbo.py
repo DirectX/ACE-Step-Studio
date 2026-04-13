@@ -47,6 +47,13 @@ try:
 except ImportError:
     from configuration_acestep_v15 import AceStepConfig
 
+try:
+    from acestep.models.common.memory_utils import chunked_ffn_forward, CHUNKED_FFN_CHUNKS
+except ImportError:
+    CHUNKED_FFN_CHUNKS = 1
+    def chunked_ffn_forward(mlp, hidden_states, num_chunks=1):
+        return mlp(hidden_states)
+
 
 logger = logging.get_logger(__name__)
 
@@ -505,7 +512,7 @@ class AceStepDiTLayer(GradientCheckpointingLayer):
             past_key_value=None,
             **kwargs,
         )
-        # Apply gated residual connection: x = x + attn_output * gate
+        # Apply gated residual connection in-place: x += attn_output * gate
         hidden_states = (hidden_states + attn_output * gate_msa).type_as(hidden_states)
 
         # Step 2: Cross-attention (if enabled) for conditioning on encoder outputs
@@ -524,10 +531,10 @@ class AceStepDiTLayer(GradientCheckpointingLayer):
             hidden_states = hidden_states + attn_output
 
         # Step 3: Feed-forward (MLP) with adaptive layer norm
-        # Apply adaptive normalization for MLP: norm(x) * (1 + scale) + shift
+        # Apply adaptive normalization in-place for MLP: norm(x) * (1 + scale) + shift
         norm_hidden_states = (self.mlp_norm(hidden_states) * (1 + c_scale_msa) + c_shift_msa).type_as(hidden_states)
-        ff_output = self.mlp(norm_hidden_states)
-        # Apply gated residual connection: x = x + mlp_output * gate
+        ff_output = chunked_ffn_forward(self.mlp, norm_hidden_states, CHUNKED_FFN_CHUNKS)
+        # Apply gated residual connection in-place: x += mlp_output * gate
         hidden_states = (hidden_states + ff_output * c_gate_msa).type_as(hidden_states)
 
         outputs = (hidden_states,)
