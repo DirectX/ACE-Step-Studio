@@ -440,12 +440,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     return name;
   };
 
-  // Check if model is a turbo variant
+  // Check if model is a turbo variant (no CFG, max ~20 steps, euler only)
   const isTurboModel = (modelId: string): boolean => {
     // Merge SFT+Turbo behaves like SFT (50 steps, uses CFG)
     if (modelId.includes('merge')) return false;
     return modelId.includes('turbo');
   };
+
+  const turboActive = isTurboModel(selectedModel);
 
   const [isUploadingReference, setIsUploadingReference] = useState(false);
   const [isUploadingSource, setIsUploadingSource] = useState(false);
@@ -539,6 +541,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       setInferenceSteps(8);
       setGuidanceScale(0.0);
       setUseAdg(false);
+      // Turbo: only euler + linear
+      setSamplerMode('euler');
+      setSchedulerType('linear');
     } else {
       setInferenceSteps(50);
       setGuidanceScale(7.0);
@@ -2440,7 +2445,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   }}
                   className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                 >
-                  {inferMethod === 'sde' ? (
+                  {(inferMethod === 'sde' || turboActive) ? (
                     <option value="euler">Euler</option>
                   ) : (
                     <>
@@ -2467,7 +2472,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   }}
                   className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                 >
-                  {(samplerMode === 'deis' || samplerMode === 'ipndm') ? (
+                  {(samplerMode === 'deis' || samplerMode === 'ipndm' || turboActive) ? (
                     <option value="linear">Linear</option>
                   ) : (
                     <>
