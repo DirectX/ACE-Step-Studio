@@ -2875,9 +2875,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {[
                   { label: t('presetDefault'), cfg: [0, 1], ts: '', score: 0.5, adg: false, desc: t('presetDefaultDesc') },
-                  { label: t('presetCreative'), cfg: [0.15, 0.85], ts: '', score: 0.5, adg: false, desc: t('presetCreativeDesc') },
-                  { label: t('presetStrict'), cfg: [0, 1], ts: '', score: 0.7, adg: false, desc: t('presetStrictDesc') },
-                  { label: t('presetSmooth'), cfg: [0, 0.7], ts: '', score: 0.3, adg: false, desc: t('presetSmoothDesc') },
+                  { label: t('presetCleanVocals'), cfg: [0, 0.5], ts: '', score: 0.5, adg: false, desc: t('presetCleanVocalsDesc') },
+                  { label: t('presetCreative'), cfg: [0.2, 0.8], ts: '', score: 0.5, adg: false, desc: t('presetCreativeDesc') },
+                  { label: t('presetCover'), cfg: [0, 0.95], ts: '', score: 0.5, adg: false, desc: t('presetCoverDesc') },
+                  { label: t('presetStrict'), cfg: [0, 0.75], ts: '', score: 0.7, adg: false, desc: t('presetStrictDesc') },
                   { label: 'ADG', cfg: [0, 1], ts: '', score: 0.5, adg: true, desc: t('presetAdgDesc') },
                 ].map(p => (
                   <button
