@@ -420,6 +420,16 @@ app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/render-video', express.json({ limit: '500mb' }), renderVideoRoutes);
 app.use('/api/tools', toolsRoutes);
 
+// GET /api/changelog — serve CHANGELOG.md as plain text
+app.get('/api/changelog', (_req, res) => {
+  const changelogPath = path.resolve(__dirname, '../../../CHANGELOG.md');
+  if (existsSync(changelogPath)) {
+    res.type('text/plain').sendFile(changelogPath);
+  } else {
+    res.status(404).json({ error: 'CHANGELOG.md not found' });
+  }
+});
+
 // Error handler (must be before static serving catch-all)
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', err);

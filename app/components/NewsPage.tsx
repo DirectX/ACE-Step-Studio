@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Newspaper, X, Star, Github } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Newspaper, X, Star, Github, FileText } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import newsData from '../data/news.json';
+
+type TabId = 'news' | 'changelog';
 
 interface NewsLink {
   label: string;
@@ -19,13 +21,163 @@ interface NewsItem {
   links?: NewsLink[];
 }
 
+// ── Changelog parser ─────────────────────────────────────────────────
+
+interface ChangelogEntry {
+  date: string;
+  sections: { title: string; items: string[] }[];
+}
+
+function parseChangelog(raw: string): ChangelogEntry[] {
+  const entries: ChangelogEntry[] = [];
+  let current: ChangelogEntry | null = null;
+  let currentSection: { title: string; items: string[] } | null = null;
+
+  for (const line of raw.split('\n')) {
+    const dateMatch = line.match(/^## (\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      if (current) entries.push(current);
+      current = { date: dateMatch[1], sections: [] };
+      currentSection = null;
+      continue;
+    }
+
+    const sectionMatch = line.match(/^### (.+)/);
+    if (sectionMatch && current) {
+      currentSection = { title: sectionMatch[1], items: [] };
+      current.sections.push(currentSection);
+      continue;
+    }
+
+    const itemMatch = line.match(/^- (.+)/);
+    if (itemMatch && currentSection) {
+      currentSection.items.push(itemMatch[1]);
+    }
+  }
+  if (current) entries.push(current);
+  return entries;
+}
+
+function sectionColor(title: string): string {
+  switch (title.toLowerCase()) {
+    case 'added': return 'text-green-400';
+    case 'changed': return 'text-amber-400';
+    case 'fixed': return 'text-blue-400';
+    case 'removed': return 'text-red-400';
+    default: return 'text-zinc-400';
+  }
+}
+
+function sectionBadgeColor(title: string): string {
+  switch (title.toLowerCase()) {
+    case 'added': return 'bg-green-500/15 text-green-600 dark:text-green-400';
+    case 'changed': return 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+    case 'fixed': return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+    case 'removed': return 'bg-red-500/15 text-red-600 dark:text-red-400';
+    default: return 'bg-zinc-200 dark:bg-white/10 text-zinc-500';
+  }
+}
+
+// ── Changelog Tab ────────────────────────────────────────────────────
+
+const ChangelogTab: React.FC = () => {
+  const [entries, setEntries] = useState<ChangelogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/changelog')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load');
+        return res.text();
+      })
+      .then(raw => {
+        setEntries(parseChangelog(raw));
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <div className="animate-spin w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full mx-auto mb-3" />
+        <p className="text-sm text-zinc-500">Loading changelog...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-sm text-red-400">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {entries.map((entry, i) => (
+        <div
+          key={entry.date}
+          className="rounded-2xl border bg-white dark:bg-suno-card border-zinc-200 dark:border-white/5"
+        >
+          <div className="p-5 sm:p-6">
+            {/* Date header */}
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                {entry.date}
+              </span>
+              {i === 0 && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400">
+                  Latest
+                </span>
+              )}
+            </div>
+
+            {/* Sections */}
+            <div className="space-y-3">
+              {entry.sections.map(section => (
+                <div key={section.title}>
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${sectionColor(section.title)}`}>
+                    {section.title}
+                  </span>
+                  <ul className="mt-1.5 space-y-1">
+                    {section.items.map((item, j) => (
+                      <li key={j} className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed flex gap-2">
+                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${sectionBadgeColor(section.title).split(' ')[0]}`} />
+                        <span dangerouslySetInnerHTML={{
+                          __html: item
+                            .replace(/\*\*(.+?)\*\*/g, '<strong class="text-zinc-200 font-medium">$1</strong>')
+                            .replace(/`(.+?)`/g, '<code class="text-xs bg-white/5 px-1 py-0.5 rounded text-zinc-300">$1</code>')
+                        }} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Main NewsPage ────────────────────────────────────────────────────
+
 export const NewsPage: React.FC = () => {
   const { t, language } = useI18n();
+  const [activeTab, setActiveTab] = useState<TabId>('news');
 
   const localize = (value: LocalizedString): string => {
     if (typeof value === 'string') return value;
     return value[language] || value['en'] || Object.values(value)[0] || '';
   };
+
   const [dismissedNews, setDismissedNews] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('ace-dismissed-news');
@@ -59,20 +211,13 @@ export const NewsPage: React.FC = () => {
 
   const tagColor = (tag: string) => {
     switch (tag) {
-      case 'experimental':
-        return 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
-      case 'backend':
-        return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
-      case 'training':
-        return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
-      case 'release':
-        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
-      case 'feature':
-        return 'bg-green-500/15 text-green-600 dark:text-green-400';
-      case 'bugfix':
-        return 'bg-red-500/15 text-red-600 dark:text-red-400';
-      default:
-        return 'bg-zinc-200 dark:bg-white/10 text-zinc-500 dark:text-zinc-400';
+      case 'experimental': return 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+      case 'backend': return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+      case 'training': return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
+      case 'release': return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
+      case 'feature': return 'bg-green-500/15 text-green-600 dark:text-green-400';
+      case 'bugfix': return 'bg-red-500/15 text-red-600 dark:text-red-400';
+      default: return 'bg-zinc-200 dark:bg-white/10 text-zinc-500 dark:text-zinc-400';
     }
   };
 
@@ -88,7 +233,6 @@ export const NewsPage: React.FC = () => {
       `}
     >
       <div className="p-5 sm:p-6">
-        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
@@ -114,12 +258,10 @@ export const NewsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Body */}
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">
           {localize(item.body)}
         </p>
 
-        {/* Links */}
         {item.links && item.links.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {item.links.map(link => (
@@ -137,7 +279,6 @@ export const NewsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tags */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
           {item.tags.map(tag => (
             <span
@@ -156,7 +297,7 @@ export const NewsPage: React.FC = () => {
     <div className="flex-1 bg-white dark:bg-black overflow-y-auto p-6 lg:p-10 pb-32 transition-colors duration-300">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
             <Newspaper size={20} className="text-amber-600 dark:text-amber-400" />
           </div>
@@ -166,12 +307,38 @@ export const NewsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Tab Bar */}
+        <div className="flex gap-1 mb-6">
+          <button
+            onClick={() => setActiveTab('news')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'news'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+            }`}
+          >
+            <Newspaper size={14} />
+            {t('news')}
+          </button>
+          <button
+            onClick={() => setActiveTab('changelog')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'changelog'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+            }`}
+          >
+            <FileText size={14} />
+            Changelog
+          </button>
+        </div>
+
         {/* Star Repo */}
         <a
           href="https://github.com/timoncool/ACE-Step-Studio"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 mb-8 px-5 py-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-suno-card hover:border-zinc-300 dark:hover:border-white/10 transition-all group"
+          className="flex items-center gap-3 mb-6 px-5 py-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-suno-card hover:border-zinc-300 dark:hover:border-white/10 transition-all group"
         >
           <Github size={20} className="text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
           <div className="flex-1 min-w-0">
@@ -184,29 +351,34 @@ export const NewsPage: React.FC = () => {
           </div>
         </a>
 
-        {/* Active News */}
-        {activeNews.length > 0 ? (
-          <div className="space-y-4">
-            {activeNews.map(item => renderCard(item, false))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <Newspaper size={48} className="mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
-            <p className="text-zinc-500 dark:text-zinc-400 text-sm">No new updates</p>
-          </div>
+        {/* Tab Content */}
+        {activeTab === 'news' && (
+          <>
+            {activeNews.length > 0 ? (
+              <div className="space-y-4">
+                {activeNews.map(item => renderCard(item, false))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <Newspaper size={48} className="mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm">No new updates</p>
+              </div>
+            )}
+
+            {dismissed.length > 0 && (
+              <div className="mt-10">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-4">
+                  Dismissed
+                </h2>
+                <div className="space-y-3">
+                  {dismissed.map(item => renderCard(item, true))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Dismissed News */}
-        {dismissed.length > 0 && (
-          <div className="mt-10">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-4">
-              Dismissed
-            </h2>
-            <div className="space-y-3">
-              {dismissed.map(item => renderCard(item, true))}
-            </div>
-          </div>
-        )}
+        {activeTab === 'changelog' && <ChangelogTab />}
       </div>
     </div>
   );
