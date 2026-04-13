@@ -127,7 +127,7 @@ def bake_lora(
 
         # Find matching base key
         target = find_base_key(
-            [base_key, f"{base_key}.weight", base_key.rstrip('.weight')],
+            [base_key, f"{base_key}.weight", base_key.removesuffix('.weight')],
             merged,
         )
 

@@ -35,6 +35,9 @@ export const ja = {
   mergeDone: 'マージ完了！',
   mergeRunning: 'マージ中...',
   mergeMethod: 'マージ方法',
+  mergeMethodWeightedSum: '加重合計',
+  mergeMethodAddDiff: '差分追加',
+  mergeMethodMultiply: '乗算',
 
   // Bake LoRA
   bakeTitle: 'LoRA ベイク',

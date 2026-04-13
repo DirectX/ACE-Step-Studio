@@ -407,9 +407,9 @@ const MergeTool: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Section title={t('mergeMethod')}>
           <select value={method} onChange={e => setMethod(e.target.value)} className={selectClass}>
-            <option value="weighted_sum">Weighted Sum</option>
-            <option value="add_difference">Add Difference</option>
-            <option value="multiply">Multiply</option>
+            <option value="weighted_sum">{t('mergeMethodWeightedSum')}</option>
+            <option value="add_difference">{t('mergeMethodAddDiff')}</option>
+            <option value="multiply">{t('mergeMethodMultiply')}</option>
           </select>
           <p className="text-[10px] text-zinc-500 mt-1">
             {method === 'weighted_sum' && '(1-α)×A + α×B'}

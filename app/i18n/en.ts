@@ -35,6 +35,9 @@ export const en = {
     mergeDone: 'Merge complete!',
     mergeRunning: 'Merging...',
     mergeMethod: 'Merge Method',
+    mergeMethodWeightedSum: 'Weighted Sum',
+    mergeMethodAddDiff: 'Add Difference',
+    mergeMethodMultiply: 'Multiply',
 
     // Bake LoRA
     bakeTitle: 'Bake LoRA',

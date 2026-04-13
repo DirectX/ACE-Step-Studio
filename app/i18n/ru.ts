@@ -35,6 +35,9 @@ export const ru = {
     mergeDone: 'Слияние завершено!',
     mergeRunning: 'Слияние...',
     mergeMethod: 'Метод слияния',
+    mergeMethodWeightedSum: 'Взвешенная сумма',
+    mergeMethodAddDiff: 'Добавить разницу',
+    mergeMethodMultiply: 'Умножение',
 
     // Bake LoRA
     bakeTitle: 'Впечь LoRA',

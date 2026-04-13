@@ -35,6 +35,9 @@ export const ko = {
     mergeDone: '병합 완료!',
     mergeRunning: '병합 중...',
     mergeMethod: '병합 방법',
+    mergeMethodWeightedSum: '가중 합계',
+    mergeMethodAddDiff: '차이 추가',
+    mergeMethodMultiply: '곱셈',
 
     // Bake LoRA
     bakeTitle: 'LoRA 베이크',

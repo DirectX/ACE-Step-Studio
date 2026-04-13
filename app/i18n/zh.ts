@@ -35,6 +35,9 @@ export const zh = {
     mergeDone: '合并完成！',
     mergeRunning: '合并中...',
     mergeMethod: '合并方法',
+    mergeMethodWeightedSum: '加权求和',
+    mergeMethodAddDiff: '添加差异',
+    mergeMethodMultiply: '乘法',
 
     // Bake LoRA
     bakeTitle: '烘焙 LoRA',

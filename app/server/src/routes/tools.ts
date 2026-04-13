@@ -3,8 +3,12 @@ import { authMiddleware, AuthenticatedRequest } from '../middleware/auth.js';
 import { resolvePythonPath } from '../services/acestep.js';
 import { config } from '../config/index.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { existsSync, statSync, readdirSync } from 'fs';
 import { spawn, ChildProcess } from 'child_process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 
@@ -330,6 +334,11 @@ router.post('/merge/start', authMiddleware, async (req: AuthenticatedRequest, re
     }
 
     const { modelA, modelB, outputDir, alpha = 0.5, method = 'weighted_sum' } = req.body;
+    const VALID_METHODS = ['weighted_sum', 'add_difference', 'multiply'];
+    if (!VALID_METHODS.includes(method)) {
+      res.status(400).json({ error: `Invalid method. Must be one of: ${VALID_METHODS.join(', ')}` });
+      return;
+    }
     if (!modelA || !modelB || !outputDir) {
       res.status(400).json({ error: 'modelA, modelB, and outputDir are required' });
       return;
