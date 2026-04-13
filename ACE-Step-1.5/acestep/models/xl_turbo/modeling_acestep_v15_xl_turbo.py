@@ -2021,11 +2021,18 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
             sampler_mode = "euler"
 
         cover_steps = int(num_steps * audio_cover_strength)
+        do_cfg_guidance = False  # Turbo models do not use CFG
         _switched_to_non_cover = False
         for step_idx in range(num_steps):
+            # Check for interrupt flag (set by /v1/cancel API)
+            if getattr(self, '_cancel_generation', False):
+                self._cancel_generation = False
+                logger.warning("[generate_audio] Generation cancelled by user at step %d/%d", step_idx, num_steps)
+                raise InterruptedError(f"Generation cancelled at step {step_idx}/{num_steps}")
+
             current_timestep = t_schedule[step_idx].item()
             t_curr_tensor = current_timestep * torch.ones((bsz,), device=device, dtype=dtype)
-            
+
             if step_idx >= cover_steps and not _switched_to_non_cover:
                 _switched_to_non_cover = True
                 encoder_hidden_states = encoder_hidden_states_non_cover
