@@ -353,11 +353,11 @@ def pingpong_step(xt: torch.Tensor, vt: torch.Tensor,
                   t_curr: float, t_prev: float,
                   bsz: int, device: torch.device, dtype: torch.dtype,
                   model_fn=None, **kwargs) -> torch.Tensor:
-    """PingPong sampler — alternating forward/reverse steps.
+    """PingPong sampler — predictor-corrector via trapezoidal rule.
 
-    ACE-Step specific: improves temporal coherence in music generation
-    by doing a forward half-step then reverse correction.
-    2 model evaluations per step.
+    Euler predict → evaluate at predicted point → average velocities.
+    Equivalent to Heun but framed as forward prediction + backward correction.
+    Good for temporal coherence in music generation. 2 NFE per step.
     """
     dt = t_curr - t_prev
     dt_t = dt * torch.ones((bsz,), device=device, dtype=dtype).unsqueeze(-1).unsqueeze(-1)
