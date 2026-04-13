@@ -964,24 +964,62 @@ router.get('/models', async (_req, res: Response) => {
       } catch { /* skip */ }
     }
 
-    // Also scan for any additional acestep-v15-* models on disk not in the registry
-    // (e.g. user-trained or community models)
+    // Scan for any additional models on disk not in the registry
+    // Detects: user-converted (BF16), merged, community, or LoRA-trained models
+    // A valid model folder contains at least one .safetensors file
     try {
       const { readdirSync } = await import('fs');
       for (const entry of readdirSync(checkpointsDir)) {
-        if (entry.startsWith('acestep-v15-xl-') && statSync(path.join(checkpointsDir, entry)).isDirectory()) {
-          downloaded.add(entry);
-          if (!ALL_DIT_MODELS.includes(entry)) {
-            ALL_DIT_MODELS.push(entry);
+        const entryPath = path.join(checkpointsDir, entry);
+        try {
+          if (!statSync(entryPath).isDirectory()) continue;
+          // Skip known non-model dirs (LM models, VAE, embeddings)
+          if (entry.startsWith('acestep-5Hz-lm-') || entry === 'vae' || entry.startsWith('Qwen')) continue;
+          // Check if folder contains safetensors files (= it's a model)
+          const files = readdirSync(entryPath);
+          const hasSafetensors = files.some((f: string) => f.endsWith('.safetensors'));
+          if (hasSafetensors) {
+            downloaded.add(entry);
+            if (!ALL_DIT_MODELS.includes(entry)) {
+              ALL_DIT_MODELS.push(entry);
+            }
           }
-        }
+        } catch { /* skip unreadable entries */ }
+      }
+      // Also scan nested dirs (e.g. marcorez8/acestep-v15-xl-turbo-bf16)
+      for (const entry of readdirSync(checkpointsDir)) {
+        const entryPath = path.join(checkpointsDir, entry);
+        try {
+          if (!statSync(entryPath).isDirectory()) continue;
+          // Check for nested model folders (HuggingFace org/repo style)
+          for (const sub of readdirSync(entryPath)) {
+            const subPath = path.join(entryPath, sub);
+            if (!statSync(subPath).isDirectory()) continue;
+            const subFiles = readdirSync(subPath);
+            if (subFiles.some((f: string) => f.endsWith('.safetensors'))) {
+              const fullName = `${entry}/${sub}`;
+              downloaded.add(fullName);
+              if (!ALL_DIT_MODELS.includes(fullName)) {
+                ALL_DIT_MODELS.push(fullName);
+              }
+            }
+          }
+        } catch { /* skip */ }
       }
     } catch { /* checkpoints dir may not exist */ }
+
+    const KNOWN_MODELS = new Set([
+      'acestep-v15-xl-turbo',
+      'acestep-v15-xl-sft',
+      'marcorez8/acestep-v15-xl-turbo-bf16',
+      'acestep-v15-xl-merge-sft-turbo',
+    ]);
 
     const models = ALL_DIT_MODELS.map(name => ({
       name,
       is_active: name === activeModel || name === activeLoadedModel,
       is_preloaded: downloaded.has(name),
+      is_custom: !KNOWN_MODELS.has(name),
     }));
 
     // Sort: active first, then downloaded, then alphabetical

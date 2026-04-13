@@ -13,7 +13,7 @@ export const zh = {
     bf16Description: '将 safetensors 模型从 FP32/FP16 转换为 BFloat16 格式。减少约50%模型大小，质量损失极小。需要与模型大小相等的内存。',
     bf16Source: '源文件（文件或文件夹）',
     bf16Output: '输出目录',
-    bf16OutputHint: '将自动创建带 -bf16 后缀的子文件夹',
+    bf16OutputHint: '将自动创建带 -bf16 后缀的子文件夹。使用 ./ACE-Step-1.5/checkpoints 使其可作为模型使用。',
     bf16Analyze: '分析',
     bf16Start: '开始转换',
     bf16Stop: '停止',

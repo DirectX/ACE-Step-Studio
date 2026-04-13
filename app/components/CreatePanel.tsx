@@ -393,8 +393,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
 
   // Fallback model list when backend is unavailable
   const availableModels = useMemo(() => {
-    // Fixed order - never reorder models
-    // Fixed order + any extra models from server not in the list
+    // Known models in preferred display order
     const FIXED_ORDER = [
       'acestep-v15-xl-turbo',
       'acestep-v15-xl-sft',
@@ -403,7 +402,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     ];
     if (fetchedModels.length > 0) {
       const ordered = FIXED_ORDER.filter(id => fetchedModels.some(m => m.name === id));
-      // Add any server models not in fixed order
+      // Add any server models not in fixed order (custom/converted/merged)
       for (const m of fetchedModels) {
         if (!ordered.includes(m.name)) ordered.push(m.name);
       }
@@ -428,7 +427,17 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       'marcorez8/acestep-v15-xl-turbo-bf16': 'XL Turbo BF16',
       'acestep-v15-xl-merge-sft-turbo': 'XL Merge SFT+Turbo',
     };
-    return mapping[modelId] || modelId;
+    if (mapping[modelId]) return mapping[modelId];
+    // Auto-generate display name for custom models
+    // Strip common prefixes and format nicely
+    let name = modelId.includes('/') ? modelId.split('/').pop()! : modelId;
+    name = name
+      .replace(/^acestep-v15-/i, '')
+      .replace(/-bf16$/i, ' BF16')
+      .replace(/-merged-a[\d.]+$/i, ' (Merged)')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+    return name;
   };
 
   // Check if model is a turbo variant
@@ -1590,9 +1599,18 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {MODEL_INFO[model.id] ? `${MODEL_INFO[model.id].size} · ${MODEL_INFO[model.id].steps} ${t('steps') || 'steps'} · ${t(MODEL_INFO[model.id].descKey) || MODEL_INFO[model.id].descFallback}` : model.id}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {MODEL_INFO[model.id]
+                              ? `${MODEL_INFO[model.id].size} · ${MODEL_INFO[model.id].steps} ${t('steps') || 'steps'} · ${t(MODEL_INFO[model.id].descKey) || MODEL_INFO[model.id].descFallback}`
+                              : model.id}
+                          </p>
+                          {(fetchedModels.find(m => m.name === model.id) as any)?.is_custom && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                              custom
+                            </span>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>

@@ -13,7 +13,7 @@ export const ja = {
   bf16Description: 'safetensorsモデルをFP32/FP16からBFloat16形式に変換します。品質の損失はほとんどなく、モデルサイズを約50%削減します。モデルサイズと同等のRAMが必要です。',
   bf16Source: 'ソース（ファイルまたはフォルダ）',
   bf16Output: '出力ディレクトリ',
-  bf16OutputHint: '-bf16サフィックス付きのサブフォルダが自動作成されます',
+  bf16OutputHint: '-bf16サフィックス付きのサブフォルダが自動作成されます。モデルとして使用するには ./ACE-Step-1.5/checkpoints を使用してください。',
   bf16Analyze: '分析',
   bf16Start: '変換開始',
   bf16Stop: '停止',

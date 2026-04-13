@@ -13,7 +13,7 @@ export const en = {
     bf16Description: 'Convert safetensors models from FP32/FP16 to BFloat16 format. Reduces model size by ~50% with minimal quality loss. Requires RAM equal to model size.',
     bf16Source: 'Source (file or folder)',
     bf16Output: 'Output directory',
-    bf16OutputHint: 'A subfolder with -bf16 suffix will be created automatically',
+    bf16OutputHint: 'A subfolder with -bf16 suffix will be created. Use ./ACE-Step-1.5/checkpoints to make it available as a model.',
     bf16Analyze: 'Analyze',
     bf16Start: 'Start Conversion',
     bf16Stop: 'Stop',

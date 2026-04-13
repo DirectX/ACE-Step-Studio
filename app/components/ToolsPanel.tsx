@@ -209,7 +209,7 @@ const BF16Tool: React.FC = () => {
       if (!res.ok) throw new Error(data.error || 'Analysis failed');
       setAnalyzeResult(data);
       if (!outputDir.trim()) {
-        setOutputDir(sourcePath.trim().replace(/[\\/]$/, '') + '-bf16-output');
+        setOutputDir('./ACE-Step-1.5/checkpoints');
       }
     } catch (e) {
       setAnalyzeError(e instanceof Error ? e.message : 'Analysis failed');
@@ -286,7 +286,7 @@ const BF16Tool: React.FC = () => {
         <Section title={t('bf16Output')}>
           <input
             type="text" value={outputDir} onChange={e => setOutputDir(e.target.value)}
-            placeholder="./models"
+            placeholder="./ACE-Step-1.5/checkpoints"
             className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50"
           />
           <p className="text-[10px] text-zinc-500 mt-1">{t('bf16OutputHint')}</p>
@@ -385,7 +385,7 @@ const MergeTool: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Section title={t('mergeOutput')}>
           <input type="text" value={outputDir} onChange={e => setOutputDir(e.target.value)}
-            placeholder="./models/merged-output"
+            placeholder="./ACE-Step-1.5/checkpoints/my-merged-model"
             className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
         </Section>
         <Section title={`${t('mergeAlpha')} (${alpha.toFixed(2)})`}>

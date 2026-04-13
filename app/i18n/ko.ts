@@ -13,7 +13,7 @@ export const ko = {
     bf16Description: 'safetensors 모델을 FP32/FP16에서 BFloat16 형식으로 변환합니다. 품질 손실 없이 모델 크기를 약 50% 줄입니다. 모델 크기만큼의 RAM이 필요합니다.',
     bf16Source: '소스 (파일 또는 폴더)',
     bf16Output: '출력 디렉토리',
-    bf16OutputHint: '-bf16 접미사가 붙은 하위 폴더가 자동 생성됩니다',
+    bf16OutputHint: '-bf16 접미사가 붙은 하위 폴더가 자동 생성됩니다. 모델로 사용하려면 ./ACE-Step-1.5/checkpoints를 사용하세요.',
     bf16Analyze: '분석',
     bf16Start: '변환 시작',
     bf16Stop: '중지',
