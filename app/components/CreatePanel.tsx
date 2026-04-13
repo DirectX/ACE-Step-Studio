@@ -2455,11 +2455,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                     <option value="euler">Euler</option>
                   ) : (
                     <>
-                      <option value="euler">Euler</option>
+                      <option value="euler">Euler (1st)</option>
                       <option value="heun">Heun (2nd)</option>
                       <option value="midpoint">Midpoint (2nd)</option>
-                      <option value="rk4">RK4 (4th)</option>
+                      <option value="a2s">A²S (2nd, fast)</option>
+                      <option value="pingpong">PingPong (2nd)</option>
                       <option value="bogacki">Bogacki (3rd)</option>
+                      <option value="rk4">RK4 (4th)</option>
+                      <option value="dopri5">DOPRI5 (5th)</option>
                       <option value="deis">DEIS (multi)</option>
                       <option value="ipndm">iPNDM (multi)</option>
                     </>
@@ -2486,6 +2489,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                       <option value="karras">Karras</option>
                       <option value="cosine">Cosine</option>
                       <option value="beta">Beta</option>
+                      <option value="sway">Sway (F5-TTS)</option>
+                      <option value="logit_normal">Logit-Normal (SD3)</option>
+                      <option value="laplace">Laplace (SOTA)</option>
                     </>
                   )}
                 </select>

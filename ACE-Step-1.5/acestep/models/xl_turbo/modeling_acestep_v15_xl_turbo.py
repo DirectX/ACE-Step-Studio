@@ -2009,7 +2009,7 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
         # Recalculate cover_steps based on actual num_steps
         use_heun = sampler_mode == "heun"
         use_multistep = sampler_mode in ("deis", "ipndm")
-        use_multi_eval = sampler_mode in ("midpoint", "rk4", "bogacki")
+        use_multi_eval = sampler_mode in ("midpoint", "rk4", "bogacki", "dopri5", "a2s", "pingpong")
         use_norm_clamp = velocity_norm_threshold > 0.0
         use_ema = velocity_ema_factor > 0.0
         prev_vt = None
