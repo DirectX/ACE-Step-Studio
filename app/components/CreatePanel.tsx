@@ -365,7 +365,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             // Sync LM on first connect only (not continuously — blocks user editing)
             if (!lmSyncedRef.current && data.activeLmModel) {
               setLmModel(data.activeLmModel);
-              // lmBackend is auto-determined by model (xl→pt, non-xl→vllm) — don't override from server
+              if (data.activeLmBackend) setLmBackend(data.activeLmBackend);
               lmSyncedRef.current = true;
             }
           }
