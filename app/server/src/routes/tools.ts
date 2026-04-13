@@ -25,6 +25,92 @@ function getAceStepDir(): string {
   return path.resolve(config.datasets.dir, '..');
 }
 
+// GET /api/tools/models — List available models from checkpoints directory
+router.get('/models', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const aceStepDir = getAceStepDir();
+    const checkpointsDir = path.join(aceStepDir, 'checkpoints');
+
+    if (!existsSync(checkpointsDir)) {
+      res.json({ models: [], checkpointsDir });
+      return;
+    }
+
+    const models: Array<{
+      name: string;
+      path: string;
+      sizeMb: number;
+      safetensorCount: number;
+      isBf16: boolean;
+    }> = [];
+
+    // Scan top-level folders
+    for (const entry of readdirSync(checkpointsDir)) {
+      const entryPath = path.join(checkpointsDir, entry);
+      try {
+        if (!statSync(entryPath).isDirectory()) continue;
+        // Skip non-model dirs
+        if (entry.startsWith('acestep-5Hz-lm-') || entry === 'vae' || entry.startsWith('Qwen')) continue;
+
+        const files = readdirSync(entryPath);
+        const safetensors = files.filter((f: string) => f.endsWith('.safetensors'));
+        if (safetensors.length === 0) continue;
+
+        let totalSize = 0;
+        for (const f of safetensors) {
+          try { totalSize += statSync(path.join(entryPath, f)).size; } catch {}
+        }
+
+        models.push({
+          name: entry,
+          path: entryPath,
+          sizeMb: Math.round(totalSize / 1024 / 1024 * 10) / 10,
+          safetensorCount: safetensors.length,
+          isBf16: entry.toLowerCase().includes('bf16'),
+        });
+      } catch {}
+    }
+
+    // Scan nested dirs (org/repo style)
+    for (const entry of readdirSync(checkpointsDir)) {
+      const entryPath = path.join(checkpointsDir, entry);
+      try {
+        if (!statSync(entryPath).isDirectory()) continue;
+        for (const sub of readdirSync(entryPath)) {
+          const subPath = path.join(entryPath, sub);
+          if (!statSync(subPath).isDirectory()) continue;
+          const files = readdirSync(subPath);
+          const safetensors = files.filter((f: string) => f.endsWith('.safetensors'));
+          if (safetensors.length === 0) continue;
+
+          let totalSize = 0;
+          for (const f of safetensors) {
+            try { totalSize += statSync(path.join(subPath, f)).size; } catch {}
+          }
+
+          models.push({
+            name: `${entry}/${sub}`,
+            path: subPath,
+            sizeMb: Math.round(totalSize / 1024 / 1024 * 10) / 10,
+            safetensorCount: safetensors.length,
+            isBf16: sub.toLowerCase().includes('bf16'),
+          });
+        }
+      } catch {}
+    }
+
+    // Sort: non-bf16 first (candidates for conversion), then by size desc
+    models.sort((a, b) => {
+      if (a.isBf16 !== b.isBf16) return a.isBf16 ? 1 : -1;
+      return b.sizeMb - a.sizeMb;
+    });
+
+    res.json({ models, checkpointsDir });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to list models' });
+  }
+});
+
 // POST /api/tools/bf16/start — Start BF16 conversion
 router.post('/bf16/start', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {

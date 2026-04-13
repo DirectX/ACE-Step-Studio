@@ -46,6 +46,38 @@ function useAuthHeaders() {
   return headersRef;
 }
 
+interface ModelEntry {
+  name: string;
+  path: string;
+  sizeMb: number;
+  safetensorCount: number;
+  isBf16: boolean;
+}
+
+function useModelList() {
+  const headersRef = useAuthHeaders();
+  const [models, setModels] = useState<ModelEntry[]>([]);
+  const [checkpointsDir, setCheckpointsDir] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tools/models', { headers: headersRef.current });
+      if (res.ok) {
+        const data = await res.json();
+        setModels(data.models || []);
+        setCheckpointsDir(data.checkpointsDir || '');
+      }
+    } catch {} finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  return { models, checkpointsDir, loading, refresh };
+}
+
 function formatEventLog(e: Record<string, unknown>): string | null {
   switch (e.event) {
     case 'tensor_progress': return null; // skip, shown in progress bar
@@ -183,40 +215,19 @@ const ProgressSection: React.FC<{
 const BF16Tool: React.FC = () => {
   const headersRef = useAuthHeaders();
   const { t } = useI18n();
+  const { models, checkpointsDir, refresh: refreshModels } = useModelList();
 
-  const [sourcePath, setSourcePath] = useState('');
-  const [outputDir, setOutputDir] = useState('');
-  const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analyzeError, setAnalyzeError] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
 
   const { status, log, logEndRef, startPolling, stopPolling, reset, setStatus, setLog } =
     useToolPolling('/api/tools/bf16/status');
 
-  const handleAnalyze = useCallback(async () => {
-    if (!sourcePath.trim()) return;
-    setAnalyzing(true);
-    setAnalyzeError('');
-    setAnalyzeResult(null);
-    try {
-      const res = await fetch('/api/tools/bf16/analyze', {
-        method: 'POST', headers: headersRef.current, body: JSON.stringify({ sourcePath: sourcePath.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Analysis failed');
-      setAnalyzeResult(data);
-      if (!outputDir.trim()) {
-        setOutputDir('./ACE-Step-1.5/checkpoints');
-      }
-    } catch (e) {
-      setAnalyzeError(e instanceof Error ? e.message : 'Analysis failed');
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [sourcePath, outputDir]);
+  // Filter: only non-bf16 models (candidates for conversion)
+  const convertibleModels = models.filter(m => !m.isBf16);
+  const selected = models.find(m => m.name === selectedModel);
 
   const handleStart = useCallback(async () => {
-    if (!sourcePath.trim() || !outputDir.trim()) return;
+    if (!selected) return;
     reset();
     setStatus({ status: 'running' });
     setLog([`${t('bf16Title')} ${t('toolStarted')}`]);
@@ -224,9 +235,10 @@ const BF16Tool: React.FC = () => {
     await fetch('/api/tools/bf16/reset', { method: 'POST', headers: headersRef.current }).catch(() => {});
 
     try {
+      // Source = selected model path, output = same checkpoints dir (script creates -bf16 subfolder)
       const res = await fetch('/api/tools/bf16/start', {
         method: 'POST', headers: headersRef.current,
-        body: JSON.stringify({ sourcePath: sourcePath.trim(), outputDir: outputDir.trim() }),
+        body: JSON.stringify({ sourcePath: selected.path, outputDir: checkpointsDir }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start');
@@ -234,7 +246,7 @@ const BF16Tool: React.FC = () => {
     } catch (e) {
       setStatus({ status: 'error', error: e instanceof Error ? e.message : 'Failed' });
     }
-  }, [sourcePath, outputDir, startPolling, reset, setStatus, setLog]);
+  }, [selected, checkpointsDir, startPolling, reset, setStatus, setLog]);
 
   const handleStop = useCallback(async () => {
     await fetch('/api/tools/bf16/stop', { method: 'POST', headers: headersRef.current }).catch(() => {});
@@ -242,6 +254,11 @@ const BF16Tool: React.FC = () => {
     setStatus({ status: 'error', error: t('toolCancelled') });
     setLog(prev => [...prev, t('toolCancelled')]);
   }, [stopPolling, setStatus, setLog]);
+
+  // Refresh model list when conversion finishes
+  useEffect(() => {
+    if (status.status === 'done') refreshModels();
+  }, [status.status, refreshModels]);
 
   const isRunning = status.status === 'running';
 
@@ -251,48 +268,32 @@ const BF16Tool: React.FC = () => {
         <p className="text-xs text-blue-300">{t('bf16Description')}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Section title={t('bf16Source')}>
-          <div className="flex gap-2">
-            <input
-              type="text" value={sourcePath}
-              onChange={e => { setSourcePath(e.target.value); setAnalyzeResult(null); }}
-              placeholder="./models/acestep-v15-xl"
-              className="flex-1 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50"
-            />
-            <button
-              onClick={handleAnalyze}
-              disabled={analyzing || !sourcePath.trim()}
-              className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {analyzing ? <Loader2 size={14} className="animate-spin" /> : <FolderOpen size={14} />}
-              {t('bf16Analyze')}
-            </button>
-          </div>
-          {analyzeError && <p className="text-xs text-red-400 mt-1.5">{analyzeError}</p>}
-          {analyzeResult && (
-            <div className="mt-2 text-xs text-zinc-400 space-y-0.5">
-              <p>{t('toolType')}: <span className="text-zinc-200">{analyzeResult.sourceType === 'folder' ? t('toolModelFolder') : t('toolSingleFile')}</span></p>
-              <p>{t('toolName')}: <span className="text-zinc-200">{analyzeResult.displayName}</span></p>
-              <p>{t('toolFiles')}: <span className="text-zinc-200">{analyzeResult.safetensorCount} {t('toolSafetensors')}</span>{analyzeResult.supportCount > 0 && <span> + {analyzeResult.supportCount} {t('toolSupport')}</span>}</p>
-              <p>{t('toolSize')}: <span className="text-zinc-200">{analyzeResult.totalSizeMb} MB</span> → ~<span className="text-green-400">{Math.round(analyzeResult.totalSizeMb / 2)} MB</span></p>
-            </div>
-          )}
-        </Section>
-
-        <Section title={t('bf16Output')}>
-          <input
-            type="text" value={outputDir} onChange={e => setOutputDir(e.target.value)}
-            placeholder="./ACE-Step-1.5/checkpoints"
-            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50"
-          />
-          <p className="text-[10px] text-zinc-500 mt-1">{t('bf16OutputHint')}</p>
-        </Section>
-      </div>
+      <Section title={t('bf16Source')}>
+        <select
+          value={selectedModel}
+          onChange={e => setSelectedModel(e.target.value)}
+          className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50 [&>option]:bg-white [&>option]:dark:bg-zinc-800"
+        >
+          <option value="">{t('bf16SelectModel')}</option>
+          {convertibleModels.map(m => (
+            <option key={m.name} value={m.name}>
+              {m.name} — {m.sizeMb} MB ({m.safetensorCount} files) → ~{Math.round(m.sizeMb / 2)} MB
+            </option>
+          ))}
+        </select>
+        {selected && (
+          <p className="text-[10px] text-zinc-500 mt-1.5">
+            {t('bf16OutputHint')} → {selected.name}-bf16
+          </p>
+        )}
+        {convertibleModels.length === 0 && (
+          <p className="text-[10px] text-zinc-500 mt-1.5">{t('bf16NoModels')}</p>
+        )}
+      </Section>
 
       <div className="flex gap-2">
         {!isRunning ? (
-          <button onClick={handleStart} disabled={!sourcePath.trim() || !outputDir.trim() || analyzing}
+          <button onClick={handleStart} disabled={!selected}
             className="flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50">
             <ArrowRightLeft size={16} />
             {t('bf16Start')}
@@ -321,27 +322,39 @@ const BF16Tool: React.FC = () => {
 const MergeTool: React.FC = () => {
   const headersRef = useAuthHeaders();
   const { t } = useI18n();
+  const { models, checkpointsDir, refresh: refreshModels } = useModelList();
 
-  const [modelA, setModelA] = useState('');
-  const [modelB, setModelB] = useState('');
-  const [outputDir, setOutputDir] = useState('');
+  const [modelAName, setModelAName] = useState('');
+  const [modelBName, setModelBName] = useState('');
+  const [outputName, setOutputName] = useState('');
   const [alpha, setAlpha] = useState(0.5);
 
   const { status, log, logEndRef, startPolling, stopPolling, reset, setStatus, setLog } =
     useToolPolling('/api/tools/merge/status');
 
+  const modelA = models.find(m => m.name === modelAName);
+  const modelB = models.find(m => m.name === modelBName);
+
+  // Auto-generate output name from selections
+  const autoOutputName = modelAName && modelBName
+    ? `${modelAName.replace(/\//g, '-')}-x-${modelBName.replace(/\//g, '-')}-a${alpha.toFixed(2)}`
+    : '';
+  const finalOutputName = outputName.trim() || autoOutputName;
+
   const handleStart = useCallback(async () => {
-    if (!modelA.trim() || !modelB.trim() || !outputDir.trim()) return;
+    if (!modelA || !modelB || !finalOutputName) return;
     reset();
     setStatus({ status: 'running' });
     setLog([`${t('mergeTitle')} ${t('toolStarted')}`]);
+
+    const outputPath = `${checkpointsDir}/${finalOutputName}`;
 
     await fetch('/api/tools/merge/reset', { method: 'POST', headers: headersRef.current }).catch(() => {});
 
     try {
       const res = await fetch('/api/tools/merge/start', {
         method: 'POST', headers: headersRef.current,
-        body: JSON.stringify({ modelA: modelA.trim(), modelB: modelB.trim(), outputDir: outputDir.trim(), alpha }),
+        body: JSON.stringify({ modelA: modelA.path, modelB: modelB.path, outputDir: outputPath, alpha }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start');
@@ -349,7 +362,7 @@ const MergeTool: React.FC = () => {
     } catch (e) {
       setStatus({ status: 'error', error: e instanceof Error ? e.message : 'Failed' });
     }
-  }, [modelA, modelB, outputDir, alpha, startPolling, reset, setStatus, setLog]);
+  }, [modelA, modelB, finalOutputName, checkpointsDir, alpha, startPolling, reset, setStatus, setLog]);
 
   const handleStop = useCallback(async () => {
     await fetch('/api/tools/merge/stop', { method: 'POST', headers: headersRef.current }).catch(() => {});
@@ -358,7 +371,12 @@ const MergeTool: React.FC = () => {
     setLog(prev => [...prev, t('toolCancelled')]);
   }, [stopPolling, setStatus, setLog]);
 
+  useEffect(() => {
+    if (status.status === 'done') refreshModels();
+  }, [status.status, refreshModels]);
+
   const isRunning = status.status === 'running';
+  const selectClass = "w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50 [&>option]:bg-white [&>option]:dark:bg-zinc-800";
 
   return (
     <div className="space-y-3">
@@ -368,22 +386,31 @@ const MergeTool: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Section title={`${t('mergeModelA')} (base)`}>
-          <input type="text" value={modelA} onChange={e => setModelA(e.target.value)}
-            placeholder="./models/acestep-v15-xl"
-            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
+          <select value={modelAName} onChange={e => setModelAName(e.target.value)} className={selectClass}>
+            <option value="">{t('bf16SelectModel')}</option>
+            {models.map(m => (
+              <option key={m.name} value={m.name}>{m.name} — {m.sizeMb} MB</option>
+            ))}
+          </select>
         </Section>
         <Section title={`${t('mergeModelB')} (merge)`}>
-          <input type="text" value={modelB} onChange={e => setModelB(e.target.value)}
-            placeholder="./models/acestep-sft-turbo-xl"
-            className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
+          <select value={modelBName} onChange={e => setModelBName(e.target.value)} className={selectClass}>
+            <option value="">{t('bf16SelectModel')}</option>
+            {models.filter(m => m.name !== modelAName).map(m => (
+              <option key={m.name} value={m.name}>{m.name} — {m.sizeMb} MB</option>
+            ))}
+          </select>
         </Section>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Section title={t('mergeOutput')}>
-          <input type="text" value={outputDir} onChange={e => setOutputDir(e.target.value)}
-            placeholder="./ACE-Step-1.5/checkpoints/my-merged-model"
+        <Section title={`${t('mergeOutput')} (${t('optional')})`}>
+          <input type="text" value={outputName} onChange={e => setOutputName(e.target.value)}
+            placeholder={autoOutputName || 'my-merged-model'}
             className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-pink-500/50" />
+          {finalOutputName && (
+            <p className="text-[10px] text-zinc-500 mt-1 truncate">→ checkpoints/{finalOutputName}</p>
+          )}
         </Section>
         <Section title={`${t('mergeAlpha')} (${alpha.toFixed(2)})`}>
           <input type="range" min={0} max={1} step={0.05} value={alpha}
@@ -398,7 +425,7 @@ const MergeTool: React.FC = () => {
 
       <div className="flex gap-2">
         {!isRunning ? (
-          <button onClick={handleStart} disabled={!modelA.trim() || !modelB.trim() || !outputDir.trim()}
+          <button onClick={handleStart} disabled={!modelA || !modelB}
             className="flex-1 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50">
             <GitMerge size={16} />
             {t('mergeStart')}
