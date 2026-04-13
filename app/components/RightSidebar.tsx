@@ -539,10 +539,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                             ['CFG Interval', p.cfgIntervalStart != null && p.cfgIntervalEnd != null && (p.cfgIntervalStart > 0 || p.cfgIntervalEnd < 1) ? `${p.cfgIntervalStart}–${p.cfgIntervalEnd}` : undefined],
                             ['Vel. Clamp', p.velocityNormThreshold > 0 ? p.velocityNormThreshold : undefined],
                             ['Vel. EMA', p.velocityEmaFactor > 0 ? p.velocityEmaFactor : undefined],
-                            ['Cover Strength', p.audioCoverStrength != null && p.audioCoverStrength < 1 ? p.audioCoverStrength : undefined],
+                            [t('coverStrength'), p.audioCoverStrength != null && p.audioCoverStrength < 1 ? p.audioCoverStrength : undefined],
                             ['Task', p.taskType && p.taskType !== 'text2music' ? p.taskType : undefined],
                             ['Format', p.audioFormat?.toUpperCase()],
-                            ['Gen Time', song.generationTime ? `${song.generationTime.toFixed(1)}s` : undefined],
+                            [t('genTime'), song.generationTime ? `${song.generationTime.toFixed(1)}s` : undefined],
                         ];
                         const visibleRows = paramRows.filter(([, v]) => v !== undefined && v !== null && v !== '');
 
@@ -591,7 +591,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                         className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-200 dark:bg-white/5 hover:bg-zinc-300 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-400 text-[11px] font-medium transition-colors mt-2"
                                     >
                                         <ClipboardCopy size={12} />
-                                        {t('copyParams') || 'Copy Parameters'}
+                                        {t('copyParams')}
                                     </button>
                                 </div>
                             </details>
