@@ -65,9 +65,9 @@ class InitServiceOrchestratorMixin:
         """
         try:
             if config_path is None:
-                config_path = "acestep-v15-xl-turbo"
+                config_path = "acestep-v15-turbo"
                 logger.warning(
-                    "[initialize_service] config_path not set; defaulting to 'acestep-v15-xl-turbo'."
+                    "[initialize_service] config_path not set; defaulting to 'acestep-v15-turbo'."
                 )
 
             resolved_device = self._resolve_initialize_device(device)

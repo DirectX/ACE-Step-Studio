@@ -123,13 +123,6 @@ class LLMHandler:
                         self.llm.reset()
                 except Exception:
                     pass
-                # Unregister atexit handler so GC can free the engine
-                if self.llm is not None:
-                    import atexit
-                    try:
-                        atexit.unregister(self.llm.exit)
-                    except Exception:
-                        pass
                 self._cleanup_torch_distributed_state()
             self.llm = None
             self.llm_tokenizer = None
@@ -952,14 +945,6 @@ class LLMHandler:
         else:
             outputs = self.llm.generate(formatted_prompt_list, sampling_params)
 
-        # Clear prefix cache to prevent unbounded hash_to_block_id growth
-        # across successive generations.  Blocks are already deallocated by
-        # the scheduler's postprocess(); this only drops the hash lookup table.
-        try:
-            self.llm.scheduler.block_manager.hash_to_block_id.clear()
-        except (AttributeError, TypeError):
-            pass
-
         # Extract text from outputs
         output_texts = []
         for output in outputs:
@@ -1419,7 +1404,7 @@ class LLMHandler:
                 logger.info("Batch Phase 1: Using user-provided metadata (skipping generation)")
             else:
                 logger.info("Phase 1: Using user-provided metadata (skipping generation)")
-            metadata = {k: v for k, v in (user_metadata or {}).items() if v is not None}
+            metadata = {k: v for k, v in user_metadata.items() if v is not None}
 
         # When the caller did not supply an explicit target_duration, use the
         # duration that Phase 1 (CoT) produced so that Phase 2 code generation

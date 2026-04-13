@@ -40,7 +40,6 @@ def _read_audio_file(audio_file: str) -> Tuple[np.ndarray, int]:
         )
 
     # Slow path: torchaudio (uses torchcodec -> FFmpeg under the hood)
-    ta_err = None
     try:
         import torchaudio
 
@@ -50,35 +49,11 @@ def _read_audio_file(audio_file: str) -> Tuple[np.ndarray, int]:
         if audio_np.shape[1] == 1:
             audio_np = audio_np.squeeze(1)  # -> [samples] for mono
         return audio_np.astype(np.float32), sr
-    except Exception as exc:
-        ta_err = exc
-        logger.debug(
-            "[_read_audio_file] torchaudio cannot read '{}': {}. Trying ffmpeg fallback.",
-            audio_file, ta_err,
-        )
-
-    # Last resort: ffmpeg subprocess (handles all formats including MP3 with ID3 tags)
-    try:
-        import subprocess
-        import tempfile
-        import os
-
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp_path = tmp.name
-
-        subprocess.run(
-            ["ffmpeg", "-y", "-i", audio_file, "-f", "wav", "-acodec", "pcm_f32le", tmp_path],
-            capture_output=True, check=True, timeout=60,
-        )
-        audio_np, sr = sf.read(tmp_path, dtype="float32")
-        os.unlink(tmp_path)
-        logger.info("[_read_audio_file] Read '{}' via ffmpeg fallback ({}Hz)", audio_file, sr)
-        return audio_np, sr
-    except Exception as ff_err:
+    except Exception as ta_err:
         raise RuntimeError(
-            f"Cannot read '{audio_file}': soundfile ({sf_err}), "
-            f"torchaudio ({ta_err}), ffmpeg ({ff_err}) all failed."
-        ) from ff_err
+            f"Cannot read '{audio_file}': soundfile ({sf_err}) "
+            f"and torchaudio ({ta_err}) both failed."
+        ) from ta_err
 
 
 class IoAudioMixin:

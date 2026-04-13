@@ -40,8 +40,6 @@ _CHECKPOINT_TO_VARIANT: Dict[str, str] = {
     "acestep-v15-xl-base": "xl_base",
     "acestep-v15-xl-sft": "xl_sft",
     "acestep-v15-xl-turbo": "xl_turbo",
-    "marcorez8/acestep-v15-xl-turbo-bf16": "xl_turbo",
-    "acestep-v15-xl-merge-sft-turbo": "xl_sft",
 }
 
 
@@ -165,7 +163,6 @@ def _download_from_huggingface_internal(
     repo_id: str,
     local_dir: Path,
     token: Optional[str] = None,
-    ignore_patterns: Optional[List[str]] = None,
 ) -> None:
     """
     Internal function to download from HuggingFace Hub.
@@ -174,7 +171,6 @@ def _download_from_huggingface_internal(
         repo_id: HuggingFace repository ID (e.g., "ACE-Step/Ace-Step1.5")
         local_dir: Local directory to save the model
         token: HuggingFace token for private repos (optional)
-        ignore_patterns: File patterns to exclude from download (optional)
 
     Raises:
         Exception: If download fails
@@ -183,16 +179,12 @@ def _download_from_huggingface_internal(
 
     logger.info(f"[Model Download] Downloading from HuggingFace: {repo_id} -> {local_dir}")
 
-    kwargs = dict(
+    snapshot_download(
         repo_id=repo_id,
         local_dir=str(local_dir),
         local_dir_use_symlinks="auto",
         token=token,
     )
-    if ignore_patterns:
-        kwargs["ignore_patterns"] = ignore_patterns
-
-    snapshot_download(**kwargs)
 
 
 def _download_from_modelscope_internal(
@@ -224,7 +216,6 @@ def _smart_download(
     local_dir: Path,
     token: Optional[str] = None,
     prefer_source: Optional[str] = None,
-    ignore_patterns: Optional[List[str]] = None,
 ) -> Tuple[bool, str]:
     """
     Smart download with automatic fallback between HuggingFace and ModelScope.
@@ -260,7 +251,7 @@ def _smart_download(
     if use_huggingface_first:
         logger.info("[Model Download] Using HuggingFace Hub...")
         try:
-            _download_from_huggingface_internal(repo_id, local_dir, token, ignore_patterns)
+            _download_from_huggingface_internal(repo_id, local_dir, token)
             return True, f"Successfully downloaded from HuggingFace: {repo_id}"
         except Exception as e:
             logger.warning(f"[Model Download] HuggingFace download failed: {e}")
@@ -281,7 +272,7 @@ def _smart_download(
             logger.warning(f"[Model Download] ModelScope download failed: {e}")
             logger.info("[Model Download] Falling back to HuggingFace Hub...")
             try:
-                _download_from_huggingface_internal(repo_id, local_dir, token, ignore_patterns)
+                _download_from_huggingface_internal(repo_id, local_dir, token)
                 return True, f"Successfully downloaded from HuggingFace: {repo_id}"
             except Exception as e2:
                 error_msg = f"Both ModelScope and HuggingFace downloads failed. MS: {e}, HF: {e2}"
@@ -310,13 +301,11 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
     "acestep-v15-xl-base": "ACE-Step/acestep-v15-xl-base",
     "acestep-v15-xl-sft": "ACE-Step/acestep-v15-xl-sft",
     "acestep-v15-xl-turbo": "ACE-Step/acestep-v15-xl-turbo",
-    "marcorez8/acestep-v15-xl-turbo-bf16": "marcorez8/acestep-v15-xl-turbo-bf16",
-    "acestep-v15-xl-merge-sft-turbo": "jeankassio/acestep_v1.5_merge_sft_turbo_xl",
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
-# Shared components from main model repo — DiT is downloaded separately via ensure_dit_model
 MAIN_MODEL_COMPONENTS = [
+    "acestep-v15-turbo",      # Default DiT model
     "vae",                     # VAE for audio encoding/decoding
     "Qwen3-Embedding-0.6B",    # Text encoder
     "acestep-5Hz-lm-1.7B",     # Default LM model (1.7B)
@@ -449,6 +438,7 @@ def download_main_model(
     Download the main ACE-Step model from HuggingFace or ModelScope.
 
     The main model includes:
+    - acestep-v15-turbo (default DiT model)
     - vae (audio encoder/decoder)
     - Qwen3-Embedding-0.6B (text encoder)
     - acestep-5Hz-lm-1.7B (default LM model)
@@ -478,11 +468,7 @@ def download_main_model(
     print("This may take a while depending on your internet connection...")
 
     # Use smart download with automatic fallback
-    # Skip acestep-v15-turbo — legacy 2.4B DiT not used in XL builds (saves ~4.5 GB)
-    success, msg = _smart_download(
-        MAIN_MODEL_REPO, checkpoints_dir, token, prefer_source,
-        ignore_patterns=["acestep-v15-turbo/*"],
-    )
+    success, msg = _smart_download(MAIN_MODEL_REPO, checkpoints_dir, token, prefer_source)
     if success:
         # Sync model code files for all DiT components in the main model
         for component in MAIN_MODEL_COMPONENTS:
@@ -527,14 +513,8 @@ def download_submodel(
 
     model_path = checkpoints_dir / model_name
 
-    if not force and _contains_model_weights(model_path):
+    if not force and model_path.exists():
         return True, f"Model '{model_name}' already exists at {model_path}"
-
-    # Directory exists but no weights — incomplete download, clean up and re-download
-    if model_path.exists() and not _contains_model_weights(model_path):
-        logger.warning(f"[Model Download] Directory exists but no weight files found: {model_path}")
-        logger.info(f"[Model Download] Removing incomplete download and re-downloading...")
-        shutil.rmtree(model_path, ignore_errors=True)
 
     repo_id = SUBMODEL_REGISTRY[model_name]
 
@@ -543,35 +523,11 @@ def download_submodel(
 
     # Use smart download with automatic fallback
     success, msg = _smart_download(repo_id, model_path, token, prefer_source)
-    if success:
-        # If downloaded repo has no model.safetensors, rename the first .safetensors found
-        if not (model_path / "model.safetensors").exists():
-            safetensors_files = list(model_path.glob("*.safetensors"))
-            if safetensors_files:
-                src = safetensors_files[0]
-                logger.info(f"[Model Download] Renaming {src.name} → model.safetensors")
-                src.rename(model_path / "model.safetensors")
-
-        # If downloaded repo has no config.json, copy from reference model (same architecture)
-        if not (model_path / "config.json").exists() and model_name in _CHECKPOINT_TO_VARIANT:
-            variant = _CHECKPOINT_TO_VARIANT[model_name]
-            # Find a reference model with same variant that has config.json
-            for ref_name, ref_variant in _CHECKPOINT_TO_VARIANT.items():
-                if ref_variant == variant and ref_name != model_name:
-                    ref_path = checkpoints_dir / ref_name
-                    if (ref_path / "config.json").exists():
-                        for fname in ["config.json", "configuration_acestep_v15.py", "silence_latent.pt"]:
-                            src_file = ref_path / fname
-                            if src_file.exists():
-                                shutil.copy2(src_file, model_path / fname)
-                                logger.info(f"[Model Download] Copied {fname} from {ref_name}")
-                        break
-
-        # Sync model code files
-        if model_name in _CHECKPOINT_TO_VARIANT:
-            synced = _sync_model_code_files(model_name, checkpoints_dir)
-            if synced:
-                logger.info(f"[Model Download] Synced code files for {model_name}: {synced}")
+    if success and model_name in _CHECKPOINT_TO_VARIANT:
+        # Sync model code files after successful download
+        synced = _sync_model_code_files(model_name, checkpoints_dir)
+        if synced:
+            logger.info(f"[Model Download] Synced code files for {model_name}: {synced}")
     return success, msg
 
 
@@ -719,7 +675,7 @@ def ensure_dit_model(
     if check_model_exists(model_name, checkpoints_dir):
         return True, f"DiT model '{model_name}' is available"
 
-    # Check if this is a model bundled in the main repo
+    # Check if this is the default turbo model (part of main)
     if model_name == "acestep-v15-turbo":
         return ensure_main_model(checkpoints_dir, token, prefer_source)
 
@@ -743,7 +699,7 @@ def print_model_list():
 
     print("\n[Main Model]")
     print(f"  main -> {MAIN_MODEL_REPO}")
-    print("  Contains: vae, Qwen3-Embedding-0.6B, acestep-5Hz-lm-1.7B")
+    print("  Contains: vae, Qwen3-Embedding-0.6B, acestep-v15-turbo, acestep-5Hz-lm-1.7B")
 
     print("\n[Optional LM Models]")
     for name, repo in SUBMODEL_REGISTRY.items():

@@ -209,7 +209,6 @@ class GenerateMusicMixin:
         sampler_mode: str = "euler",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
-        scheduler_type: str = "linear",
         use_tiled_decode: bool = True,
         timesteps: Optional[List[float]] = None,
         latent_shift: float = 0.0,
@@ -361,7 +360,6 @@ class GenerateMusicMixin:
                 sampler_mode=sampler_mode,
                 velocity_norm_threshold=velocity_norm_threshold,
                 velocity_ema_factor=velocity_ema_factor,
-                scheduler_type=scheduler_type,
                 repaint_crossfade_frames=resolved_cf_frames,
                 repaint_injection_ratio=injection_ratio,
             )
@@ -424,9 +422,6 @@ class GenerateMusicMixin:
         except Exception as exc:
             error_msg = f"Error: {exc!s}\n{traceback.format_exc()}"
             logger.exception("[generate_music] Generation failed")
-            # Reclaim GPU memory on error to prevent fragmentation
-            gc.collect()
-            self._empty_cache()
             return {
                 "audios": [],
                 "status_message": error_msg,
