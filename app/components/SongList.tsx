@@ -805,12 +805,22 @@ const SongItem: React.FC<SongItemProps> = ({
                 )}
             </div>
 
-            {/* Timestamp */}
-            <div className="text-xs font-mono text-zinc-500 dark:text-zinc-600 self-start pt-1">
+            {/* Timestamp / Status */}
+            <div className="text-xs font-mono text-zinc-500 dark:text-zinc-600 self-start pt-1 text-right">
                 {song.isGenerating ? (
-                    <span className={song.queuePosition ? 'text-amber-500' : 'text-pink-500'}>
-                        {song.queuePosition ? `#${song.queuePosition}` : (t(song.stage) || song.stage || t('creating') || 'Creating...')}
-                    </span>
+                    <div className="flex flex-col items-end gap-0.5">
+                        <span className={song.queuePosition ? 'text-amber-500' : 'text-pink-500'}>
+                            {song.queuePosition ? `#${song.queuePosition}` : (t(song.stage) || song.stage || t('creating') || 'Creating...')}
+                        </span>
+                        {onCancelJob && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onCancelJob(); }}
+                                className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors font-sans"
+                            >
+                                {t('cancelGeneration')}
+                            </button>
+                        )}
+                    </div>
                 ) : song.duration}
             </div>
         </div>
