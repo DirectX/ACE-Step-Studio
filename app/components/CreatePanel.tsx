@@ -429,14 +429,20 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     };
     if (mapping[modelId]) return mapping[modelId];
     // Auto-generate display name for custom models
-    // Strip common prefixes and format nicely
     let name = modelId.includes('/') ? modelId.split('/').pop()! : modelId;
     name = name
       .replace(/^acestep-v15-/i, '')
-      .replace(/-bf16$/i, ' BF16')
-      .replace(/-merged-a[\d.]+$/i, ' (Merged)')
       .replace(/-/g, ' ')
-      .replace(/\b\w/g, c => c.toUpperCase());
+      .replace(/\b\w/g, c => c.toUpperCase())
+      // Fix abbreviations
+      .replace(/\bXl\b/g, 'XL')
+      .replace(/\bBf16\b/g, 'BF16')
+      .replace(/\bFp16\b/g, 'FP16')
+      .replace(/\bFp32\b/g, 'FP32')
+      .replace(/\bLora\b/g, 'LoRA')
+      // SFT+Turbo combo (must be before individual SFT/Turbo)
+      .replace(/Sft Turbo/gi, 'SFT+Turbo')
+      .replace(/\bSft\b/g, 'SFT');
     return name;
   };
 
