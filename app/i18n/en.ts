@@ -70,6 +70,17 @@ export const en = {
     loadLoraForInference: 'Load LoRA for Inference',
     loadLoraHint: 'After exporting, use the LoRA controls in the Create panel to load your trained adapter.',
     initializingModel: 'Initializing model...',
+    // CFG Presets
+    presetDefault: 'Default',
+    presetDefaultDesc: 'Standard CFG on all steps. Balanced quality.',
+    presetCreative: 'Creative',
+    presetCreativeDesc: 'CFG only 15%-85% — free start for diversity, soft ending. More creative output.',
+    presetStrict: 'Strict',
+    presetStrictDesc: 'Full CFG + higher score scale. Follows prompt more closely.',
+    presetSmooth: 'Smooth',
+    presetSmoothDesc: 'CFG only first 70% — no guidance at end for smoother transitions.',
+    presetAdgDesc: 'Adaptive Denoising Guidance — auto-adjusts CFG per step. Often better than manual.',
+
     saveSample: 'Save Sample',
     toolModelFolder: 'Model folder',
     toolSingleFile: 'Single file',

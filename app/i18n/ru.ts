@@ -71,6 +71,17 @@ export const ru = {
     loadLoraForInference: 'Загрузить LoRA для инференса',
     loadLoraHint: 'После экспорта используйте элементы управления LoRA на панели Создать для загрузки обученного адаптера.',
     initializingModel: 'Инициализация модели...',
+    // CFG Presets
+    presetDefault: 'Стандарт',
+    presetDefaultDesc: 'CFG на всех шагах. Сбалансированное качество.',
+    presetCreative: 'Креатив',
+    presetCreativeDesc: 'CFG только 15%-85% — свободное начало для разнообразия, мягкий финал.',
+    presetStrict: 'Точный',
+    presetStrictDesc: 'Полный CFG + повышенный масштаб оценки. Точнее следует промпту.',
+    presetSmooth: 'Мягкий',
+    presetSmoothDesc: 'CFG только первые 70% — без guidance в конце для плавных переходов.',
+    presetAdgDesc: 'Адаптивный Denoising Guidance — автоматически подбирает CFG на каждом шаге.',
+
     saveSample: 'Сохранить сэмпл',
     preprocessing: 'Предобработка...',
     toolModelFolder: 'Папка модели',

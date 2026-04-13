@@ -2871,6 +2871,35 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('guidance')}</h4>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{t('advancedCfgScheduling')}</p>
+              {/* Presets */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  { label: t('presetDefault'), cfg: [0, 1], ts: '', score: 0.5, adg: false, desc: t('presetDefaultDesc') },
+                  { label: t('presetCreative'), cfg: [0.15, 0.85], ts: '', score: 0.5, adg: false, desc: t('presetCreativeDesc') },
+                  { label: t('presetStrict'), cfg: [0, 1], ts: '', score: 0.7, adg: false, desc: t('presetStrictDesc') },
+                  { label: t('presetSmooth'), cfg: [0, 0.7], ts: '', score: 0.3, adg: false, desc: t('presetSmoothDesc') },
+                  { label: 'ADG', cfg: [0, 1], ts: '', score: 0.5, adg: true, desc: t('presetAdgDesc') },
+                ].map(p => (
+                  <button
+                    key={p.label}
+                    title={p.desc}
+                    onClick={() => {
+                      setCfgIntervalStart(p.cfg[0]);
+                      setCfgIntervalEnd(p.cfg[1]);
+                      setCustomTimesteps(p.ts);
+                      setScoreScale(p.score);
+                      setUseAdg(p.adg);
+                    }}
+                    className={`px-2 py-1 rounded-md text-[10px] font-medium transition-all border ${
+                      cfgIntervalStart === p.cfg[0] && cfgIntervalEnd === p.cfg[1] && (useAdg === p.adg)
+                        ? 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+                        : 'bg-white/5 text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
