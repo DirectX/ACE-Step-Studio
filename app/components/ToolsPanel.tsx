@@ -66,10 +66,7 @@ function useToolPolling(endpoint: string) {
   const [status, setStatus] = useState<ToolStatus>({ status: 'idle' });
   const [log, setLog] = useState<string[]>([]);
   const logEndRef = useRef<HTMLSpanElement>(null);
-  const seenEventsRef = useRef(0);
-
   const startPolling = useCallback(() => {
-    seenEventsRef.current = 0;
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(async () => {
       try {
@@ -103,7 +100,6 @@ function useToolPolling(endpoint: string) {
   const reset = useCallback(() => {
     setStatus({ status: 'idle' });
     setLog([]);
-    seenEventsRef.current = 0;
   }, []);
 
   useEffect(() => {
@@ -124,10 +120,11 @@ const ProgressSection: React.FC<{
   status: ToolStatus;
   log: string[];
   logEndRef: React.RefObject<HTMLSpanElement | null>;
-  color: string;
+  barColor: string;
+  spinnerColor: string;
   doneText: string;
   runningText: string;
-}> = ({ title, status, log, logEndRef, color, doneText, runningText }) => {
+}> = ({ title, status, log, logEndRef, barColor, spinnerColor, doneText, runningText }) => {
   const isRunning = status.status === 'running';
   const isDone = status.status === 'done';
   const isError = status.status === 'error';
@@ -151,14 +148,14 @@ const ProgressSection: React.FC<{
         </div>
         <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-300 ${isDone ? 'bg-green-500' : isError ? 'bg-red-500' : `bg-${color}-500`}`}
+            className={`h-full rounded-full transition-all duration-300 ${isDone ? 'bg-green-500' : isError ? 'bg-red-500' : barColor}`}
             style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-2 mb-2">
-        {isRunning && <Loader2 size={14} className={`animate-spin text-${color}-400`} />}
+        {isRunning && <Loader2 size={14} className={`animate-spin ${spinnerColor}`} />}
         {isDone && <CheckCircle2 size={14} className="text-green-400" />}
         {isError && <AlertCircle size={14} className="text-red-400" />}
         <span className={`text-xs ${isDone ? 'text-green-400' : isError ? 'text-red-400' : 'text-zinc-300'}`}>
@@ -312,7 +309,7 @@ const BF16Tool: React.FC = () => {
       {status.status !== 'idle' && (
         <ProgressSection
           title={t('bf16Progress')} status={status} log={log} logEndRef={logEndRef}
-          color="blue" doneText={t('bf16Done')} runningText={t('bf16Running')}
+          barColor="bg-blue-500" spinnerColor="text-blue-400" doneText={t('bf16Done')} runningText={t('bf16Running')}
         />
       )}
     </div>
@@ -418,7 +415,7 @@ const MergeTool: React.FC = () => {
       {status.status !== 'idle' && (
         <ProgressSection
           title={t('mergeProgress')} status={status} log={log} logEndRef={logEndRef}
-          color="purple" doneText={t('bf16Done')} runningText={t('bf16Running')}
+          barColor="bg-purple-500" spinnerColor="text-purple-400" doneText={t('mergeDone')} runningText={t('mergeRunning')}
         />
       )}
     </div>

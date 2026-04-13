@@ -29,6 +29,8 @@ export const ru = {
     mergeStart: 'Начать слияние',
     mergeStop: 'Остановить',
     mergeProgress: 'Прогресс слияния',
+    mergeDone: 'Слияние завершено!',
+    mergeRunning: 'Слияние...',
     toolModelFolder: 'Папка модели',
     toolSingleFile: 'Одиночный файл',
     toolType: 'Тип',

@@ -29,6 +29,8 @@ export const zh = {
     mergeStart: '开始合并',
     mergeStop: '停止',
     mergeProgress: '合并进度',
+    mergeDone: '合并完成！',
+    mergeRunning: '合并中...',
     toolModelFolder: '模型文件夹',
     toolSingleFile: '单个文件',
     toolType: '类型',

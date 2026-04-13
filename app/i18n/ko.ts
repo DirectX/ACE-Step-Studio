@@ -29,6 +29,8 @@ export const ko = {
     mergeStart: '병합 시작',
     mergeStop: '중지',
     mergeProgress: '병합 진행',
+    mergeDone: '병합 완료!',
+    mergeRunning: '병합 중...',
     toolModelFolder: '모델 폴더',
     toolSingleFile: '단일 파일',
     toolType: '유형',

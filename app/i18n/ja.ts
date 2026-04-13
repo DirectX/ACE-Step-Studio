@@ -29,6 +29,8 @@ export const ja = {
   mergeStart: 'マージ開始',
   mergeStop: '停止',
   mergeProgress: 'マージの進捗',
+  mergeDone: 'マージ完了！',
+  mergeRunning: 'マージ中...',
   toolModelFolder: 'モデルフォルダ',
   toolSingleFile: '単一ファイル',
   toolType: 'タイプ',

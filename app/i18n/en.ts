@@ -29,6 +29,8 @@ export const en = {
     mergeStart: 'Start Merge',
     mergeStop: 'Stop',
     mergeProgress: 'Merge Progress',
+    mergeDone: 'Merge complete!',
+    mergeRunning: 'Merging...',
     toolModelFolder: 'Model folder',
     toolSingleFile: 'Single file',
     toolType: 'Type',
