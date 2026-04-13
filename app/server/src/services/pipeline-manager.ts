@@ -72,6 +72,11 @@ class PipelineManager {
       '--init_service', 'true',
       '--init_llm', 'true',
       '--enable-api',
+      // Always enable CPU offload — LM is unloaded from GPU between phases
+      // (after audio code generation, before DiT diffusion, reloaded for LRC).
+      // Without this, nano-vllm KV cache hogs 3-5GB during DiT/VAE leaving
+      // insufficient VRAM for long covers on 24GB GPUs with XL models.
+      '--offload_to_cpu', 'true',
     ];
 
     console.log(`[Pipeline] Starting: ${pythonPath} ${args.join(' ')}`);
