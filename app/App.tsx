@@ -694,7 +694,7 @@ function AppContent() {
     }
   }, []);
 
-  // Cancel a single generation job
+  // Cancel a single generation job (soft — stops polling, keeps card visible)
   const cancelGeneration = useCallback(async (jobId: string) => {
     if (!token) return;
     try {
@@ -704,10 +704,31 @@ function AppContent() {
       });
     } catch { /* ignore */ }
 
-    // Clean up the polling and temp song
+    // Stop polling but keep the card (user can click "Reset" next)
     const jobData = activeJobsRef.current.get(jobId);
     if (jobData) {
       clearInterval(jobData.pollInterval);
+      // Mark song as cancelled (not generating, show reset option)
+      setSongs(prev => prev.map(s =>
+        s.id === jobData.tempId ? { ...s, isGenerating: false, stage: 'cancelled' } : s
+      ));
+    }
+  }, [token]);
+
+  // Reset a single job — hard cancel (interrupt Gradio GPU + remove card)
+  const resetSingleJob = useCallback(async (jobId: string) => {
+    if (!token) return;
+    // Send cancel to Gradio to interrupt diffusion
+    try {
+      await fetch('/api/generate/reset', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch { /* ignore */ }
+
+    // Now clean up
+    const jobData = activeJobsRef.current.get(jobId);
+    if (jobData) {
       activeJobsRef.current.delete(jobId);
       setSongs(prev => prev.filter(s => s.id !== jobData.tempId));
       setActiveJobCount(activeJobsRef.current.size);
@@ -1537,6 +1558,7 @@ function AppContent() {
                 onCoverUpload={handleCoverUpload}
                 onSongUpdate={handleSongUpdate}
                 onCancelJob={cancelGeneration}
+                onResetJob={resetSingleJob}
                 onCancelAll={cancelAllGenerations}
                 onResetAll={resetGeneration}
                 activeJobCount={activeJobCount}

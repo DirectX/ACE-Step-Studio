@@ -288,11 +288,11 @@ def ipndm_step(xt: torch.Tensor, vt: torch.Tensor,
                **kwargs) -> torch.Tensor:
     """iPNDM (Improved Pseudo Numerical Methods for Diffusion).
 
-    4th-order Adams-Bashforth variant optimized for diffusion models.
-    Same as DEIS but with different coefficients tuned for flow matching.
-    Falls back gracefully with fewer history steps.
+    Currently uses the same Adams-Bashforth coefficients as DEIS.
+    Both produce identical results. Kept as separate entry for UI clarity
+    and future differentiation (iPNDM-specific coefficients from
+    Zhang & Chen 2022 could be implemented here).
     """
-    # iPNDM uses same Adams-Bashforth structure as DEIS
     return deis_step(xt, vt, t_curr, t_prev, bsz, device, dtype,
                      prev_velocities=prev_velocities)
 

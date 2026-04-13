@@ -208,28 +208,28 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.mp3Bitrate || '128k',                                    // 32: mp3_bitrate
     params.mp3SampleRate ?? 48000,                                  // 33: mp3_sample_rate
     params.lmTemperature ?? 0.85,                                 // 34: lm_temperature
-    isThinking,                                                   // 34: think_checkbox
-    Math.max(params.lmCfgScale ?? 2.0, 1.0),                      // 35: lm_cfg_scale (Gradio slider min=1.0)
-    params.lmTopK ?? 0,                                           // 36: lm_top_k
-    params.lmTopP ?? 0.9,                                         // 37: lm_top_p
-    params.lmNegativePrompt || 'NO USER INPUT',                   // 38: lm_negative_prompt
-    useCot ? (params.useCotMetas ?? true) : false,                // 39: use_cot_metas
-    useCot ? (params.useCotCaption ?? true) : false,              // 40: use_cot_caption
-    useCot ? (params.useCotLanguage ?? true) : false,             // 41: use_cot_language
+    isThinking,                                                   // 35: think_checkbox
+    Math.max(params.lmCfgScale ?? 2.0, 1.0),                      // 36: lm_cfg_scale (Gradio slider min=1.0)
+    params.lmTopK ?? 0,                                           // 37: lm_top_k
+    params.lmTopP ?? 0.9,                                         // 38: lm_top_p
+    params.lmNegativePrompt || 'NO USER INPUT',                   // 39: lm_negative_prompt
+    useCot ? (params.useCotMetas ?? true) : false,                // 40: use_cot_metas
+    useCot ? (params.useCotCaption ?? true) : false,              // 41: use_cot_caption
+    useCot ? (params.useCotLanguage ?? true) : false,             // 42: use_cot_language
     // is_format_caption_state — gr.State, managed by Gradio internally
-    params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
-    params.allowLmBatch ?? true,                                  // 43: allow_lm_batch
-    params.getScores ?? false,                                    // 44: auto_score
-    params.getLrc ?? true,                                        // 45: auto_lrc (enabled by default)
-    params.scoreScale ?? 0.5,                                     // 46: score_scale
-    params.lmBatchChunkSize ?? 8,                                 // 47: lm_batch_chunk_size
-    params.trackName || null,                                     // 48: track_name
-    params.completeTrackClasses || [],                            // 49: complete_track_classes
-    params.enableNormalization ?? true,                            // 50: enable_normalization
-    params.normalizationDb ?? -1.0,                               // 51: normalization_db
-    params.fadeInDuration ?? 0.0,                                 // 52: fade_in_duration
-    params.fadeOutDuration ?? 0.0,                                // 53: fade_out_duration
-    params.latentShift ?? 0.0,                                    // 54: latent_shift
+    params.constrainedDecodingDebug ?? false,                     // 43: constrained_decoding_debug
+    params.allowLmBatch ?? true,                                  // 44: allow_lm_batch
+    params.getScores ?? false,                                    // 45: auto_score
+    params.getLrc ?? true,                                        // 46: auto_lrc (enabled by default)
+    params.scoreScale ?? 0.5,                                     // 47: score_scale
+    params.lmBatchChunkSize ?? 8,                                 // 48: lm_batch_chunk_size
+    params.trackName || null,                                     // 49: track_name
+    params.completeTrackClasses || [],                            // 50: complete_track_classes
+    params.enableNormalization ?? true,                            // 51: enable_normalization
+    params.normalizationDb ?? -1.0,                               // 52: normalization_db
+    params.fadeInDuration ?? 0.0,                                 // 53: fade_in_duration
+    params.fadeOutDuration ?? 0.0,                                // 54: fade_out_duration
+    params.latentShift ?? 0.0,                                    // 55: latent_shift
     params.latentRescale ?? 1.0,                                  // 55: latent_rescale
     params.repaintMode || 'balanced',                             // 56: repaint_mode
     params.repaintStrength ?? 0.5,                                // 57: repaint_strength

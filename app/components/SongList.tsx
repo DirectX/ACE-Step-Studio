@@ -31,6 +31,7 @@ interface SongListProps {
     onUseUploadAsReference?: (track: { audio_url: string; filename: string }) => void;
     onCoverUpload?: (track: { audio_url: string; filename: string }) => void;
     onCancelJob?: (jobId: string) => void;
+    onResetJob?: (jobId: string) => void;
     onCancelAll?: () => void;
     onResetAll?: () => void;
     activeJobCount?: number;
@@ -111,6 +112,7 @@ export const SongList: React.FC<SongListProps> = ({
     onCoverUpload,
     onCancelJob,
     onCancelAll,
+    onResetJob,
     onResetAll,
     activeJobCount = 0,
 }) => {
@@ -419,6 +421,7 @@ export const SongList: React.FC<SongListProps> = ({
                                     onUseAsReference={() => onUseAsReference?.(item.song)}
                                     onCoverSong={() => onCoverSong?.(item.song)}
                                     onCancelJob={item.song.isGenerating && item.song.jobId ? () => onCancelJob?.(item.song.jobId!) : undefined}
+                                    onResetJob={item.song.stage === 'cancelled' && item.song.jobId ? () => onResetJob?.(item.song.jobId!) : undefined}
                                 />
                             ) : (
                                 <UploadItem
@@ -473,6 +476,7 @@ interface SongItemProps {
     onUseAsReference?: () => void;
     onCoverSong?: () => void;
     onCancelJob?: () => void;
+    onResetJob?: () => void;
 }
 
 const SongItem: React.FC<SongItemProps> = ({
@@ -498,6 +502,7 @@ const SongItem: React.FC<SongItemProps> = ({
     onUseAsReference,
     onCoverSong,
     onCancelJob,
+    onResetJob,
 }) => {
     const { token } = useAuth();
     const { t } = useI18n();
@@ -827,6 +832,16 @@ const SongItem: React.FC<SongItemProps> = ({
                                 {t('cancelGeneration')}
                             </button>
                         )}
+                    </div>
+                ) : song.stage === 'cancelled' && onResetJob ? (
+                    <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-red-400 text-[10px] font-sans">{t('cancelGeneration')}</span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onResetJob(); }}
+                            className="text-[10px] text-red-400 hover:text-red-300 transition-colors font-sans animate-pulse font-bold"
+                        >
+                            {t('resetGeneration')}
+                        </button>
                     </div>
                 ) : song.duration}
             </div>
