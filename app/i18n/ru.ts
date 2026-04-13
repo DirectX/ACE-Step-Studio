@@ -29,6 +29,26 @@ export const ru = {
     mergeStart: 'Начать слияние',
     mergeStop: 'Остановить',
     mergeProgress: 'Прогресс слияния',
+    toolModelFolder: 'Папка модели',
+    toolSingleFile: 'Одиночный файл',
+    toolType: 'Тип',
+    toolName: 'Имя',
+    toolFiles: 'Файлы',
+    toolSize: 'Размер',
+    toolCancelled: 'Отменено пользователем',
+    toolStarted: 'запущено...',
+    toolSafetensors: 'safetensors',
+    toolSupport: 'служебных',
+
+    // News & Changelog
+    newsSubtitle: 'Обновления и объявления',
+    changelog: 'История изменений',
+    changelogLoading: 'Загрузка истории...',
+    changelogLatest: 'Последнее',
+    starRepo: 'Поставьте звезду для поддержки проекта',
+    noNewUpdates: 'Нет новых обновлений',
+    dismissed: 'Скрытые',
+    restore: 'Восстановить',
 
     // Theme
     lightMode: 'Светлая тема',

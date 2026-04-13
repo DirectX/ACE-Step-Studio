@@ -29,6 +29,26 @@ export const ja = {
   mergeStart: 'マージ開始',
   mergeStop: '停止',
   mergeProgress: 'マージの進捗',
+  toolModelFolder: 'モデルフォルダ',
+  toolSingleFile: '単一ファイル',
+  toolType: 'タイプ',
+  toolName: '名前',
+  toolFiles: 'ファイル',
+  toolSize: 'サイズ',
+  toolCancelled: 'ユーザーによりキャンセル',
+  toolStarted: '開始しました...',
+  toolSafetensors: 'safetensors',
+  toolSupport: 'サポート',
+
+  // News & Changelog
+  newsSubtitle: 'アップデートとお知らせ',
+  changelog: '変更履歴',
+  changelogLoading: '変更履歴を読み込み中...',
+  changelogLatest: '最新',
+  starRepo: 'プロジェクトを支援するためにスターを付けてください',
+  noNewUpdates: '新しい更新はありません',
+  dismissed: '非表示',
+  restore: '復元',
 
   // Theme
   lightMode: 'ライトモード',

@@ -29,6 +29,26 @@ export const en = {
     mergeStart: 'Start Merge',
     mergeStop: 'Stop',
     mergeProgress: 'Merge Progress',
+    toolModelFolder: 'Model folder',
+    toolSingleFile: 'Single file',
+    toolType: 'Type',
+    toolName: 'Name',
+    toolFiles: 'Files',
+    toolSize: 'Size',
+    toolCancelled: 'Cancelled by user',
+    toolStarted: 'started...',
+    toolSafetensors: 'safetensors',
+    toolSupport: 'support',
+
+    // News & Changelog
+    newsSubtitle: 'Updates and announcements',
+    changelog: 'Changelog',
+    changelogLoading: 'Loading changelog...',
+    changelogLatest: 'Latest',
+    starRepo: 'Star the repo to support the project',
+    noNewUpdates: 'No new updates',
+    dismissed: 'Dismissed',
+    restore: 'Restore',
 
     // Theme
     lightMode: 'Light Mode',

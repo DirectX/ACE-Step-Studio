@@ -29,6 +29,26 @@ export const zh = {
     mergeStart: '开始合并',
     mergeStop: '停止',
     mergeProgress: '合并进度',
+    toolModelFolder: '模型文件夹',
+    toolSingleFile: '单个文件',
+    toolType: '类型',
+    toolName: '名称',
+    toolFiles: '文件',
+    toolSize: '大小',
+    toolCancelled: '已被用户取消',
+    toolStarted: '已启动...',
+    toolSafetensors: 'safetensors',
+    toolSupport: '辅助',
+
+    // News & Changelog
+    newsSubtitle: '更新和公告',
+    changelog: '更新日志',
+    changelogLoading: '正在加载更新日志...',
+    changelogLatest: '最新',
+    starRepo: '为项目点亮星标以示支持',
+    noNewUpdates: '没有新更新',
+    dismissed: '已忽略',
+    restore: '恢复',
 
     // Theme
     lightMode: '浅色模式',

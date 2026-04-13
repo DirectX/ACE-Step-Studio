@@ -29,6 +29,26 @@ export const ko = {
     mergeStart: '병합 시작',
     mergeStop: '중지',
     mergeProgress: '병합 진행',
+    toolModelFolder: '모델 폴더',
+    toolSingleFile: '단일 파일',
+    toolType: '유형',
+    toolName: '이름',
+    toolFiles: '파일',
+    toolSize: '크기',
+    toolCancelled: '사용자에 의해 취소됨',
+    toolStarted: '시작됨...',
+    toolSafetensors: 'safetensors',
+    toolSupport: '지원',
+
+    // News & Changelog
+    newsSubtitle: '업데이트 및 공지사항',
+    changelog: '변경 이력',
+    changelogLoading: '변경 이력 로딩 중...',
+    changelogLatest: '최신',
+    starRepo: '프로젝트를 지원하기 위해 스타를 눌러주세요',
+    noNewUpdates: '새 업데이트 없음',
+    dismissed: '숨김',
+    restore: '복원',
 
     // Theme
     lightMode: '라이트 모드',

@@ -81,6 +81,7 @@ function sectionBadgeColor(title: string): string {
 // ── Changelog Tab ────────────────────────────────────────────────────
 
 const ChangelogTab: React.FC = () => {
+  const { t } = useI18n();
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -105,7 +106,7 @@ const ChangelogTab: React.FC = () => {
     return (
       <div className="text-center py-16">
         <div className="animate-spin w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-sm text-zinc-500">Loading changelog...</p>
+        <p className="text-sm text-zinc-500">{t('changelogLoading')}</p>
       </div>
     );
   }
@@ -133,7 +134,7 @@ const ChangelogTab: React.FC = () => {
               </span>
               {i === 0 && (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400">
-                  Latest
+                  {t('changelogLatest')}
                 </span>
               )}
             </div>
@@ -253,7 +254,7 @@ export const NewsPage: React.FC = () => {
               onClick={() => restoreNewsItem(item.id)}
               className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:underline transition-colors flex-shrink-0"
             >
-              Restore
+              {t('restore')}
             </button>
           )}
         </div>
@@ -303,7 +304,7 @@ export const NewsPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{t('news')}</h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Updates and announcements</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('newsSubtitle')}</p>
           </div>
         </div>
 
@@ -329,7 +330,7 @@ export const NewsPage: React.FC = () => {
             }`}
           >
             <FileText size={14} />
-            Changelog
+            {t('changelog')}
           </button>
         </div>
 
@@ -343,7 +344,7 @@ export const NewsPage: React.FC = () => {
           <Github size={20} className="text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">timoncool/ACE-Step-Studio</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Star the repo to support the project</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t('starRepo')}</p>
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 text-sm font-medium group-hover:bg-amber-500/15 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors flex-shrink-0">
             <Star size={14} />
@@ -361,14 +362,14 @@ export const NewsPage: React.FC = () => {
             ) : (
               <div className="text-center py-16">
                 <Newspaper size={48} className="mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm">No new updates</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm">{t('noNewUpdates')}</p>
               </div>
             )}
 
             {dismissed.length > 0 && (
               <div className="mt-10">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-4">
-                  Dismissed
+                  {t('dismissed')}
                 </h2>
                 <div className="space-y-3">
                   {dismissed.map(item => renderCard(item, true))}

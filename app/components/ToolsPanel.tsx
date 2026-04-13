@@ -222,7 +222,7 @@ const BF16Tool: React.FC = () => {
     if (!sourcePath.trim() || !outputDir.trim()) return;
     reset();
     setStatus({ status: 'running' });
-    setLog(['Conversion started...']);
+    setLog([`${t('bf16Title')} ${t('toolStarted')}`]);
 
     await fetch('/api/tools/bf16/reset', { method: 'POST', headers: headersRef.current }).catch(() => {});
 
@@ -242,8 +242,8 @@ const BF16Tool: React.FC = () => {
   const handleStop = useCallback(async () => {
     await fetch('/api/tools/bf16/stop', { method: 'POST', headers: headersRef.current }).catch(() => {});
     stopPolling();
-    setStatus({ status: 'error', error: 'Cancelled' });
-    setLog(prev => [...prev, 'Cancelled by user']);
+    setStatus({ status: 'error', error: t('toolCancelled') });
+    setLog(prev => [...prev, t('toolCancelled')]);
   }, [stopPolling, setStatus, setLog]);
 
   const isRunning = status.status === 'running';
@@ -275,10 +275,10 @@ const BF16Tool: React.FC = () => {
           {analyzeError && <p className="text-xs text-red-400 mt-1.5">{analyzeError}</p>}
           {analyzeResult && (
             <div className="mt-2 text-xs text-zinc-400 space-y-0.5">
-              <p>Type: <span className="text-zinc-200">{analyzeResult.sourceType === 'folder' ? 'Model folder' : 'Single file'}</span></p>
-              <p>Name: <span className="text-zinc-200">{analyzeResult.displayName}</span></p>
-              <p>Files: <span className="text-zinc-200">{analyzeResult.safetensorCount} safetensors</span>{analyzeResult.supportCount > 0 && <span> + {analyzeResult.supportCount} support</span>}</p>
-              <p>Size: <span className="text-zinc-200">{analyzeResult.totalSizeMb} MB</span> → ~<span className="text-green-400">{Math.round(analyzeResult.totalSizeMb / 2)} MB</span></p>
+              <p>{t('toolType')}: <span className="text-zinc-200">{analyzeResult.sourceType === 'folder' ? t('toolModelFolder') : t('toolSingleFile')}</span></p>
+              <p>{t('toolName')}: <span className="text-zinc-200">{analyzeResult.displayName}</span></p>
+              <p>{t('toolFiles')}: <span className="text-zinc-200">{analyzeResult.safetensorCount} {t('toolSafetensors')}</span>{analyzeResult.supportCount > 0 && <span> + {analyzeResult.supportCount} {t('toolSupport')}</span>}</p>
+              <p>{t('toolSize')}: <span className="text-zinc-200">{analyzeResult.totalSizeMb} MB</span> → ~<span className="text-green-400">{Math.round(analyzeResult.totalSizeMb / 2)} MB</span></p>
             </div>
           )}
         </Section>
@@ -337,7 +337,7 @@ const MergeTool: React.FC = () => {
     if (!modelA.trim() || !modelB.trim() || !outputDir.trim()) return;
     reset();
     setStatus({ status: 'running' });
-    setLog(['Merge started...']);
+    setLog([`${t('mergeTitle')} ${t('toolStarted')}`]);
 
     await fetch('/api/tools/merge/reset', { method: 'POST', headers: headersRef.current }).catch(() => {});
 
@@ -357,8 +357,8 @@ const MergeTool: React.FC = () => {
   const handleStop = useCallback(async () => {
     await fetch('/api/tools/merge/stop', { method: 'POST', headers: headersRef.current }).catch(() => {});
     stopPolling();
-    setStatus({ status: 'error', error: 'Cancelled' });
-    setLog(prev => [...prev, 'Cancelled by user']);
+    setStatus({ status: 'error', error: t('toolCancelled') });
+    setLog(prev => [...prev, t('toolCancelled')]);
   }, [stopPolling, setStatus, setLog]);
 
   const isRunning = status.status === 'running';
