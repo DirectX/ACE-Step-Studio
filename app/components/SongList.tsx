@@ -712,19 +712,14 @@ const SongItem: React.FC<SongItemProps> = ({
                                     }}
                                 />
                             </div>
-                            <div className="flex items-center justify-between mt-1.5">
-                                <span className={`text-[11px] ${song.queuePosition ? 'text-amber-500' : 'text-pink-500'}`}>
-                                    {song.queuePosition ? `Queue #${song.queuePosition}` : (t(song.stage) || song.stage || t('creating'))}
-                                </span>
-                                {onCancelJob && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onCancelJob(); }}
-                                        className="text-[11px] text-zinc-500 hover:text-red-400 transition-colors"
-                                    >
-                                        {t('cancelGeneration')}
-                                    </button>
-                                )}
-                            </div>
+                            {onCancelJob && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onCancelJob(); }}
+                                    className="text-[11px] text-zinc-500 hover:text-red-400 transition-colors mt-1"
+                                >
+                                    {t('cancelGeneration')}
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
