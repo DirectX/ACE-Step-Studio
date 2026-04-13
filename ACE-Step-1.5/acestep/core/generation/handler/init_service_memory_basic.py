@@ -59,13 +59,21 @@ class InitServiceMemoryBasicMixin:
     """Memory cache, sync, and tensor-device utility helpers."""
 
     def _empty_cache(self):
-        """Clear accelerator memory cache (CUDA, XPU, or MPS)."""
+        """Synchronize and clear accelerator memory cache (CUDA, XPU, or MPS).
+
+        Synchronisation ensures all in-flight async ops have finished so their
+        temporary allocations become reclaimable by ``empty_cache()``.
+        """
         device_type = self._device_type()
         if device_type == "cuda" and torch.cuda.is_available():
+            torch.cuda.synchronize()
             torch.cuda.empty_cache()
         elif device_type == "xpu" and hasattr(torch, "xpu") and torch.xpu.is_available():
+            torch.xpu.synchronize()
             torch.xpu.empty_cache()
         elif device_type == "mps" and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            if hasattr(torch.mps, "synchronize"):
+                torch.mps.synchronize()
             torch.mps.empty_cache()
 
     def _synchronize(self):

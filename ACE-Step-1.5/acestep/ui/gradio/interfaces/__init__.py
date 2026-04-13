@@ -346,7 +346,7 @@ def create_gradio_interface(dit_handler, llm_handler, dataset_handler, init_para
                 gen_section["results_wrapper"] = results_wrapper
             
             # --- Training Tab ---
-            with gr.Tab(t("training.tab_title"), visible=not service_mode):
+            with gr.Tab(t("training.tab_title"), visible=True):
                 training_section = create_training_section(
                     dit_handler, llm_handler, init_params=init_params
                 )

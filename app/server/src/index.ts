@@ -29,6 +29,7 @@ import trainingRoutes from './routes/training.js';
 import settingsRoutes from './routes/settings.js';
 import pipelineRoutes from './routes/pipeline.js';
 import renderVideoRoutes from './routes/render-video.js';
+import toolsRoutes from './routes/tools.js';
 import { pipelineManager } from './services/pipeline-manager.js';
 import { pool } from './db/pool.js';
 import './db/migrate.js';
@@ -417,6 +418,7 @@ app.use('/api/training', trainingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/render-video', express.json({ limit: '500mb' }), renderVideoRoutes);
+app.use('/api/tools', toolsRoutes);
 
 // Error handler (must be before static serving catch-all)
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

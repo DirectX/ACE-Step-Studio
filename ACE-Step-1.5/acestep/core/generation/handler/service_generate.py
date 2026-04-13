@@ -50,6 +50,7 @@ class ServiceGenerateMixin:
         sampler_mode: str = "euler",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
+        scheduler_type: str = "linear",
     ) -> Dict[str, Any]:
         """Generate music latents and metadata from text/audio conditioning inputs.
 
@@ -143,6 +144,7 @@ class ServiceGenerateMixin:
             sampler_mode=sampler_mode,
             velocity_norm_threshold=velocity_norm_threshold,
             velocity_ema_factor=velocity_ema_factor,
+            scheduler_type=scheduler_type,
         )
         outputs, encoder_hidden_states, encoder_attention_mask, context_latents = (
             self._execute_service_generate_diffusion(

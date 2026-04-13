@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Song } from '../types';
-import { Heart, Share2, Play, Pause, MoreHorizontal, X, Copy, Wand2, MoreVertical, Download, Repeat, Video, Music, Link as LinkIcon, Sparkles, Globe, Lock, Trash2, Edit3, Layers } from 'lucide-react';
+import { Heart, Share2, Play, Pause, MoreHorizontal, X, Copy, Wand2, MoreVertical, Download, Repeat, Video, Music, Link as LinkIcon, Sparkles, Globe, Lock, Trash2, Edit3, Layers, ChevronDown, ClipboardCopy } from 'lucide-react';
 import { songsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -514,44 +514,92 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                         </div>
                     </div>
 
-                    {/* Generation Metadata */}
-                    {(song.bpm || song.keyScale || song.timeSignature || (song.duration && typeof song.duration === 'string' && song.duration !== '0:00')) && (
-                        <div className="flex flex-wrap gap-2 text-[11px]">
-                            {song.bpm > 0 && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    BPM: {song.bpm}
-                                </span>
-                            )}
-                            {song.keyScale && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    {song.keyScale}
-                                </span>
-                            )}
-                            {song.timeSignature && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    {song.timeSignature}
-                                </span>
-                            )}
-                            {song.duration && song.duration !== '0:00' && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    {song.duration}
-                                </span>
-                            )}
-                            {song.ditModel && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    {song.ditModel.replace('acestep-v15-', '')}
-                                </span>
-                            )}
-                            {song.lmModel && (
-                                <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400">
-                                    LM: {song.lmModel.replace('acestep-5Hz-lm-', '')}
-                                </span>
-                            )}
-                        </div>
-                    )}
+                    {/* Generation Parameters Accordion */}
+                    {(() => {
+                        const p = song.generationParams || {};
+                        const hasParams = song.bpm || song.keyScale || song.ditModel || p.inferenceSteps;
+                        if (!hasParams) return null;
+
+                        const paramRows: [string, string | number | undefined][] = [
+                            ['Model', song.ditModel?.replace('acestep-v15-', '')],
+                            ['LM', song.lmModel ? `${song.lmModel.replace('acestep-5Hz-lm-', '')} (${song.lmBackend || 'pt'})` : undefined],
+                            ['BPM', song.bpm && song.bpm > 0 ? song.bpm : undefined],
+                            ['Key', song.keyScale],
+                            ['Time', song.timeSignature],
+                            ['Duration', song.duration && song.duration !== '0:00' ? song.duration : undefined],
+                            ['Steps', p.inferenceSteps],
+                            ['Guidance', p.guidanceScale != null ? p.guidanceScale : undefined],
+                            ['Sampler', p.samplerMode],
+                            ['Scheduler', p.schedulerType],
+                            ['Method', p.inferMethod?.toUpperCase()],
+                            ['Shift', p.shift],
+                            ['Seed', p.seed],
+                            ['Thinking', p.thinking ? 'ON' : undefined],
+                            ['ADG', p.useAdg ? 'ON' : undefined],
+                            ['CFG Interval', p.cfgIntervalStart != null && p.cfgIntervalEnd != null && (p.cfgIntervalStart > 0 || p.cfgIntervalEnd < 1) ? `${p.cfgIntervalStart}–${p.cfgIntervalEnd}` : undefined],
+                            ['Vel. Clamp', p.velocityNormThreshold > 0 ? p.velocityNormThreshold : undefined],
+                            ['Vel. EMA', p.velocityEmaFactor > 0 ? p.velocityEmaFactor : undefined],
+                            ['Cover Strength', p.audioCoverStrength != null && p.audioCoverStrength < 1 ? p.audioCoverStrength : undefined],
+                            ['Task', p.taskType && p.taskType !== 'text2music' ? p.taskType : undefined],
+                            ['Format', p.audioFormat?.toUpperCase()],
+                            ['Gen Time', song.generationTime ? `${song.generationTime.toFixed(1)}s` : undefined],
+                        ];
+                        const visibleRows = paramRows.filter(([, v]) => v !== undefined && v !== null && v !== '');
+
+                        const copyText = visibleRows.map(([k, v]) => `${k}: ${v}`).join('\n');
+
+                        return (
+                            <details className="group">
+                                <summary className="flex items-center justify-between cursor-pointer px-3 py-2 rounded-xl bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 transition-colors">
+                                    <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+                                        {song.ditModel && (
+                                            <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 font-medium">
+                                                {song.ditModel.replace('acestep-v15-', '')}
+                                            </span>
+                                        )}
+                                        {p.inferenceSteps && (
+                                            <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-white/10 text-zinc-600 dark:text-zinc-400">
+                                                {p.inferenceSteps}st
+                                            </span>
+                                        )}
+                                        {p.samplerMode && p.samplerMode !== 'euler' && (
+                                            <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-white/10 text-zinc-700 dark:text-zinc-300">
+                                                {p.samplerMode}
+                                            </span>
+                                        )}
+                                        {p.schedulerType && p.schedulerType !== 'linear' && (
+                                            <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-white/10 text-zinc-700 dark:text-zinc-300">
+                                                {p.schedulerType}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <ChevronDown size={14} className="text-zinc-400 transition-transform group-open:rotate-180 flex-shrink-0 ml-2" />
+                                </summary>
+                                <div className="mt-2 space-y-1">
+                                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px] px-1">
+                                        {visibleRows.map(([label, value]) => (
+                                            <React.Fragment key={label}>
+                                                <span className="text-zinc-500 dark:text-zinc-500 text-right whitespace-nowrap">{label}</span>
+                                                <span className="text-zinc-800 dark:text-zinc-200 font-mono truncate">{String(value)}</span>
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            await navigator.clipboard.writeText(copyText);
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-200 dark:bg-white/5 hover:bg-zinc-300 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-400 text-[11px] font-medium transition-colors mt-2"
+                                    >
+                                        <ClipboardCopy size={12} />
+                                        {t('copyParams') || 'Copy Parameters'}
+                                    </button>
+                                </div>
+                            </details>
+                        );
+                    })()}
 
                     {/* Download LRC */}
-                    {song.lrcContent && (
+                    {song.lrcContent && song.lrcContent.trim().length > 0 && (
                         <button
                             onClick={() => {
                                 const blob = new Blob([song.lrcContent!], { type: 'text/plain;charset=utf-8' });

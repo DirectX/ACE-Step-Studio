@@ -130,7 +130,8 @@ export interface GenerationParams {
 
   // v1.5 XL parameters
   coverNoiseStrength?: number;
-  samplerMode?: 'euler' | 'heun';
+  samplerMode?: string;
+  schedulerType?: string;
   velocityNormThreshold?: number;
   velocityEmaFactor?: number;
   mp3Bitrate?: string;
@@ -175,4 +176,4 @@ export interface UserProfile {
 }
 
 // Simplified views for ACE-Step UI
-export type View = 'create' | 'library' | 'training' | 'profile' | 'song' | 'playlist' | 'search' | 'news';
+export type View = 'create' | 'library' | 'training' | 'tools' | 'profile' | 'song' | 'playlist' | 'search' | 'news';

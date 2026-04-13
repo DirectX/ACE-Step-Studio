@@ -87,6 +87,7 @@ def register_generation_run_handlers(context: GenerationWiringContext) -> None:
             generation_section["shift"],
             generation_section["infer_method"],
             generation_section["sampler_mode"],
+            generation_section["scheduler_type"],
             generation_section["velocity_norm_threshold"],
             generation_section["velocity_ema_factor"],
             generation_section["custom_timesteps"],

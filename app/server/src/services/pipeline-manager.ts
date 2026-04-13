@@ -85,6 +85,7 @@ class PipelineManager {
         ...process.env,
         PYTHONUNBUFFERED: '1',
         PYTHONIOENCODING: 'utf-8',
+        ACESTEP_SAVE_MEMORY: '1',  // skip storing intermediate GPU tensors between generations
       },
     });
 

@@ -88,6 +88,7 @@ def generate_next_batch_background(
             shift=params.get("shift"),
             infer_method=params.get("infer_method"),
             sampler_mode=params.get("sampler_mode", "euler"),
+            scheduler_type=params.get("scheduler_type", "linear"),
             velocity_norm_threshold=params.get("velocity_norm_threshold", 0.0),
             velocity_ema_factor=params.get("velocity_ema_factor", 0.0),
             custom_timesteps=params.get("custom_timesteps"),

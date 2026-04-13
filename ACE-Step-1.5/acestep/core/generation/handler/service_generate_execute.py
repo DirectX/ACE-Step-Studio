@@ -80,6 +80,7 @@ class ServiceGenerateExecuteMixin:
         sampler_mode: str = "euler",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
+        scheduler_type: str = "linear",
     ) -> Dict[str, Any]:
         """Build kwargs passed to model generation backends."""
         repaint_mask = payload.get("repaint_mask")
@@ -116,6 +117,7 @@ class ServiceGenerateExecuteMixin:
             "sampler_mode": sampler_mode,
             "velocity_norm_threshold": velocity_norm_threshold,
             "velocity_ema_factor": velocity_ema_factor,
+            "scheduler_type": scheduler_type,
         }
         if timesteps is not None:
             kwargs["timesteps"] = torch.tensor(timesteps, dtype=torch.float32, device=self.device)
@@ -206,6 +208,7 @@ class ServiceGenerateExecuteMixin:
                             sampler_mode=generate_kwargs.get("sampler_mode", "euler"),
                             velocity_norm_threshold=generate_kwargs.get("velocity_norm_threshold", 0.0),
                             velocity_ema_factor=generate_kwargs.get("velocity_ema_factor", 0.0),
+                            scheduler_type=generate_kwargs.get("scheduler_type", "linear"),
                         )
                         _tc = outputs.get("time_costs", {})
                         logger.info(

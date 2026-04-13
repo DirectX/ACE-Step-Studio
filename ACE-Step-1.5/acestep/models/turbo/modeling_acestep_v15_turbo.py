@@ -1854,6 +1854,7 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
         sampler_mode: str = "euler",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
+        scheduler_type: str = "linear",
         **kwargs,
     ):
         # Valid shifts: only discrete values 1, 2, 3 are supported
@@ -1995,12 +1996,17 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
         
         # Recalculate cover_steps based on actual num_steps
         use_heun = sampler_mode == "heun"
+        use_multistep = sampler_mode in ("deis", "ipndm")
+        use_multi_eval = sampler_mode in ("midpoint", "rk4", "bogacki")
         use_norm_clamp = velocity_norm_threshold > 0.0
         use_ema = velocity_ema_factor > 0.0
         prev_vt = None
-        if use_heun and infer_method == "sde":
-            logger.warning("Heun sampler is not compatible with SDE; falling back to Euler.")
+        velocity_history = []
+        if (use_heun or use_multi_eval) and infer_method == "sde":
+            logger.warning("%s sampler is not compatible with SDE; falling back to Euler.", sampler_mode)
             use_heun = False
+            use_multi_eval = False
+            sampler_mode = "euler"
 
         cover_steps = int(num_steps * audio_cover_strength)
         _switched_to_non_cover = False
@@ -2088,9 +2094,49 @@ class AceStepConditionGenerationModel(AceStepPreTrainedModel):
                 xt = xt - vt_avg * dt_tensor
                 vt = vt_avg
                 t_after_step = next_timestep
+            elif use_multi_eval and infer_method == "ode":
+                next_timestep = t_schedule[step_idx + 1].item()
+                def _model_fn(x_in, t_eval):
+                    x_cfg = torch.cat([x_in, x_in], dim=0) if do_cfg_guidance else x_in
+                    t_eval_tensor = t_eval * torch.ones((x_cfg.shape[0],), device=device, dtype=dtype)
+                    _kv = EncoderDecoderCache(DynamicCache(), DynamicCache())
+                    _out = self.decoder(
+                        hidden_states=x_cfg, timestep=t_eval_tensor, timestep_r=t_eval_tensor,
+                        attention_mask=attention_mask, encoder_hidden_states=encoder_hidden_states,
+                        encoder_attention_mask=encoder_attention_mask, context_latents=context_latents,
+                        use_cache=False, past_key_values=_kv,
+                    )
+                    _v = _out[0]
+                    _apply_cfg = t_eval >= cfg_interval_start and t_eval <= cfg_interval_end
+                    if do_cfg_guidance:
+                        _pc, _pu = _v.chunk(2)
+                        if _apply_cfg:
+                            _v = cfg_forward(_pc, _pu, diffusion_guidance_scale) if not use_adg else (
+                                adg_forward(latents=x_in, noise_pred_cond=_pc, noise_pred_uncond=_pu,
+                                            sigma=t_eval, guidance_scale=diffusion_guidance_scale)
+                                if t_eval > 0 else cfg_forward(_pc, _pu, diffusion_guidance_scale))
+                        else:
+                            _v = _pc
+                    if use_norm_clamp:
+                        _vn = torch.norm(_v, dim=(1, 2), keepdim=True)
+                        _xn = torch.norm(x_in, dim=(1, 2), keepdim=True) + 1e-10
+                        _v = _v * torch.clamp(velocity_norm_threshold * _xn / (_vn + 1e-10), max=1.0)
+                    return _v
+                from acestep.models.common.samplers import SAMPLER_REGISTRY
+                sampler_fn = SAMPLER_REGISTRY[sampler_mode]["fn"]
+                xt = sampler_fn(xt, vt, float(current_timestep), float(next_timestep), bsz, device, dtype, model_fn=_model_fn)
+                t_after_step = next_timestep
+            elif use_multistep and infer_method == "ode":
+                next_timestep = t_schedule[step_idx + 1].item()
+                from acestep.models.common.samplers import deis_step, ipndm_step
+                sampler_fn = ipndm_step if sampler_mode == "ipndm" else deis_step
+                xt = sampler_fn(xt, vt, float(current_timestep), float(next_timestep), bsz, device, dtype,
+                                prev_velocities=velocity_history[-3:] if velocity_history else None)
+                velocity_history.append(vt.clone())
+                if len(velocity_history) > 3:
+                    velocity_history.pop(0)
+                t_after_step = next_timestep
             elif infer_method == "ode":
-                # Ordinary Differential Equation: Euler method
-                # dx/dt = -v, so x_{t+1} = x_t - v_t * dt
                 next_timestep = t_schedule[step_idx + 1].item()
                 dt = current_timestep - next_timestep
                 dt_tensor = dt * torch.ones((bsz,), device=device, dtype=dtype).unsqueeze(-1).unsqueeze(-1)

@@ -63,6 +63,7 @@ import { PlaylistDetail } from './components/PlaylistDetail';
 import { Toast, ToastType } from './components/Toast';
 import { SearchPage } from './components/SearchPage';
 import { TrainingPanel } from './components/TrainingPanel';
+import { ToolsPanel } from './components/ToolsPanel';
 import { NewsPage } from './components/NewsPage';
 import { ConfirmDialog } from './components/ConfirmDialog';
 
@@ -954,7 +955,7 @@ function AppContent() {
         completeTrackClasses: params.completeTrackClasses,
         isFormatCaption: enrichedParams.isFormatCaption ?? params.isFormatCaption,
         coverNoiseStrength: params.coverNoiseStrength,
-        samplerMode: params.samplerMode,
+        samplerMode: params.samplerMode as 'euler' | 'heun',
         velocityNormThreshold: params.velocityNormThreshold,
         velocityEmaFactor: params.velocityEmaFactor,
         mp3Bitrate: params.mp3Bitrate,
@@ -1410,17 +1411,10 @@ function AppContent() {
         );
 
       case 'training':
-        return (
-          <div className="flex-1 bg-white dark:bg-black flex items-center justify-center transition-colors duration-300">
-            <div className="text-center">
-              <GraduationCap size={64} className="mx-auto text-zinc-300 dark:text-zinc-600 mb-6" />
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Coming Soon</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md">
-                {t('training')} — this feature is under development and will be available in a future update.
-              </p>
-            </div>
-          </div>
-        );
+        return <TrainingPanel />;
+
+      case 'tools':
+        return <ToolsPanel />;
 
       case 'news':
         return <NewsPage />;

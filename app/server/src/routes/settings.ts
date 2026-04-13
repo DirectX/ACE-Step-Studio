@@ -25,6 +25,7 @@ const DEFAULTS: Record<string, unknown> = {
   lmNegativePrompt: 'NO USER INPUT',
   useAdg: false,
   samplerMode: 'euler',
+  schedulerType: 'linear',
   mp3Bitrate: '128k',
   mp3SampleRate: 48000,
 };

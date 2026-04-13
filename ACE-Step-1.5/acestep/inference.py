@@ -6,6 +6,7 @@ designed for third-party integration. It offers both a simplified API and
 backward-compatible Gradio UI support.
 """
 
+import gc
 import math
 import inspect
 import os
@@ -135,7 +136,8 @@ class GenerationParams:
     cfg_interval_end: float = 1.0
     shift: float = 1.0
     infer_method: str = "ode"  # "ode" or "sde" - diffusion inference method
-    sampler_mode: str = "euler"  # "euler" (first-order) or "heun" (second-order predictor-corrector)
+    sampler_mode: str = "euler"  # "euler", "heun", "midpoint", "rk4", "bogacki", "deis", "ipndm"
+    scheduler_type: str = "linear"  # "linear", "karras", "cosine", "beta" — timestep distribution
     velocity_norm_threshold: float = 0.0  # Clamp velocity prediction norms (0 = disabled, try 2.0)
     velocity_ema_factor: float = 0.0  # Velocity EMA smoothing (0 = disabled, try 0.1)
     # Custom timesteps (parsed from string like "0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0")
@@ -596,6 +598,12 @@ def generate_music(
             if params.use_cot_language:
                 dit_input_vocal_language = lm_generated_metadata.get("vocal_language", dit_input_vocal_language)
 
+        # Free LLM intermediates before DiT to reduce VRAM fragmentation
+        if use_lm:
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
         # Repaint/cover/extract: no LM run, so conditioning must come from params (caption + lyrics from GUI).
         if params.task_type in ("repaint", "cover", "extract"):
             dit_input_caption = params.caption or dit_input_caption
@@ -647,6 +655,7 @@ def generate_music(
             "shift": params.shift,
             "infer_method": params.infer_method,
             "sampler_mode": params.sampler_mode,
+            "scheduler_type": params.scheduler_type,
             "velocity_norm_threshold": params.velocity_norm_threshold,
             "velocity_ema_factor": params.velocity_ema_factor,
             "timesteps": params.timesteps,
@@ -846,6 +855,12 @@ def generate_music(
             success=False,
             error=str(e),
         )
+    finally:
+        # Reclaim VRAM after every generation to prevent fragmentation
+        # that causes progressive slowdowns (40s → 60s → 90s → ...).
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
 
 def understand_music(

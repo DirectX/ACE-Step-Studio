@@ -180,7 +180,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.timeSignature || '',                                   //  4: time_signature
     params.vocalLanguage || 'en',                                 //  5: vocal_language
     Math.min(params.inferenceSteps ?? 8, isTurbo ? 20 : 200),     //  6: inference_steps (clamped to model max)
-    Math.max(params.guidanceScale ?? 7.0, 1.0),                    //  7: guidance_scale (Gradio slider min=1.0)
+    params.guidanceScale ?? 7.0,                                    //  7: guidance_scale (0 = no guidance / turbo)
     params.randomSeed !== false,                                  //  8: random_seed_checkbox
     String(params.seed ?? -1),                                    //  9: seed
     referenceAudio,                                               // 10: reference_audio
@@ -199,14 +199,15 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     params.cfgIntervalEnd ?? 1.0,                                 // 23: cfg_interval_end
     Math.max(params.shift ?? 3.0, 1.0),                            // 24: shift (Gradio slider min=1.0)
     params.inferMethod || 'ode',                                  // 25: infer_method
-    params.samplerMode || 'euler',                                  // 26: sampler_mode (euler/heun)
-    params.velocityNormThreshold ?? 0.0,                            // 27: velocity_norm_threshold
-    params.velocityEmaFactor ?? 0.0,                                // 28: velocity_ema_factor
-    params.customTimesteps || '',                                 // 29: custom_timesteps
-    params.audioFormat || 'mp3',                                  // 30: audio_format
-    params.mp3Bitrate || '128k',                                    // 31: mp3_bitrate
-    params.mp3SampleRate ?? 48000,                                  // 32: mp3_sample_rate
-    params.lmTemperature ?? 0.85,                                 // 33: lm_temperature
+    params.samplerMode || 'euler',                                  // 26: sampler_mode
+    params.schedulerType || 'linear',                               // 27: scheduler_type (linear/karras/cosine/beta)
+    params.velocityNormThreshold ?? 0.0,                            // 28: velocity_norm_threshold
+    params.velocityEmaFactor ?? 0.0,                                // 29: velocity_ema_factor
+    params.customTimesteps || '',                                 // 30: custom_timesteps
+    params.audioFormat || 'mp3',                                  // 31: audio_format
+    params.mp3Bitrate || '128k',                                    // 32: mp3_bitrate
+    params.mp3SampleRate ?? 48000,                                  // 33: mp3_sample_rate
+    params.lmTemperature ?? 0.85,                                 // 34: lm_temperature
     isThinking,                                                   // 34: think_checkbox
     Math.max(params.lmCfgScale ?? 2.0, 1.0),                      // 35: lm_cfg_scale (Gradio slider min=1.0)
     params.lmTopK ?? 0,                                           // 36: lm_top_k
@@ -215,6 +216,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     useCot ? (params.useCotMetas ?? true) : false,                // 39: use_cot_metas
     useCot ? (params.useCotCaption ?? true) : false,              // 40: use_cot_caption
     useCot ? (params.useCotLanguage ?? true) : false,             // 41: use_cot_language
+    // is_format_caption_state — gr.State, managed by Gradio internally
     params.constrainedDecodingDebug ?? false,                     // 42: constrained_decoding_debug
     params.allowLmBatch ?? true,                                  // 43: allow_lm_batch
     params.getScores ?? false,                                    // 44: auto_score
@@ -350,7 +352,8 @@ export interface GenerationParams {
 
   // v1.5 XL parameters
   coverNoiseStrength?: number;
-  samplerMode?: 'euler' | 'heun';
+  samplerMode?: string;
+  schedulerType?: string;
   velocityNormThreshold?: number;
   velocityEmaFactor?: number;
   mp3Bitrate?: string;

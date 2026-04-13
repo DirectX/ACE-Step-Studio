@@ -155,7 +155,8 @@ interface GenerateBody {
 
   // v1.5 XL parameters
   coverNoiseStrength?: number;
-  samplerMode?: 'euler' | 'heun';
+  samplerMode?: string;
+  schedulerType?: string;
   velocityNormThreshold?: number;
   velocityEmaFactor?: number;
   mp3Bitrate?: string;
@@ -286,6 +287,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       isFormatCaption,
       coverNoiseStrength,
       samplerMode,
+      schedulerType,
       velocityNormThreshold,
       velocityEmaFactor,
       mp3Bitrate,
@@ -369,6 +371,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       isFormatCaption,
       coverNoiseStrength,
       samplerMode,
+      schedulerType,
       velocityNormThreshold,
       velocityEmaFactor,
       mp3Bitrate,

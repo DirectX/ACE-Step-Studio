@@ -38,6 +38,7 @@ class DiffusionMixin:
         sampler_mode: str = "euler",
         velocity_norm_threshold: float = 0.0,
         velocity_ema_factor: float = 0.0,
+        scheduler_type: str = "linear",
     ) -> Dict[str, Any]:
         """Run the MLX diffusion loop and return generated latents.
 

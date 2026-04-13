@@ -32,8 +32,8 @@ def build_dit_controls(ui_config: dict[str, Any]) -> dict[str, Any]:
                 elem_classes=["has-info-container"],
             )
             guidance_scale = gr.Slider(
-                minimum=1.0,
-                maximum=15.0,
+                minimum=0.0,
+                maximum=100.0,
                 value=7.0,
                 step=0.1,
                 label=t("generation.guidance_scale_label"),
@@ -49,10 +49,17 @@ def build_dit_controls(ui_config: dict[str, Any]) -> dict[str, Any]:
                 elem_classes=["has-info-container"],
             )
             sampler_mode = gr.Dropdown(
-                choices=["euler", "heun"],
+                choices=["euler", "heun", "midpoint", "rk4", "bogacki", "deis", "ipndm"],
                 value="euler",
                 label=t("generation.sampler_mode_label"),
                 info=t("generation.sampler_mode_info"),
+                elem_classes=["has-info-container"],
+            )
+            scheduler_type = gr.Dropdown(
+                choices=["linear", "karras", "cosine", "beta"],
+                value="linear",
+                label=t("generation.scheduler_type_label") or "Scheduler",
+                info=t("generation.scheduler_type_info") or "Timestep distribution strategy",
                 elem_classes=["has-info-container"],
             )
         with gr.Row():
@@ -152,6 +159,7 @@ def build_dit_controls(ui_config: dict[str, Any]) -> dict[str, Any]:
         "guidance_scale": guidance_scale,
         "infer_method": infer_method,
         "sampler_mode": sampler_mode,
+        "scheduler_type": scheduler_type,
         "velocity_norm_threshold": velocity_norm_threshold,
         "velocity_ema_factor": velocity_ema_factor,
         "use_adg": use_adg,

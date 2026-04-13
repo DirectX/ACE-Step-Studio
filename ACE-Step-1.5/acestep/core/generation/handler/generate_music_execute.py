@@ -38,6 +38,7 @@ class GenerateMusicExecuteMixin:
         velocity_ema_factor: float = 0.0,
         repaint_crossfade_frames: int = 10,
         repaint_injection_ratio: float = 0.5,
+        scheduler_type: str = "linear",
     ) -> Dict[str, Any]:
         """Invoke ``service_generate`` while maintaining background progress estimation.
 
@@ -85,6 +86,7 @@ class GenerateMusicExecuteMixin:
                     sampler_mode=sampler_mode,
                     velocity_norm_threshold=velocity_norm_threshold,
                     velocity_ema_factor=velocity_ema_factor,
+                    scheduler_type=scheduler_type,
                     audio_code_hints=service_inputs["audio_code_hints_batch"],
                     return_intermediate=service_inputs["should_return_intermediate"],
                     timesteps=timesteps,

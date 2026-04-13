@@ -239,7 +239,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [isFormatCaption, setIsFormatCaption] = useState(false);
 
   // v1.5 XL parameters
-  const [samplerMode, setSamplerMode] = useState<'euler' | 'heun'>('euler');
+  const [samplerMode, setSamplerMode] = useState('euler');
+  const [schedulerType, setSchedulerType] = useState('linear');
   const [mp3Bitrate, setMp3Bitrate] = useState('128k');
   const [mp3SampleRate, setMp3SampleRate] = useState(48000);
   const [fadeInDuration, setFadeInDuration] = useState(0.0);
@@ -269,14 +270,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       const settings: Record<string, unknown> = {
         customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
         guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
-        shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
+        shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode, schedulerType,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
       settingsApi.save(settings, token).catch(() => {});
     }, 1000);
   }, [token, customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
       guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
-      shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode,
+      shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode, schedulerType,
       mp3Bitrate, mp3SampleRate]);
 
   // Auto-save when any setting changes
@@ -307,23 +308,24 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.duration != null) setDuration(Number(s.duration) || -1);
       if (s.batchSize !== undefined) setBatchSize(s.batchSize as number);
       if (s.bulkCount !== undefined) setBulkCount(s.bulkCount as number);
-      if (s.guidanceScale !== undefined) setGuidanceScale(s.guidanceScale as number);
+      // guidanceScale, inferenceSteps, useAdg — auto-determined by model via useEffect
       if (s.thinking !== undefined) setThinking(s.thinking as boolean);
       if (s.enhance !== undefined) setEnhance(s.enhance as boolean);
       if (s.getLrc !== undefined) setGetLrc(s.getLrc as boolean);
       if (s.audioFormat !== undefined) setAudioFormat(s.audioFormat as 'mp3' | 'flac');
-      if (s.inferenceSteps !== undefined) setInferenceSteps(s.inferenceSteps as number);
+      // inferenceSteps — auto-determined by model via useEffect
       if (s.inferMethod !== undefined) setInferMethod(s.inferMethod as 'ode' | 'sde');
       if (s.lmModel !== undefined) setLmModel(s.lmModel as string);
-      if (s.lmBackend !== undefined) setLmBackend(s.lmBackend as 'pt' | 'vllm');
+      // lmBackend is auto-determined by selectedModel useEffect — don't restore from settings
       if (s.shift !== undefined) setShift(s.shift as number);
       if (s.lmTemperature !== undefined) setLmTemperature(s.lmTemperature as number);
       if (s.lmCfgScale !== undefined) setLmCfgScale(s.lmCfgScale as number);
       if (s.lmTopK !== undefined) setLmTopK(s.lmTopK as number);
       if (s.lmTopP !== undefined) setLmTopP(s.lmTopP as number);
       if (s.lmNegativePrompt !== undefined) setLmNegativePrompt(s.lmNegativePrompt as string);
-      if (s.useAdg !== undefined) setUseAdg(s.useAdg as boolean);
-      if (s.samplerMode !== undefined) setSamplerMode(s.samplerMode as 'euler' | 'heun');
+      // useAdg — auto-determined by model via useEffect
+      if (s.samplerMode !== undefined) setSamplerMode(s.samplerMode as string);
+      if (s.schedulerType !== undefined) setSchedulerType(s.schedulerType as string);
       if (s.mp3Bitrate !== undefined) setMp3Bitrate(s.mp3Bitrate as string);
       if (s.mp3SampleRate !== undefined) setMp3SampleRate(s.mp3SampleRate as number);
       settingsLoadedRef.current = true;
@@ -363,7 +365,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             // Sync LM on first connect only (not continuously — blocks user editing)
             if (!lmSyncedRef.current && data.activeLmModel) {
               setLmModel(data.activeLmModel);
-              if (data.activeLmBackend) setLmBackend(data.activeLmBackend);
+              // lmBackend is auto-determined by model (xl→pt, non-xl→vllm) — don't override from server
               lmSyncedRef.current = true;
             }
           }
@@ -518,6 +520,28 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showModelMenu]);
+
+  // Auto-adjust LM backend and params when model changes (including initial load)
+  // Auto-adjust ALL model-dependent settings (including initial load)
+  useEffect(() => {
+    const turbo = isTurboModel(selectedModel);
+    // Steps & guidance
+    if (turbo) {
+      setInferenceSteps(8);
+      setGuidanceScale(0.0);
+      setUseAdg(false);
+    } else {
+      setInferenceSteps(50);
+      setGuidanceScale(7.0);
+      setUseAdg(true);
+    }
+    // LM backend: XL models (~19GB) don't fit with vLLM (~9GB) on 24GB
+    if (selectedModel.includes('xl')) {
+      setLmBackend('pt');
+    } else {
+      setLmBackend('vllm');
+    }
+  }, [selectedModel]);
 
   // Auto-unload LoRA when model changes
   useEffect(() => {
@@ -1311,6 +1335,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         })(),
         isFormatCaption,
         samplerMode,
+        schedulerType,
         mp3Bitrate,
         mp3SampleRate,
         fadeInDuration: fadeInDuration > 0 ? fadeInDuration : undefined,
@@ -1475,18 +1500,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                           localStorage.setItem('ace-model', model.id);
                           setShowModelMenu(false);
 
-                          // Auto-adjust parameters for model type
-                          if (!isTurboModel(model.id)) {
-                            // SFT: more steps, enable CFG + ADG
-                            setInferenceSteps(50);
-                            setGuidanceScale(7.0);
-                            setUseAdg(true);
-                          } else {
-                            // Turbo: few steps, CFG not needed
-                            setInferenceSteps(8);
-                            setGuidanceScale(0.0);
-                            setUseAdg(false);
-                          }
+                          // All model-dependent settings auto-switch via useEffect on selectedModel
 
                           // Download if not on disk, switch model via backend
                           if (model.id !== prevModel && token) {
@@ -2263,56 +2277,6 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
           </>
         )}
 
-        {/* MUSIC PARAMETERS */}
-        <div className="bg-white dark:bg-suno-card rounded-xl border border-zinc-200 dark:border-white/5 p-4 space-y-4">
-          <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide flex items-center gap-2">
-            <Sliders size={14} />
-            {t('musicParameters')}
-          </h3>
-
-          {/* BPM */}
-          <EditableSlider
-            label={t('bpm')}
-            value={bpm}
-            min={0}
-            max={300}
-            step={5}
-            onChange={setBpm}
-            formatDisplay={(val) => !val ? t('auto') : String(val)}
-            autoLabel={t('auto')}
-          />
-
-          {/* Key & Time Signature */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Key</label>
-              <select
-                value={keyScale}
-                onChange={(e) => setKeyScale(e.target.value)}
-                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
-              >
-                <option value="">Auto</option>
-                {KEY_SIGNATURES.filter(k => k).map(key => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Time</label>
-              <select
-                value={timeSignature}
-                onChange={(e) => setTimeSignature(e.target.value)}
-                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
-              >
-                <option value="">Auto</option>
-                {TIME_SIGNATURES.filter(t => t).map(time => (
-                  <option key={time} value={time}>{time}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* ADVANCED SETTINGS */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -2407,7 +2371,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               label={t('guidanceScale')}
               value={guidanceScale}
               min={0}
-              max={20}
+              max={selectedModel.includes('merge') ? 100 : 20}
               step={0.1}
               onChange={setGuidanceScale}
               formatDisplay={(val) => val.toFixed(1)}
@@ -2415,8 +2379,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               title={t('hintGuidanceScale') || 'How strongly the model follows the prompt. Higher = stricter, lower = freer. 0 = no guidance (turbo).'}
             />
 
-            {/* Audio Format, Inference Method, Sampler */}
-            <div className="grid grid-cols-3 gap-3">
+            {/* Audio Format, Inference Method, Sampler, Scheduler */}
+            <div className="grid grid-cols-4 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('audioFormat')}</label>
                 <select
@@ -2432,7 +2396,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('inferMethod')}</label>
                 <select
                   value={inferMethod}
-                  onChange={(e) => setInferMethod(e.target.value as 'ode' | 'sde')}
+                  onChange={(e) => {
+                    const val = e.target.value as 'ode' | 'sde';
+                    setInferMethod(val);
+                    // SDE only works with Euler
+                    if (val === 'sde' && samplerMode !== 'euler') setSamplerMode('euler');
+                  }}
                   className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                 >
                   <option value="ode">{t('odeDeterministic')}</option>
@@ -2443,11 +2412,53 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('samplerMode') || 'Sampler'}</label>
                 <select
                   value={samplerMode}
-                  onChange={(e) => setSamplerMode(e.target.value as 'euler' | 'heun')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSamplerMode(val);
+                    // Non-euler samplers require ODE
+                    if (val !== 'euler' && inferMethod === 'sde') setInferMethod('ode');
+                    // Multistep samplers (deis/ipndm) need uniform steps → force linear scheduler
+                    if ((val === 'deis' || val === 'ipndm') && schedulerType !== 'linear') setSchedulerType('linear');
+                  }}
                   className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                 >
-                  <option value="euler">Euler</option>
-                  <option value="heun">Heun (2nd order)</option>
+                  {inferMethod === 'sde' ? (
+                    <option value="euler">Euler</option>
+                  ) : (
+                    <>
+                      <option value="euler">Euler</option>
+                      <option value="heun">Heun (2nd)</option>
+                      <option value="midpoint">Midpoint (2nd)</option>
+                      <option value="rk4">RK4 (4th)</option>
+                      <option value="bogacki">Bogacki (3rd)</option>
+                      <option value="deis">DEIS (multi)</option>
+                      <option value="ipndm">iPNDM (multi)</option>
+                    </>
+                  )}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('schedulerType') || 'Scheduler'}</label>
+                <select
+                  value={schedulerType}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSchedulerType(val);
+                    // Non-linear schedulers incompatible with multistep samplers
+                    if (val !== 'linear' && (samplerMode === 'deis' || samplerMode === 'ipndm')) setSamplerMode('euler');
+                  }}
+                  className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
+                >
+                  {(samplerMode === 'deis' || samplerMode === 'ipndm') ? (
+                    <option value="linear">Linear</option>
+                  ) : (
+                    <>
+                      <option value="linear">Linear</option>
+                      <option value="karras">Karras</option>
+                      <option value="cosine">Cosine</option>
+                      <option value="beta">Beta</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>

@@ -952,6 +952,14 @@ class LLMHandler:
         else:
             outputs = self.llm.generate(formatted_prompt_list, sampling_params)
 
+        # Clear prefix cache to prevent unbounded hash_to_block_id growth
+        # across successive generations.  Blocks are already deallocated by
+        # the scheduler's postprocess(); this only drops the hash lookup table.
+        try:
+            self.llm.scheduler.block_manager.hash_to_block_id.clear()
+        except (AttributeError, TypeError):
+            pass
+
         # Extract text from outputs
         output_texts = []
         for output in outputs:
