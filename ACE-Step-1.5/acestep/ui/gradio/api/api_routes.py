@@ -207,7 +207,7 @@ async def health_check(request: Request):
     lm_model = None
     lm_backend = None
     lm_initialized = False
-    offload_to_cpu = False
+    offload_to_cpu = getattr(dit_handler, 'offload_to_cpu', False)
     if llm_handler:
         lm_initialized = getattr(llm_handler, 'llm', None) is not None
         lm_model = getattr(llm_handler, 'current_model_name', None)
@@ -216,7 +216,6 @@ async def health_check(request: Request):
             if lm_model:
                 lm_model = os.path.basename(str(lm_model).rstrip("/\\"))
         lm_backend = getattr(llm_handler, 'backend', None) or 'pt'
-        offload_to_cpu = getattr(llm_handler, 'offload_to_cpu', False)
 
     # VRAM optimization flags
     chunked_ffn = int(os.environ.get("ACESTEP_CHUNKED_FFN", "2"))
@@ -434,16 +433,23 @@ async def init_model(request: Request):
             llm_handler.unload()
 
         # 2. Reload DiT only if model changed
-        if current_dit != model:
+        # Normalize names: "marcorez8/acestep-v15-xl-turbo-bf16" and
+        # "acestep-v15-xl-turbo-bf16" should be treated as the same model.
+        def _dit_basename(name):
+            return os.path.basename(str(name or "").rstrip("/\\"))
+        if _dit_basename(current_dit) != _dit_basename(model):
             is_fp32_xl = "xl" in model and "bf16" not in model
-            quantization = "int8_weight_only" if (gpu_cfg.quantization_default or is_fp32_xl) else None
+            is_xl = "xl" in model.lower()
 
-            # Preserve the current offload setting from CLI / previous init,
-            # falling back to the GPU-tier default only when no prior state exists.
-            current_offload = getattr(dit_handler, "offload_to_cpu", None)
-            current_dit_offload = getattr(dit_handler, "offload_dit_to_cpu", None)
-            offload_to_cpu = current_offload if current_offload is not None else gpu_cfg.offload_to_cpu_default
-            offload_dit_to_cpu = current_dit_offload if current_dit_offload is not None else gpu_cfg.offload_dit_to_cpu_default
+            # Always enable CPU offload on switch-model — matches pipeline-manager.
+            offload_to_cpu = True
+            # XL models on ≤24GB: offload DiT to CPU between generations.
+            offload_dit_to_cpu = True if (is_xl and gpu_cfg.gpu_memory_gb <= 24) else gpu_cfg.offload_dit_to_cpu_default
+
+            # Quantize all XL models on ≤24GB — BF16 XL (9GB) is too large
+            # for covers with LM loaded. INT8 (~5GB) fits comfortably.
+            needs_quant = is_fp32_xl or (is_xl and gpu_cfg.gpu_memory_gb <= 24)
+            quantization = "int8_weight_only" if (gpu_cfg.quantization_default or needs_quant) else None
 
             status, ok = dit_handler.initialize_service(
                 project_root=project_root,
@@ -458,12 +464,14 @@ async def init_model(request: Request):
                 return _wrap_response(None, code=500, error=f"DiT init failed: {status}")
             request.app.state._active_dit_model = model
 
-        # 3. Load new LM
+        # 3. Load new LM (pass offload_to_cpu from DiT handler state)
         lm_status = ""
+        dit_offload = getattr(dit_handler, "offload_to_cpu", True)
         if init_llm and llm_handler and lm_model_path:
             lm_status, _ = llm_handler.initialize(
                 checkpoint_dir=checkpoints_dir,
                 lm_model_path=os.path.join(checkpoints_dir, lm_model_path),
+                offload_to_cpu=dit_offload,
             )
 
         return _wrap_response({

@@ -844,12 +844,25 @@ router.get('/system-info', async (_req, res: Response) => {
 });
 
 // Hot-swap model via Gradio /v1/init API (no process restart)
-let activeLoadedModel: string = process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16';
+const DEFAULT_MODEL = process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16';
+let activeLoadedModel: string = DEFAULT_MODEL;
 let activeLmModel: string = 'acestep-5Hz-lm-1.7B';
 let activeLmBackend: string = 'vllm';
 let activeOffloadToCpu: boolean = false;
 let activeChunkedFfn: number = 2;
 let activePinnedMemory: boolean = false;
+
+// Reset model state when pipeline restarts after crash
+import('../services/pipeline-manager.js').then(({ pipelineManager }) => {
+  pipelineManager.onRestart(() => {
+    console.log('[Model] Pipeline restarted — resetting model state to defaults');
+    activeLoadedModel = DEFAULT_MODEL;
+    activeLmModel = 'acestep-5Hz-lm-1.7B';
+    activeLmBackend = 'vllm';
+    modelLoadingStatus = { state: 'idle' };
+    import('../services/gradio-client.js').then(({ resetGradioClient }) => resetGradioClient());
+  });
+}).catch(() => {});
 
 router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const { model, lmModel, lmBackend } = req.body;

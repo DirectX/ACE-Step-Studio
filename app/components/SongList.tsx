@@ -616,9 +616,9 @@ const SongItem: React.FC<SongItemProps> = ({
                             /* Queue indicator */
                             <>
                                 <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-                                    <Clock size={16} className="text-amber-400" />
+                                    <Clock size={14} className="text-amber-400" />
                                 </div>
-                                <span className="text-[10px] font-medium text-amber-400">{t('queued')} #{song.queuePosition}</span>
+                                <span className="text-[10px] font-medium text-amber-400 leading-none">#{song.queuePosition}</span>
                             </>
                         ) : (
                             /* Generating - Music Waveform Animation */

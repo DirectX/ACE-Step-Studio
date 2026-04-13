@@ -1409,31 +1409,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   return (
     <div
       className="relative flex flex-col h-full bg-zinc-50 dark:bg-suno-panel w-full overflow-y-auto custom-scrollbar transition-colors duration-300"
-      onDrop={handleWorkspaceDrop}
-      onDragOver={handleWorkspaceDragOver}
     >
-      {isDraggingFile && (
-        <div className="absolute inset-0 z-[90] pointer-events-none">
-          <div className="absolute inset-0 bg-white/70 dark:bg-black/50 backdrop-blur-sm" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2 rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-zinc-900/90 px-6 py-5 shadow-xl">
-              {dragKind !== 'audio' && (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
-                  <Upload size={22} />
-                </div>
-              )}
-              <div className="text-sm font-semibold text-zinc-900 dark:text-white">
-                {dragKind === 'audio' ? t('dropToUseAudio') : t('dropToUpload')}
-              </div>
-              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                {dragKind === 'audio'
-                  ? (audioTab === 'reference' ? t('usingAsReference') : t('usingAsCover'))
-                  : (audioTab === 'reference' ? t('uploadingAsReference') : t('uploadingAsCover'))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* No overlay — drop targets are the Reference and Cover fields themselves */}
       <div className="p-4 pt-14 md:pt-4 pb-24 lg:pb-32 space-y-5">
         <input
           ref={referenceInputRef}
@@ -1874,8 +1851,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         {customMode && (
           <div className="space-y-5">
             {/* Reference Audio */}
-            <div onDrop={(e) => handleDrop(e, 'reference')} onDragOver={handleDragOver}
-              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
+            <div onDrop={(e) => { e.stopPropagation(); handleDrop(e, 'reference'); e.currentTarget.classList.remove('ring-2', 'ring-zinc-400/50'); }} onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('ring-2', 'ring-zinc-400/50'); }} onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-zinc-400/50'); }}
+              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden transition-shadow">
               <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
                 <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('reference')}</span>
                 {!referenceAudioUrl && <div className="flex gap-1">
@@ -1911,13 +1888,13 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="px-3 py-3 text-center text-[10px] text-zinc-400">{t('dropAudioHere') || 'Drop audio or use buttons above'}</div>
+                <div className={`px-3 text-center text-[10px] text-zinc-400 transition-all ${isDraggingFile ? 'py-8 text-zinc-300 border-2 border-dashed border-zinc-600 rounded-lg mx-2 mb-2' : 'py-3'}`}>{isDraggingFile ? '↓ ' + (t('reference') || 'Reference') : (t('dropAudioHere') || 'Drop audio or use buttons above')}</div>
               )}
             </div>
 
             {/* Cover / Source Audio */}
-            <div onDrop={(e) => handleDrop(e, 'source')} onDragOver={handleDragOver}
-              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden">
+            <div onDrop={(e) => { e.stopPropagation(); handleDrop(e, 'source'); e.currentTarget.classList.remove('ring-2', 'ring-zinc-400/50'); }} onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('ring-2', 'ring-zinc-400/50'); }} onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-zinc-400/50'); }}
+              className="bg-white dark:bg-[#1a1a1f] rounded-xl border border-zinc-200 dark:border-white/5 overflow-hidden transition-shadow">
               <div className="px-3 py-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
                 <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{t('cover')}</span>
                 {!sourceAudioUrl && <div className="flex gap-1">

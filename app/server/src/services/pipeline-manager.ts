@@ -31,6 +31,12 @@ class PipelineManager {
   private isSwitchingModel = false;
   private readyResolve: (() => void) | null = null;
   private readyReject: ((err: Error) => void) | null = null;
+  private onRestartCallbacks: Array<() => void> = [];
+
+  /** Register a callback that fires after pipeline restarts (model state reset). */
+  onRestart(cb: () => void): void {
+    this.onRestartCallbacks.push(cb);
+  }
 
   getStatus(): PipelineStatus {
     return {
@@ -276,6 +282,10 @@ class PipelineManager {
 
     setTimeout(() => {
       if (!this.isShuttingDown) {
+        // Notify listeners to reset model state before restarting
+        for (const cb of this.onRestartCallbacks) {
+          try { cb(); } catch {}
+        }
         this.start().catch(err => {
           console.error('[Pipeline] Restart failed:', err);
         });

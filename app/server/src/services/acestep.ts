@@ -216,8 +216,8 @@ async function buildGradioArgs(params: GenerationParams): Promise<unknown[]> {
     useCot ? (params.useCotMetas ?? true) : false,                // 40: use_cot_metas
     useCot ? (params.useCotCaption ?? true) : false,              // 41: use_cot_caption
     useCot ? (params.useCotLanguage ?? true) : false,             // 42: use_cot_language
-    // is_format_caption_state — gr.State, managed by Gradio internally
-    params.constrainedDecodingDebug ?? false,                     // 43: constrained_decoding_debug
+    true,                                                         // 43: is_format_caption (gr.State — always true from API)
+    params.constrainedDecodingDebug ?? false,                     // 44: constrained_decoding_debug
     params.allowLmBatch ?? true,                                  // 44: allow_lm_batch
     params.getScores ?? false,                                    // 45: auto_score
     params.getLrc ?? true,                                        // 46: auto_lrc (enabled by default)
@@ -620,7 +620,7 @@ async function processGenerationViaGradio(
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
-  console.log(`[GEN] Total args: ${args.length}, auto_lrc at [45]=${args[45]}, auto_score at [44]=${args[44]}`);
+  console.log(`[GEN] Total args: ${args.length}, auto_lrc at [47]=${args[47]}, auto_score at [45]=${args[45]}`);
 
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);

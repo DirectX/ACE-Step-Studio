@@ -213,9 +213,14 @@ class InitServiceLoaderMixin(InitServiceLoaderComponentsMixin):
                 pin_module_memory(self.model)
         self.model.eval()
 
-        if compile_model:
+        # Disable torch.compile when DiT offloads to CPU — compile + offload
+        # causes hangs on recompilation when sequence lengths change (e.g. covers).
+        # INT8 quantized models also interact badly with compile + dynamic shapes.
+        if compile_model and not self.offload_dit_to_cpu:
             self._ensure_len_for_compile(self.model, "model")
             self.model = torch.compile(self.model)
+        elif compile_model:
+            logger.info("[initialize_service] Skipping torch.compile (incompatible with DiT CPU offload)")
         self._apply_dit_quantization(quantization)
 
         silence_latent_path = os.path.join(model_checkpoint_path, "silence_latent.pt")
