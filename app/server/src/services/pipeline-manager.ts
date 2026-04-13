@@ -87,6 +87,8 @@ class PipelineManager {
         PYTHONUNBUFFERED: '1',
         PYTHONIOENCODING: 'utf-8',
         ACESTEP_SAVE_MEMORY: '1',  // skip storing intermediate GPU tensors between generations
+        ACESTEP_OFFLOAD_TO_CPU: '1',  // LM unloads from GPU when DiT runs (persists across model switches)
+        ACESTEP_LM_OFFLOAD_TO_CPU: '1',
       },
     });
 
