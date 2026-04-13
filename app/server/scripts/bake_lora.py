@@ -257,6 +257,7 @@ def main():
 
         emit("status", message="Saving merged model...")
         out_file = output_dir / "model.safetensors"
+        base_meta['format'] = 'pt'
         save_file(merged, str(out_file), metadata=base_meta)
 
         # Remove stale index if saved as single file

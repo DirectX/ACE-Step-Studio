@@ -115,6 +115,8 @@ def convert_file(src: Path, dst: Path, file_idx: int, total_files: int) -> int:
                      file_idx=file_idx, total_files=total_files)
 
     dst.parent.mkdir(parents=True, exist_ok=True)
+    # Ensure 'format' metadata is set — transformers requires it to be 'pt'
+    metadata['format'] = 'pt'
     save_file(tensors, str(dst), metadata=metadata)
     return len(keys)
 

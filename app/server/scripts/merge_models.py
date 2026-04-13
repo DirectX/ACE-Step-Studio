@@ -111,6 +111,7 @@ def merge_single_file(
             merged[key] = f_a.get_tensor(key).contiguous()
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    metadata_a['format'] = 'pt'
     save_file(merged, str(output_path), metadata=metadata_a)
     return len(merged)
 
