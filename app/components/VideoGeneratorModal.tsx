@@ -1142,9 +1142,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       const frameData = canvas.toDataURL('image/jpeg', 0.85);
       capturedFrames.push(frameData.split(',')[1]);
 
-      // Update progress (15-70% for frame rendering)
-      // Yield to main thread every 5 frames to prevent "page not responding"
-      if (frameIndex % 5 === 0) {
+      // Update progress + yield to prevent Chrome "page not responding" alert
+      if (frameIndex % 30 === 0) {
         setExportProgress(15 + Math.round((frameIndex / totalFrames) * 55));
         await new Promise(r => setTimeout(r, 0));
       }
