@@ -157,10 +157,23 @@ export const songsApi = {
   },
 
   getFullSong: async (id: string, token?: string | null): Promise<{ song: Song, comments: any[] }> => {
-    const result = await api(`/api/songs/${id}/full`, { token: token || undefined }) as { song: Song, comments: any[] };
-    const rawUrl = result.song.audio_url || result.song.audioUrl;
-    const resolvedUrl = getAudioUrl(rawUrl, result.song.id);
-    return { ...result, song: { ...result.song, audio_url: resolvedUrl, audioUrl: resolvedUrl } };
+    const result = await api(`/api/songs/${id}/full`, { token: token || undefined }) as { song: any, comments: any[] };
+    const s = result.song;
+    const rawUrl = s.audio_url || s.audioUrl;
+    const resolvedUrl = getAudioUrl(rawUrl, s.id);
+    return {
+      ...result,
+      song: {
+        ...s,
+        audio_url: resolvedUrl,
+        audioUrl: resolvedUrl,
+        ditModel: s.dit_model || s.ditModel,
+        lmModel: s.lm_model || s.lmModel,
+        lmBackend: s.lm_backend || s.lmBackend,
+        generationTime: s.generation_time || s.generationTime,
+        lrcContent: s.lrc_content || s.lrcContent,
+      }
+    };
   },
 
   createSong: (song: Partial<Song>, token: string): Promise<{ song: Song }> =>
