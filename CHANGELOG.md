@@ -2,14 +2,22 @@
 
 ## 2026-04-14
 
+### Added
+- **`run-no-lm.bat`** — start without LM for more VRAM (cover/repaint/text2music work, no thinking/enhance/auto-lyrics)
+- **Sidebar shows "LM off"** when no LM loaded instead of hiding the line
+- **Bottom player play button** works without clicking a song first — falls back to selected song
+- **Lyrics textarea collapses** when instrumental mode is on
+
 ### Changed
 - **Gradio args refactored to named parameters** — no more positional array counting, impossible to shift params
-- **Default LM model** changed to 0.6B with PT backend (was 1.7B vLLM)
+- **Default LM model** changed to 0.6B with PT backend everywhere (gpu_config, llm_inference, api_routes, Express)
 - **Quick Settings** (Duration, BPM, Key, Time Signature, Variations) now visible in both Simple and Custom modes
 - **Auto-title** picks first line from Chorus/Hook instead of first line of lyrics; max 2 phrases, cut at sentence boundary
 - **Song DB records** now store actual server model state, not frontend params
 
 ### Fixed
+- **LRC not showing after reload** — liked songs overwrote my songs in Map, losing lrcContent; mapSong now falls back to snake_case `lrc_content`
+- **LRC missing in song details / video studio** — `getSong` and `getFullSong` didn't map `lrc_content` → `lrcContent`
 - **LM backend dropdown** always showed PT — health endpoint read wrong attribute (`llm_handler.backend` → `llm_handler.llm_backend`)
 - **LM backend not passed to /v1/init** — PT/vLLM selection was ignored, always loaded vLLM
 - **vLLM not freed on unload** — `unload()` called `reset()` instead of `exit()`, CUDA graphs and KV cache stayed in VRAM
@@ -20,6 +28,12 @@
 - **Switch-model log** no longer says "Unloading DiT" when only LM changes
 - **Instruction per task type** — cover and repaint now use correct instruction strings
 - **gc.collect + empty_cache** after LM unload before loading new model
+- **Video render: background image missing** — render re-fetched via proxy instead of using bgImageRef directly
+- **Video render: CCTV date/REC overlay missing** — only drawn in preview, now in render too with matching font/size
+- **Video render: Chrome "page not responding"** — yield every 30 frames prevents dialog
+- **Video render: PayloadTooLargeError** — body-parser limit increased from 10mb to 50mb
+- **Cyrillic filenames** in uploaded audio — multer latin1→UTF-8 decode
+- **Stale generating songs** blocked real songs with lrcContent in refreshSongsList merge
 
 ## 2026-04-13
 
