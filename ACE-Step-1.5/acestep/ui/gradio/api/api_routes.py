@@ -418,6 +418,7 @@ async def init_model(request: Request):
     model = body.get("model")
     init_llm = body.get("init_llm", False)
     lm_model_path = body.get("lm_model_path")
+    lm_backend = body.get("lm_backend", "vllm")
     if not model:
         raise HTTPException(status_code=400, detail="model is required")
 
@@ -471,6 +472,7 @@ async def init_model(request: Request):
             lm_status, _ = llm_handler.initialize(
                 checkpoint_dir=checkpoints_dir,
                 lm_model_path=os.path.join(checkpoints_dir, lm_model_path),
+                backend=lm_backend,
                 offload_to_cpu=dit_offload,
             )
 
