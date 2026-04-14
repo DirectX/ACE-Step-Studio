@@ -14,7 +14,8 @@ ACE-Step-Studio/
 ├── run.bat                    # Single-terminal launcher (prod)
 ├── run-dev.bat                # 3-terminal dev mode with Vite HMR
 ├── install.bat                # First-time setup
-├── python/                    # Portable Python 3.11 + CUDA 12.8
+├── run-no-lm.bat              # Launch without LM (more VRAM)
+├── python/                    # Portable Python 3.12 + CUDA 12.8
 ├── node/                      # Portable Node.js
 ├── ffmpeg/                    # Portable FFmpeg
 ├── models/                    # HuggingFace model cache
@@ -73,11 +74,28 @@ Pipeline Manager (`pipeline-manager.ts`):
 Models switch **in-process** via Gradio's `POST /v1/init` API. NO process restart.
 
 - Express `/api/generate/switch-model` → calls `POST http://localhost:8001/v1/init`
-- Python `initialize_models_for_request()` handles unload + reload + gc + cache cleanup
+- Python handles: LM unload (`exit()` for vLLM to free CUDA graphs) → `gc.collect()` + `empty_cache()` → DiT reload (if changed) → LM reload
+- `lm_backend` parameter passed through entire chain: Express → `/v1/init` → `llm_handler.initialize(backend=...)`
 - `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set in run.bat to reduce VRAM fragmentation
 - Frontend polls `/api/generate/model-status` for state transitions: `unloading → loading → ready`
+- LM model/backend dropdowns sync from server on every health poll (with `lmEditingRef` guard to not overwrite while user is editing)
 
 **NEVER spawn a new Gradio process to switch models.** Always use `/v1/init`.
+
+## Gradio Args (Express → Python)
+
+Generation params are passed as **named parameters** via `@gradio/client` `predict()`:
+
+```js
+client.predict('/generation_wrapper', { captions: '...', lyrics: '...', auto_lrc: false, ... })
+```
+
+- Python `generation_wrapper()` has explicit named params (NOT `*args`)
+- `gr.State` components (`is_format_caption`, batch indices) are hidden by Gradio client — do NOT include them in the Express object
+- Parameter names must match Python function signature exactly
+- When adding a new param: add to Python `generation_wrapper()` signature, Gradio wiring `inputs[]`, Express `buildGradioArgs()`, and `GenerationParams` interface
+
+**Default LM:** `acestep-5Hz-lm-0.6B` with `pt` backend (set everywhere: `gpu_config.py`, `llm_inference.py`, `api_routes.py`, `pipeline-manager.ts`, `generate.ts`).
 
 ## Database
 
@@ -94,12 +112,16 @@ When adding new song fields: update ALL places:
 1. `migrate.ts` — ALTER TABLE
 2. ALL SELECT queries in `songs.ts` (there are 6+) and `index.ts` (search)
 3. `acestep.ts` — `job.result` object
-4. `generate.ts` — INSERT statements (there are 2: success + fallback)
-5. `api.ts` — `Song` interface + BOTH `transformSongs` mappers
-6. `App.tsx` — BOTH song mapping functions (`refreshSongsList` + public songs)
+4. `generate.ts` — INSERT statements (there are 2: success + fallback). Use `activeLoadedModel`/`activeLmModel` for model fields, NOT `params.*`
+5. `api.ts` — `Song` interface + `transformSongs` + `getSong` + `getFullSong` + `updateSong` mappers
+6. `App.tsx` — ALL THREE song mapping functions: initial `mapSong`, `refreshSongsList` mapper, and `loadSongs` merge. Each must have `s.snake_case || s.camelCase` fallback
 7. `types.ts` — `Song` interface
 
-**This is the #1 source of bugs.** Data gets lost because of manual mapping in App.tsx.
+**This is the #1 source of bugs.** Data gets lost because:
+- `mapSong` creates new objects with explicit fields (no spread from API response)
+- `transformSongs` maps snake→camel but `mapSong` may only read camelCase
+- Liked songs can overwrite my songs in Map merge (liked go first, my songs overwrite)
+- Always use `s.snake_case || s.camelCase` pattern in mappers
 
 ## i18n
 
@@ -135,6 +157,9 @@ When adding new song fields: update ALL places:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MANAGE_PIPELINE` | `false` | Set `true` for Express to spawn Python |
+| `INIT_LLM` | `true` | Set `false` to skip LM loading (run-no-lm.bat) |
+| `LM_MODEL` | `acestep-5Hz-lm-0.6B` | LM model name |
+| `LM_BACKEND` | `pt` | LM backend: `pt` or `vllm` |
 | `PYTHON_PATH` | `./python/python.exe` | Path to Python executable |
 | `ACESTEP_PATH` | `./ACE-Step-1.5` | Path to ML pipeline directory |
 | `DEFAULT_MODEL` | `marcorez8/acestep-v15-xl-turbo-bf16` | DiT model to load on startup |
@@ -186,10 +211,12 @@ Video generator lives in `app/components/VideoGeneratorModal.tsx` (~3000 lines).
 
 - [ ] CDN dependencies (Tailwind CSS, esm.sh for React/GenAI) should be bundled locally
 - [ ] App.tsx has 3 manual song mappers — every new field must be added to all 3
-- [ ] Video export: current approach (JPEG chunks over HTTP) should use node-canvas + ffmpeg stdin pipe
+- [ ] Video export: JPEG chunks over HTTP could use OffscreenCanvas Worker for no-block rendering
 - [ ] LRC timestamps from ACE-Step can be inaccurate (cross-attention alignment is approximate)
 - [ ] TrainingPanel has hardcoded English strings
 - [ ] Progress bar for generation (predict() is blocking in Gradio)
 - [ ] Stop generation button not implemented
 - [ ] WYSIWYG: no resize handles (only scroll-to-resize)
-- [ ] Video Studio FX tab labels (VHS Tape, Hue Shift desc fields) not i18n'd
+- [ ] Video Studio FX tab labels not fully i18n'd
+- [ ] torchao INT8 quantization crashes after 7-8 GPU↔CPU offload cycles (AffineQuantizedTensor memory corruption)
+- [ ] macOS / Linux support (currently Windows only)
