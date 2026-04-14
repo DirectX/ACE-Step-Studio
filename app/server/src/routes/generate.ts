@@ -885,8 +885,8 @@ router.get('/system-info', async (_req, res: Response) => {
 // Hot-swap model via Gradio /v1/init API (no process restart)
 const DEFAULT_MODEL = process.env.DEFAULT_MODEL || 'marcorez8/acestep-v15-xl-turbo-bf16';
 let activeLoadedModel: string = DEFAULT_MODEL;
-let activeLmModel: string = 'acestep-5Hz-lm-0.6B';
-let activeLmBackend: string = 'pt';
+let activeLmModel: string = process.env.INIT_LLM === 'false' ? '' : 'acestep-5Hz-lm-0.6B';
+let activeLmBackend: string = process.env.INIT_LLM === 'false' ? '' : 'pt';
 let activeOffloadToCpu: boolean = false;
 let activeChunkedFfn: number = 2;
 let activePinnedMemory: boolean = false;
