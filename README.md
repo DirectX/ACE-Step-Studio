@@ -34,7 +34,10 @@ Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) — the ope
 - **AI Lyrics & Style** — LLM generates lyrics and enriches style descriptions
 - **Hot Model Switching** — change DiT/LM models without restart
 - **Batch generation** — create multiple variations at once
+- **10 samplers, 7 schedulers** — euler, heun, midpoint, dopri5, deis, ipndm, and more
+- **LoRA support** — load LoRA weights at inference time
 - **ID3 tags** — MP3 files include title, artist, cover art, lyrics, BPM
+- **Whisper transcription** — auto-transcribe uploaded audio to LRC timestamps
 
 ### Cover & Remix
 - **Cover mode** — transform existing audio into a new style while keeping the melody
@@ -58,6 +61,11 @@ Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) — the ope
 - **Audio editor** — trim, fade, effects (AudioMass)
 - **Stem extraction** — separate vocals, drums, bass, other (Demucs)
 - **LRC download** — export synchronized lyrics
+
+### Model Tools
+- **BF16 Converter** — convert safetensors from FP32/FP16 to BFloat16 (~50% size reduction)
+- **Model Merger** — merge two ACE-Step models with adjustable alpha (3 methods)
+- **Bake LoRA** — bake LoRA weights into base model
 
 ### Interface
 - **Single terminal** — one `run.bat`, Express manages Python/Gradio automatically
