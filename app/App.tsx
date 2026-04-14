@@ -820,13 +820,9 @@ function AppContent() {
 
       // Preserve any generating songs that aren't in the loaded list
       setSongs(prev => {
-        const generatingSongs = prev.filter(s => s.isGenerating);
-        const mergedSongs = [...generatingSongs];
-        for (const song of loadedSongs) {
-          if (!mergedSongs.some(s => s.id === song.id)) {
-            mergedSongs.push(song);
-          }
-        }
+        // Keep only generating songs that aren't in the loaded list
+        const stillGenerating = prev.filter(s => s.isGenerating && !loadedSongs.some(l => l.id === s.id));
+        const mergedSongs = [...stillGenerating, ...loadedSongs];
         // Sort by creation date, newest first
         return mergedSongs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       });
