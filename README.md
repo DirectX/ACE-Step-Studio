@@ -37,7 +37,6 @@ Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) — the ope
 - **10 samplers, 7 schedulers** — euler, heun, midpoint, dopri5, deis, ipndm, and more
 - **LoRA support** — load LoRA weights at inference time
 - **ID3 tags** — MP3 files include title, artist, cover art, lyrics, BPM
-- **Whisper transcription** — auto-transcribe uploaded audio to LRC timestamps
 
 ### Cover & Remix
 - **Cover mode** — transform existing audio into a new style while keeping the melody
