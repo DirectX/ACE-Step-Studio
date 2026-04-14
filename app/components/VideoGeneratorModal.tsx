@@ -1143,8 +1143,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       capturedFrames.push(frameData.split(',')[1]);
 
       // Update progress (15-70% for frame rendering)
-      if (frameIndex % 10 === 0) {
+      // Yield to main thread every 5 frames to prevent "page not responding"
+      if (frameIndex % 5 === 0) {
         setExportProgress(15 + Math.round((frameIndex / totalFrames) * 55));
+        await new Promise(r => setTimeout(r, 0));
       }
     }
 
