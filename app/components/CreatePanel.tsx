@@ -198,7 +198,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [inferenceSteps, setInferenceSteps] = useState(12);
   const [inferMethod, setInferMethod] = useState<'ode' | 'sde'>('ode');
   const [lmBackend, setLmBackend] = useState<'pt' | 'vllm'>('vllm');
-  const [lmModel, setLmModel] = useState('acestep-5Hz-lm-4B');
+  const [lmModel, setLmModel] = useState('');
   const [shift, setShift] = useState(3.0);
 
   // LM Parameters (under Expert)
@@ -269,14 +269,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
     saveTimerRef.current = setTimeout(() => {
       const settings: Record<string, unknown> = {
         customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
-        guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
+        guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod,
         shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode, schedulerType,
         mp3Bitrate, mp3SampleRate, ...overrides,
       };
       settingsApi.save(settings, token).catch(() => {});
     }, 1000);
   }, [token, customMode, instrumental, vocalLanguage, vocalGender, bpm, keyScale, timeSignature, duration, batchSize, bulkCount,
-      guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod, lmModel, lmBackend,
+      guidanceScale, thinking, enhance, getLrc, audioFormat, inferenceSteps, inferMethod,
       shift, lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt, useAdg, samplerMode, schedulerType,
       mp3Bitrate, mp3SampleRate]);
 
@@ -315,8 +315,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (s.audioFormat !== undefined) setAudioFormat(s.audioFormat as 'mp3' | 'flac');
       // inferenceSteps — auto-determined by model via useEffect
       if (s.inferMethod !== undefined) setInferMethod(s.inferMethod as 'ode' | 'sde');
-      if (s.lmModel !== undefined) setLmModel(s.lmModel as string);
-      // lmBackend is auto-determined by selectedModel useEffect — don't restore from settings
+      // lmModel and lmBackend are synced from server — don't restore from localStorage
       if (s.shift !== undefined) setShift(s.shift as number);
       if (s.lmTemperature !== undefined) setLmTemperature(s.lmTemperature as number);
       if (s.lmCfgScale !== undefined) setLmCfgScale(s.lmCfgScale as number);
@@ -342,7 +341,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [modelLoadingState, setModelLoadingState] = useState<{ state: string; model: string; connected?: boolean; activeModel?: string; backendDown?: boolean }>({ state: 'ready', model: '', connected: false, backendDown: true });
   const modelMenuRef = useRef<HTMLDivElement>(null);
   const previousModelRef = useRef<string>(selectedModel);
-  const lmSyncedRef = useRef(false);
+  // When true, user is editing LM settings — don't overwrite with server values
+  const lmEditingRef = useRef(false);
 
   // Poll model loading status every 2s
   React.useEffect(() => {
@@ -362,11 +362,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               }
               return prev;
             });
-            // Sync LM on first connect only (not continuously — blocks user editing)
-            if (!lmSyncedRef.current && data.activeLmModel) {
-              setLmModel(data.activeLmModel);
+            // Sync LM from server — unless user is actively editing settings
+            if (!lmEditingRef.current) {
+              if (data.activeLmModel) setLmModel(data.activeLmModel);
               if (data.activeLmBackend) setLmBackend(data.activeLmBackend);
-              lmSyncedRef.current = true;
             }
           }
           // During loading, show the target model
@@ -721,8 +720,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
       if (p.enhance !== undefined) setEnhance(p.enhance);
       if (p.audioFormat) setAudioFormat(p.audioFormat);
       if (p.inferMethod) setInferMethod(p.inferMethod);
-      if (p.lmModel) setLmModel(p.lmModel);
-      if (p.lmBackend) setLmBackend(p.lmBackend);
+      if (p.lmModel || p.lmBackend) {
+        if (p.lmModel) setLmModel(p.lmModel);
+        if (p.lmBackend) setLmBackend(p.lmBackend);
+        lmEditingRef.current = true;
+      }
       if (p.ditModel) {
         setSelectedModel(p.ditModel);
         localStorage.setItem('ace-model', p.ditModel);
@@ -1538,7 +1540,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                                 });
                                 const switchData = await switchRes.json();
                                 if (switchData.success) {
-                                  lmSyncedRef.current = false;
+                                  lmEditingRef.current = false;
                                   fetch('/api/generate/models').then(r => r.json()).then(d => {
                                     if (d.models) setFetchedModels(d.models);
                                   });
@@ -2533,7 +2535,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('lmBackendLabel') || 'LM Backend'}</label>
               <select
                 value={lmBackend}
-                onChange={e => setLmBackend(e.target.value as 'pt' | 'vllm')}
+                onChange={e => { setLmBackend(e.target.value as 'pt' | 'vllm'); lmEditingRef.current = true; }}
                 className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
               >
                 <option value="vllm">{t('lmBackendVllm') || 'VLLM (~9.2 GB VRAM)'}</option>
@@ -2547,7 +2549,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('lmModelLabel')}</label>
               <select
                 value={lmModel}
-                onChange={(e) => setLmModel(e.target.value)}
+                onChange={(e) => { setLmModel(e.target.value); lmEditingRef.current = true; }}
                 className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
               >
                 <option value="acestep-5Hz-lm-0.6B">{t('lmModel06B')}</option>
@@ -2573,7 +2575,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   const data = await res.json();
                   if (data.success) {
                     setModelSwitchStatus('');
-                    lmSyncedRef.current = false; // re-sync on next poll
+                    lmEditingRef.current = false; // re-sync from server on next poll
                   } else {
                     setModelSwitchStatus(data.error || 'Failed');
                     setTimeout(() => setModelSwitchStatus(''), 5000);
