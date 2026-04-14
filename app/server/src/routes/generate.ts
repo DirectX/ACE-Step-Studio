@@ -231,7 +231,8 @@ router.post('/upload-audio', authMiddleware, (req: AuthenticatedRequest, res: Re
     }
 
     const storage = getStorageProvider();
-    const extFromName = path.extname(req.file.originalname || '').toLowerCase();
+    const decodedName = Buffer.from(req.file.originalname || '', 'latin1').toString('utf8');
+    const extFromName = path.extname(decodedName).toLowerCase();
     const extFromType = (() => {
       switch (req.file.mimetype) {
         case 'audio/mpeg':

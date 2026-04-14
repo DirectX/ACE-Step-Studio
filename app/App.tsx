@@ -879,7 +879,7 @@ function AppContent() {
           console.error(`Job ${jobId} failed:`, status.error);
           const err = status.error || 'Unknown error';
           if (err.includes('VRAM') || err.includes('Insufficient free')) {
-            showToast(`⛔ Не хватает видеопамяти GPU. Уменьшите длительность, размер батча или переключитесь на более лёгкую модель.`, 'error');
+            showToast(t('vramError') || 'Not enough GPU VRAM. Reduce duration, batch size, or switch to a lighter model.', 'error');
           } else {
             showToast(`${t('generationFailed')}: ${err}`, 'error');
           }

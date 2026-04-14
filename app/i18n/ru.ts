@@ -130,6 +130,7 @@ export const ru = {
 
     // Toasts
     songNotAvailable: 'Эта песня больше недоступна.',
+    vramError: 'Не хватает видеопамяти GPU. Уменьшите длительность, размер батча или переключитесь на более лёгкую модель.',
     unableToPlay: 'Не удаётся воспроизвести эту песню.',
     generationTimedOut: 'Время генерации истекло',
     writingLyricsAndStyle: 'Пишу текст и стиль...',

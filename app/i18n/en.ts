@@ -128,6 +128,7 @@ export const en = {
 
     // Toasts
     songNotAvailable: 'This song is no longer available.',
+    vramError: 'Not enough GPU VRAM. Reduce duration, batch size, or switch to a lighter model.',
     unableToPlay: 'Unable to play this song.',
     generationTimedOut: 'Generation timed out',
     writingLyricsAndStyle: 'Writing lyrics & style...',

@@ -125,7 +125,6 @@ async function prepareAudioFile(audioUrl: string | undefined): Promise<unknown> 
       await mkdir(gradioTmpDir, { recursive: true });
       const tmpPath = path.join(gradioTmpDir, filename);
       await copyFile(filePath, tmpPath);
-      console.log(`[Gradio] prepareAudioFile: copied ${filename} -> ${tmpPath}`);
       return {
         path: tmpPath,
         orig_name: filename,
@@ -621,7 +620,6 @@ async function processGenerationViaGradio(
 
   const client = await getGradioClient();
   const args = await buildGradioArgs(params);
-  console.log(`[GEN] Named args: auto_lrc=${args.auto_lrc}, auto_score=${args.auto_score}, keys=${Object.keys(args).length}`);
 
   const caption = params.style || 'pop music';
   const prompt = params.customMode ? caption : (params.songDescription || caption);
@@ -658,26 +656,7 @@ async function processGenerationViaGradio(
   const genDetails = data[9] as string | undefined;
   const genStatus = data[10] as string | undefined;
   const genSeed = data[11] as string | undefined;
-  // LRC data — find in Gradio outputs (indices vary by version)
-  console.log(`[GEN] Total data elements: ${data.length}`);
-  // Log all string elements to find LRC
-  for (let i = 12; i < data.length; i++) {
-    const val = data[i];
-    if (typeof val === 'string' && val.length > 0) {
-      console.log(`[GEN] data[${i}]: (${val.length} chars) ${val.slice(0, 100)}`);
-    }
-  }
-  // Log ALL data elements to find LRC
-  for (let i = 12; i < data.length; i++) {
-    const val = data[i];
-    const type = typeof val;
-    const preview = type === 'string' ? (val as string).slice(0, 80) :
-                    val === null ? 'null' :
-                    type === 'object' ? JSON.stringify(val).slice(0, 80) : String(val);
-    if (preview && preview !== '' && preview !== 'null' && preview !== '""') {
-      console.log(`[GEN] data[${i}] (${type}): ${preview}`);
-    }
-  }
+  // LRC data — find in Gradio outputs
   const lrcData: string[] = [];
   for (let i = 12; i < data.length; i++) {
     const val = data[i];
@@ -693,9 +672,6 @@ async function processGenerationViaGradio(
       }
     }
   }
-  console.log(`[GEN] Found ${lrcData.length} LRC entries`);
-  console.log('[GEN] genDetails:', genDetails?.slice(0, 500));
-  console.log('[GEN] all data indices 9-15:', Array.from({length: 7}, (_, i) => `[${i+9}]: ${typeof data[i+9] === 'string' ? (data[i+9] as string).slice(0, 100) : JSON.stringify(data[i+9])}`).join(' | '));
 
   // Collect audio file objects — prefer the "All Generated Files" list
   let audioFileObjects: Array<{ url?: string; path?: string; orig_name?: string }> = [];
@@ -887,7 +863,6 @@ export async function getAudioStream(audioPath: string): Promise<Response> {
   }
 
   const url = `${ACESTEP_API}/v1/audio?path=${encodeURIComponent(audioPath)}`;
-  console.log('Fetching audio from:', url);
   return fetch(url);
 }
 
@@ -905,7 +880,6 @@ export async function downloadAudio(remoteUrl: string, songId: string): Promise<
   const filepath = path.join(AUDIO_DIR, filename);
 
   await writeFile(filepath, Buffer.from(buffer));
-  console.log(`Downloaded audio to ${filepath}`);
 
   return `/audio/${filename}`;
 }
