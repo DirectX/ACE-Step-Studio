@@ -732,16 +732,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         };
         bgVideo!.load();
       });
-    } else if (bgImageRef.current?.src) {
-      const bgDataUrl = await loadImageAsDataUrl(bgImageRef.current.src);
-      if (bgDataUrl) {
-        bgImage = new Image();
-        bgImage.src = bgDataUrl;
-        await new Promise<void>((resolve) => {
-          bgImage!.onload = () => resolve();
-          bgImage!.onerror = () => resolve();
-        });
-      }
+    } else if (bgImageRef.current) {
+      bgImage = bgImageRef.current;
     }
 
     // Load album art (use custom if set, otherwise song cover)
