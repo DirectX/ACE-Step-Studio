@@ -179,11 +179,17 @@ def _download_from_huggingface_internal(
 
     logger.info(f"[Model Download] Downloading from HuggingFace: {repo_id} -> {local_dir}")
 
+    # Only download components listed in MAIN_MODEL_COMPONENTS + shared files
+    # Skip large DiT models (acestep-v15-turbo, sft, base) — download separately via ensure_dit_model
+    allow = [f"{comp}/*" for comp in MAIN_MODEL_COMPONENTS]
+    allow += ["*.json", "*.txt", "*.py", "*.md", "*.jinja", ".gitattributes"]
+
     snapshot_download(
         repo_id=repo_id,
         local_dir=str(local_dir),
         local_dir_use_symlinks="auto",
         token=token,
+        allow_patterns=allow,
     )
 
 
