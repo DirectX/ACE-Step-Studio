@@ -433,6 +433,13 @@ async def init_model(request: Request):
         if llm_handler:
             llm_handler.unload()
 
+        # Free GPU memory after unload
+        import gc
+        import torch
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         # 2. Reload DiT only if model changed
         # Normalize names: "marcorez8/acestep-v15-xl-turbo-bf16" and
         # "acestep-v15-xl-turbo-bf16" should be treated as the same model.
@@ -469,6 +476,22 @@ async def init_model(request: Request):
         lm_status = ""
         dit_offload = getattr(dit_handler, "offload_to_cpu", True)
         if init_llm and llm_handler and lm_model_path:
+            # VRAM preflight: check if enough memory for the requested LM
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                free_gb = (torch.cuda.get_device_properties(0).total_mem - torch.cuda.memory_allocated()) / (1024**3)
+                lm_size = lm_model_path.split("-")[-1]  # "0.6B", "1.7B", "4B"
+                # Minimum VRAM needed (model weights only, no KV cache)
+                min_vram = {"0.6B": 1.0, "1.7B": 3.0, "4B": 7.0}.get(lm_size, 3.0)
+                if lm_backend == "vllm":
+                    min_vram += 2.0  # KV cache overhead
+                if free_gb < min_vram:
+                    return _wrap_response(None, code=400, error=(
+                        f"Not enough VRAM for LM {lm_size} ({lm_backend}): "
+                        f"need ~{min_vram:.0f}GB, only {free_gb:.1f}GB free. "
+                        f"Try a smaller LM model or use PT backend."
+                    ))
+
             lm_status, _ = llm_handler.initialize(
                 checkpoint_dir=checkpoints_dir,
                 lm_model_path=os.path.join(checkpoints_dir, lm_model_path),
