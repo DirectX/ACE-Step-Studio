@@ -788,8 +788,6 @@ function AppContent() {
     if (!token) return;
     try {
       const response = await songsApi.getMySongs(token);
-      const _rt = response.songs.find((s: any) => s.id === '07c152f6-45f6-4a62-ad21-dc90727c9c31');
-      if (_rt) console.log(`[LRC-DEBUG-REFRESH] BEFORE: lrc_content=${!!(_rt as any).lrc_content}:${(_rt as any).lrc_content?.length||0} lrcContent=${!!_rt.lrcContent}:${_rt.lrcContent?.length||0}`);
       const loadedSongs: Song[] = response.songs.map(s => ({
         id: s.id,
         title: s.title,
@@ -823,8 +821,6 @@ function AppContent() {
         })(),
       }));
 
-      const _rl = loadedSongs.find(s => s.id === '07c152f6-45f6-4a62-ad21-dc90727c9c31');
-      if (_rl) console.log(`[LRC-DEBUG-REFRESH] AFTER mapSong: lrcContent=${!!_rl.lrcContent}:${_rl.lrcContent?.length||0}`);
       // Preserve any generating songs that aren't in the loaded list
       setSongs(prev => {
         // Keep only generating songs that aren't in the loaded list

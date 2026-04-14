@@ -197,7 +197,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
   const [audioFormat, setAudioFormat] = useState<'mp3' | 'flac'>('mp3');
   const [inferenceSteps, setInferenceSteps] = useState(12);
   const [inferMethod, setInferMethod] = useState<'ode' | 'sde'>('ode');
-  const [lmBackend, setLmBackend] = useState<'pt' | 'vllm'>('vllm');
+  const [lmBackend, setLmBackend] = useState<'pt' | 'vllm'>('pt');
   const [lmModel, setLmModel] = useState('');
   const [shift, setShift] = useState(3.0);
 
@@ -1389,8 +1389,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
         enhance: false,
         audioFormat: 'mp3' as const,
         inferMethod: 'ode' as const,
-        lmBackend: 'vllm' as const,
-        lmModel: 'acestep-5Hz-lm-4B',
+        lmBackend: 'pt' as const,
+        lmModel: 'acestep-5Hz-lm-0.6B',
         shift: 3.0,
         taskType: 'text2music',
         getLrc: true,

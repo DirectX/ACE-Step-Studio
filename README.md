@@ -62,7 +62,7 @@ Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) — the ope
 ### Interface
 - **Single terminal** — one `run.bat`, Express manages Python/Gradio automatically
 - **Portable** — everything in one folder, no system-wide installs
-- **7 languages** — English, Russian, Chinese, Japanese, Korean + more
+- **5 languages** — English, Russian, Chinese, Japanese, Korean
 - **LAN access** — use from any device on your network (phone, tablet)
 - **GPU monitoring** — live VRAM, RAM, CPU, temperature stats
 - **Dark/Light theme**
