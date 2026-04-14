@@ -158,7 +158,8 @@ router.post('/', authMiddleware, upload.single('audio'), async (req: Authenticat
     }
 
     const userId = req.user!.id;
-    const originalFilename = req.file.originalname;
+    // Multer decodes originalname as latin1; re-decode as UTF-8 for Cyrillic support
+    const originalFilename = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
     const ext = path.extname(originalFilename) || '.mp3';
     const timestamp = Date.now();
     const key = `reference-tracks/${userId}/${timestamp}${ext}`;
