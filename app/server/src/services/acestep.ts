@@ -168,6 +168,7 @@ async function buildGradioArgs(params: GenerationParams): Promise<Record<string,
 
   const useCot = isEnhance || isThinking;
   const isTurbo = (params.ditModel || '').includes('turbo') && !(params.ditModel || '').includes('merge');
+  const taskType = (params.taskType === 'audio2audio' ? 'cover' : params.taskType) || 'text2music';
 
   return {
     captions: prompt,
@@ -187,10 +188,14 @@ async function buildGradioArgs(params: GenerationParams): Promise<Record<string,
     text2music_audio_code_string: params.audioCodes || '',
     repainting_start: params.repaintingStart ?? 0.0,
     repainting_end: params.repaintingEnd ?? -1,
-    instruction_display_gen: params.instruction || 'Fill the audio semantic mask with the style described in the text prompt.',
+    instruction_display_gen: params.instruction || (
+      taskType === 'cover' ? 'Generate audio semantic tokens based on the given conditions:' :
+      taskType === 'repaint' ? 'Repaint the mask area based on the given conditions:' :
+      'Fill the audio semantic mask based on the given conditions:'
+    ),
     audio_cover_strength: params.audioCoverStrength ?? 1.0,
     cover_noise_strength: params.coverNoiseStrength ?? 0.0,
-    task_type: (params.taskType === 'audio2audio' ? 'cover' : params.taskType) || 'text2music',
+    task_type: taskType,
     use_adg: params.useAdg ?? false,
     cfg_interval_start: params.cfgIntervalStart ?? 0.0,
     cfg_interval_end: params.cfgIntervalEnd ?? 1.0,
