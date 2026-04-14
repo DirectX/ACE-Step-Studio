@@ -253,7 +253,7 @@ echo.
 echo ========================================
 echo   Installation complete!
 echo.
-echo   To download models: download_model.bat
 echo   To start: run.bat
+echo   Models download automatically on first run.
 echo ========================================
 pause
