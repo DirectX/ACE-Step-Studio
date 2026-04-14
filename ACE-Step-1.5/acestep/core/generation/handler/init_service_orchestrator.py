@@ -138,6 +138,8 @@ class InitServiceOrchestratorMixin:
                 self.silence_latent = None
                 return precheck_failure
 
+            # Normalize config_path: "marcorez8/acestep-v15-xl-turbo-bf16" → "acestep-v15-xl-turbo-bf16"
+            config_path = os.path.basename(config_path.rstrip("/\\")) if config_path else config_path
             self._sync_model_code_if_needed(config_path, checkpoint_path)
 
             # Free old components before loading new ones to prevent RAM leak
