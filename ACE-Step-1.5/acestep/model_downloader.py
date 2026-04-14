@@ -301,18 +301,21 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
     "acestep-v15-xl-base": "ACE-Step/acestep-v15-xl-base",
     "acestep-v15-xl-sft": "ACE-Step/acestep-v15-xl-sft",
     "acestep-v15-xl-turbo": "ACE-Step/acestep-v15-xl-turbo",
+    # Community BF16 models
+    "acestep-v15-xl-turbo-bf16": "marcorez8/acestep-v15-xl-turbo-bf16",
+    "acestep-v15-xl-sft-bf16": "marcorez8/acestep-v15-xl-sft-bf16",
+    "acestep-v15-xl-merge-sft-turbo-bf16": "jeankassio/acestep-v15-xl-merge-sft-turbo-bf16",
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
 MAIN_MODEL_COMPONENTS = [
-    "acestep-v15-turbo",      # Default DiT model
     "vae",                     # VAE for audio encoding/decoding
     "Qwen3-Embedding-0.6B",    # Text encoder
-    "acestep-5Hz-lm-1.7B",     # Default LM model (1.7B)
+    "acestep-5Hz-lm-0.6B",     # Default LM model (0.6B, lightest)
 ]
 
 # Default LM model (included in main model)
-DEFAULT_LM_MODEL = "acestep-5Hz-lm-1.7B"
+DEFAULT_LM_MODEL = "acestep-5Hz-lm-0.6B"
 
 
 def get_project_root() -> Path:

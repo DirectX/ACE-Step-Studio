@@ -1,5 +1,6 @@
 """Download and precheck helpers for service initialization."""
 
+import os
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -36,9 +37,11 @@ class InitServiceDownloadsMixin:
                 "[initialize_service] Empty config_path; pass None to use the default model."
             )
 
-        if not check_model_exists(config_path, checkpoint_path):
-            logger.info(f"[initialize_service] DiT model '{config_path}' not found, starting auto-download...")
-            success, msg = ensure_dit_model(config_path, checkpoint_path, prefer_source=prefer_source)
+        # Normalize: "marcorez8/acestep-v15-xl-turbo-bf16" → "acestep-v15-xl-turbo-bf16"
+        dit_name = os.path.basename(config_path.rstrip("/\\")) if config_path else config_path
+        if not check_model_exists(dit_name, checkpoint_path):
+            logger.info(f"[initialize_service] DiT model '{dit_name}' not found, starting auto-download...")
+            success, msg = ensure_dit_model(dit_name, checkpoint_path, prefer_source=prefer_source)
             if not success:
                 return f"ERROR: Failed to download DiT model '{config_path}': {msg}", False
             logger.info(f"[initialize_service] {msg}")
