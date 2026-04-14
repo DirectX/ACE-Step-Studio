@@ -30,10 +30,30 @@ const router = Router();
 function autoTitle(params: { title?: string; lyrics?: string; instrumental?: boolean; style?: string; songDescription?: string }): string {
   if (params.title?.trim()) return params.title.trim();
 
+  // Trim to max 2 phrases, cut at sentence end, max 50 chars
+  function trimTitle(raw: string): string {
+    // Strip parentheses wrappers like (Вою, спасу)
+    let t = raw.replace(/^\((.+)\)$/, '$1').trim();
+    // Cut at first sentence boundary (. ! ?) if present
+    const sentenceEnd = t.search(/[.!?]\s/);
+    if (sentenceEnd > 0 && sentenceEnd < 50) {
+      t = t.slice(0, sentenceEnd + 1).trim();
+    }
+    // Cut at second comma
+    const parts = t.split(',');
+    if (parts.length > 2) {
+      t = parts.slice(0, 2).join(',').trim();
+    }
+    // Cut at 50 chars on word boundary
+    if (t.length > 50) {
+      t = t.slice(0, 50).replace(/\s+\S*$/, '').trimEnd() + '…';
+    }
+    return t;
+  }
+
   // Try first meaningful lyric line from chorus, then fallback to any section
   if (!params.instrumental && params.lyrics) {
     const lines = params.lyrics.split('\n');
-    const pickLine = (t: string) => t.length > 40 ? t.slice(0, 40).trimEnd() + '…' : t;
 
     // Look for first text line after [Chorus] / [Припев] / [Hook]
     let inChorus = false;
@@ -44,10 +64,10 @@ function autoTitle(params: { title?: string; lyrics?: string; instrumental?: boo
         continue;
       }
       if (inChorus && t && !/^\[.*\]$/.test(t)) {
-        return pickLine(t);
+        return trimTitle(t);
       }
       if (inChorus && /^\[/.test(t)) {
-        inChorus = false; // next section started, chorus had no text lines
+        inChorus = false;
       }
     }
 
@@ -55,16 +75,15 @@ function autoTitle(params: { title?: string; lyrics?: string; instrumental?: boo
     for (const line of lines) {
       const t = line.trim();
       if (t && !/^\[.*\]$/.test(t)) {
-        return pickLine(t);
+        return trimTitle(t);
       }
     }
   }
 
-  // Fall back to first 4 words of style or description
+  // Fall back to style or description — max 2 phrases
   const source = params.style || params.songDescription || '';
   if (source) {
-    const words = source.trim().split(/\s+/).slice(0, 4).join(' ');
-    return words.charAt(0).toUpperCase() + words.slice(1);
+    return trimTitle(source);
   }
 
   return 'Untitled';
