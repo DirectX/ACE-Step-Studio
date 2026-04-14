@@ -77,6 +77,8 @@ class PipelineManager {
       '--port', String(port),
       '--init_service', 'true',
       '--init_llm', 'true',
+      '--lm_model_path', 'acestep-5Hz-lm-0.6B',
+      '--backend', 'pt',
       '--enable-api',
       '--offload_to_cpu', 'true',
     ];
