@@ -226,20 +226,9 @@ function AppContent() {
     };
   }, []);
 
-  const handleShowDetails = async (song: Song) => {
+  const handleShowDetails = (song: Song) => {
     setSelectedSong(song);
     setShowMobileDetails(true);
-    // Fetch full song data to ensure lrcContent is loaded
-    if (!song.lrcContent && token) {
-      try {
-        const full = await songsApi.getFullSong(song.id, token);
-        if (full.song?.lrcContent) {
-          const updated = { ...song, lrcContent: full.song.lrcContent };
-          setSelectedSong(updated);
-          setSongs(prev => prev.map(s => s.id === song.id ? updated : s));
-        }
-      } catch {}
-    }
   };
 
   // Reuse Handler
