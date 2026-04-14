@@ -1066,13 +1066,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
         // Date stamp + REC
         ctx.globalCompositeOperation = 'source-over';
-        ctx.font = 'bold 24px monospace';
+        const cctvFs = Math.round(width * 0.022);
+        ctx.font = `bold ${cctvFs}px monospace`;
         ctx.fillStyle = 'white';
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 4;
         const frameDate = new Date(Date.now() + time * 1000);
-        ctx.fillText(frameDate.toLocaleString().toUpperCase(), 60, 60);
-        ctx.fillText('REC \u25cf', width - 120, 60);
+        ctx.fillText(frameDate.toLocaleString().toUpperCase(), cctvFs * 2, cctvFs * 2);
+        ctx.fillText('REC \u25cf', width - cctvFs * 6, cctvFs * 2);
         ctx.shadowBlur = 0;
         ctx.globalCompositeOperation = 'source-over';
       }
@@ -1730,11 +1731,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
         // Date Stamp
         ctx.globalCompositeOperation = 'source-over';
-        ctx.font = 'mono 24px monospace';
+        const cctvFontSize = Math.round(width * 0.022);
+        ctx.font = `bold ${cctvFontSize}px monospace`;
         ctx.fillStyle = 'white';
         ctx.shadowColor = 'black';
-        ctx.fillText(new Date().toLocaleString().toUpperCase(), 60, 60);
-        ctx.fillText("REC ●", width - 120, 60);
+        ctx.shadowBlur = 4;
+        ctx.fillText(new Date().toLocaleString().toUpperCase(), cctvFontSize * 2, cctvFontSize * 2);
+        ctx.fillText("REC \u25cf", width - cctvFontSize * 6, cctvFontSize * 2);
+        ctx.shadowBlur = 0;
     }
 
     // Bloom / Glow effect
