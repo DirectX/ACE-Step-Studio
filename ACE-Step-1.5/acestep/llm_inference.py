@@ -119,7 +119,9 @@ class LLMHandler:
         try:
             if self.llm_backend == "vllm":
                 try:
-                    if hasattr(self.llm, "reset"):
+                    if hasattr(self.llm, "exit"):
+                        self.llm.exit()
+                    elif hasattr(self.llm, "reset"):
                         self.llm.reset()
                 except Exception:
                     pass
