@@ -1126,9 +1126,15 @@ function AppContent() {
   }, [isAuthenticated, token, beginPollingJob]);
 
   const togglePlay = () => {
-    if (!currentSong) return;
-    if (!currentSong.audioUrl) {
+    const song = currentSong || selectedSong;
+    if (!song) return;
+    if (!song.audioUrl) {
       showToast(t('songNotAvailable'), 'error');
+      return;
+    }
+    // If no currentSong yet, start playing the selected song
+    if (!currentSong && song) {
+      playSong(song);
       return;
     }
     setIsPlaying(!isPlaying);
