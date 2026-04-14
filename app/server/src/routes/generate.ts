@@ -965,7 +965,7 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
         model,
         init_llm: !!lmModel,
         lm_model_path: lmModel || undefined,
-        lm_backend: lmBackend || 'vllm',
+        lm_backend: lmBackend || 'pt',
       }),
       signal: AbortSignal.timeout(300_000), // 5 min timeout for model download + load
     });

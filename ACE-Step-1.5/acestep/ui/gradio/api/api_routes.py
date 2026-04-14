@@ -418,7 +418,7 @@ async def init_model(request: Request):
     model = body.get("model")
     init_llm = body.get("init_llm", False)
     lm_model_path = body.get("lm_model_path")
-    lm_backend = body.get("lm_backend", "vllm")
+    lm_backend = body.get("lm_backend", "pt")
     if not model:
         raise HTTPException(status_code=400, detail="model is required")
 

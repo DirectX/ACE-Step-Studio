@@ -494,7 +494,7 @@ class LLMHandler:
         self,
         checkpoint_dir: str,
         lm_model_path: str,
-        backend: str = "vllm",
+        backend: str = "pt",
         device: str = "auto",
         offload_to_cpu: bool = False,
         dtype: Optional[torch.dtype] = None,

@@ -288,7 +288,7 @@ def resolve_lm_backend(
 ) -> str:
     """Resolve the LM backend against runtime compatibility restrictions."""
     config = gpu_config or get_global_gpu_config()
-    recommended_backend = getattr(config, "recommended_backend", "vllm")
+    recommended_backend = getattr(config, "recommended_backend", "pt")
     lm_backend_restriction = getattr(config, "lm_backend_restriction", "all")
 
     backend = (requested_backend or "").strip().lower()
@@ -325,7 +325,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": [],
         "recommended_lm_model": "",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,
         "offload_dit_to_cpu_default": True,
         "quantization_default": True,  # INT8 essential to fit DiT in ~4GB
@@ -344,7 +344,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": [],
         "recommended_lm_model": "",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,
         "offload_dit_to_cpu_default": True,
         "quantization_default": True,
@@ -363,7 +363,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": ["acestep-5Hz-lm-0.6B"],
         "recommended_lm_model": "acestep-5Hz-lm-0.6B",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,
         "offload_dit_to_cpu_default": True,
         "quantization_default": True,
@@ -381,7 +381,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": ["acestep-5Hz-lm-0.6B"],
         "recommended_lm_model": "acestep-5Hz-lm-0.6B",
         "lm_backend_restriction": "all",  # vllm fits with 0.6B
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,
         "offload_dit_to_cpu_default": True,
         "quantization_default": True,
@@ -399,7 +399,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": ["acestep-5Hz-lm-0.6B", "acestep-5Hz-lm-1.7B"],
         "recommended_lm_model": "acestep-5Hz-lm-1.7B",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,
         "offload_dit_to_cpu_default": False,  # 12-16GB can keep DiT on GPU
         "quantization_default": True,
@@ -418,7 +418,7 @@ GPU_TIER_CONFIGS = {
         "available_lm_models": ["acestep-5Hz-lm-0.6B", "acestep-5Hz-lm-1.7B"],
         "recommended_lm_model": "acestep-5Hz-lm-1.7B",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": True,  # Still offload VAE/TextEnc to save VRAM for LM
         "offload_dit_to_cpu_default": False,
         "quantization_default": True,
@@ -440,7 +440,7 @@ GPU_TIER_CONFIGS = {
         ],
         "recommended_lm_model": "acestep-5Hz-lm-1.7B",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": False,  # 20-24GB can hold all models
         "offload_dit_to_cpu_default": False,
         "quantization_default": False,  # Enough VRAM, quantization optional
@@ -460,7 +460,7 @@ GPU_TIER_CONFIGS = {
         ],
         "recommended_lm_model": "acestep-5Hz-lm-4B",
         "lm_backend_restriction": "all",
-        "recommended_backend": "vllm",
+        "recommended_backend": "pt",
         "offload_to_cpu_default": False,
         "offload_dit_to_cpu_default": False,
         "quantization_default": False,  # Plenty of VRAM
@@ -865,7 +865,7 @@ def get_gpu_config(gpu_memory_gb: Optional[float] = None) -> GPUConfig:
         else config.get("lm_backend_restriction", "all"),
         recommended_backend="mlx"
         if _mps
-        else config.get("recommended_backend", "vllm"),
+        else config.get("recommended_backend", "pt"),
         # MPS: unified memory — offloading to CPU is pointless overhead
         offload_to_cpu_default=False
         if _mps
@@ -1168,7 +1168,7 @@ def compute_adaptive_config(total_vram_gb: float, dit_type: str = "turbo") -> GP
             available_lm_models[0] if available_lm_models else "",
         ),
         lm_backend_restriction=tier_config.get("lm_backend_restriction", "all"),
-        recommended_backend=tier_config.get("recommended_backend", "vllm"),
+        recommended_backend=tier_config.get("recommended_backend", "pt"),
         offload_to_cpu_default=tier_config.get("offload_to_cpu_default", True),
         offload_dit_to_cpu_default=tier_config.get("offload_dit_to_cpu_default", True),
         quantization_default=tier_config.get("quantization_default", True),
@@ -1534,7 +1534,7 @@ def get_gpu_config_for_tier(tier: str) -> GPUConfig:
         else config.get("lm_backend_restriction", "all"),
         recommended_backend="mlx"
         if _mps
-        else config.get("recommended_backend", "vllm"),
+        else config.get("recommended_backend", "pt"),
         offload_to_cpu_default=False
         if _mps
         else config.get("offload_to_cpu_default", True),
