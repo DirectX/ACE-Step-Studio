@@ -137,12 +137,10 @@ const SystemWidget: React.FC<{ isOpen?: boolean }> = ({ isOpen }) => {
       </div>
 
       {/* LM Model */}
-      {lmShort && (
-        <div className="flex items-center justify-between text-zinc-600">
-          <span className="text-[9px] text-zinc-600">LM</span>
-          <span className="text-[9px] text-zinc-500 truncate">{lmShort}{lmBackend ? ` (${lmBackend})` : ''}</span>
-        </div>
-      )}
+      <div className="flex items-center justify-between text-zinc-600">
+        <span className="text-[9px] text-zinc-600">LM</span>
+        <span className={`text-[9px] truncate ${lmShort ? 'text-zinc-500' : 'text-zinc-600'}`}>{lmShort ? `${lmShort}${lmBackend ? ` (${lmBackend})` : ''}` : 'off'}</span>
+      </div>
 
       {/* VRAM optimizations */}
       {(info.offloadToCpu || info.chunkedFfn > 1 || info.pinnedMemory) && (
