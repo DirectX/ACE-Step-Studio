@@ -436,7 +436,9 @@ def main():
         print(f"  DiT model: {args.config_path}")
         print(f"  LM model: {args.lm_model_path}")
 
+    original_backend = args.backend
     args.backend = _resolve_startup_lm_backend(args.backend, gpu_config)
+    print(f"LM Backend: {args.backend} (requested: {original_backend})")
 
     if args.service_mode:
         print(f"  Backend: {args.backend}")

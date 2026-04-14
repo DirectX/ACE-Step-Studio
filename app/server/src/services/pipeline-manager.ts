@@ -70,15 +70,18 @@ class PipelineManager {
     this.message = 'Spawning Python pipeline...';
     this.lastError = null;
 
+    const initLlm = process.env.INIT_LLM !== 'false';
+    const lmModel = process.env.LM_MODEL || 'acestep-5Hz-lm-0.6B';
+    const lmBackend = process.env.LM_BACKEND || 'pt';
+
     const args = [
       '-u',
       '-m', 'acestep.acestep_v15_pipeline',
       '--config_path', defaultModel,
       '--port', String(port),
       '--init_service', 'true',
-      '--init_llm', 'true',
-      '--lm_model_path', 'acestep-5Hz-lm-0.6B',
-      '--backend', 'pt',
+      '--init_llm', String(initLlm),
+      ...(initLlm ? ['--lm_model_path', lmModel, '--backend', lmBackend] : []),
       '--enable-api',
       '--offload_to_cpu', 'true',
     ];
