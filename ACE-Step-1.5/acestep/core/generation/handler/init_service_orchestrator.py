@@ -140,6 +140,23 @@ class InitServiceOrchestratorMixin:
 
             self._sync_model_code_if_needed(config_path, checkpoint_path)
 
+            # Free old components before loading new ones to prevent RAM leak
+            from acestep.models.common.memory_utils import unpin_module_memory, PINNED_MEMORY_ENABLED
+            for attr in ("model", "vae", "text_encoder"):
+                old = getattr(self, attr, None)
+                if old is not None:
+                    if PINNED_MEMORY_ENABLED and hasattr(old, "parameters"):
+                        try:
+                            unpin_module_memory(old)
+                        except Exception:
+                            pass
+                    setattr(self, attr, None)
+                    del old
+            import gc
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
             model_path = os.path.join(checkpoint_dir, config_path)
             self._load_main_model_from_checkpoint(
                 model_checkpoint_path=model_path,

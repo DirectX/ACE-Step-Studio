@@ -126,9 +126,14 @@ class LLMHandler:
                 except Exception:
                     pass
                 self._cleanup_torch_distributed_state()
+            # Explicitly delete to break reference cycles before gc.collect()
+            old_llm = self.llm
+            old_tokenizer = self.llm_tokenizer
+            old_processor = self.constrained_processor
             self.llm = None
             self.llm_tokenizer = None
             self.constrained_processor = None
+            del old_llm, old_tokenizer, old_processor
             self.llm_initialized = False
             self.llm_backend = None
             self._mlx_model = None
