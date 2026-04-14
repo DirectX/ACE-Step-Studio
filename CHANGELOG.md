@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-04-14
+
+### Changed
+- **Gradio args refactored to named parameters** — no more positional array counting, impossible to shift params
+- **Default LM model** changed to 0.6B with PT backend (was 1.7B vLLM)
+- **Quick Settings** (Duration, BPM, Key, Time Signature, Variations) now visible in both Simple and Custom modes
+- **Auto-title** picks first line from Chorus/Hook instead of first line of lyrics; max 2 phrases, cut at sentence boundary
+- **Song DB records** now store actual server model state, not frontend params
+
+### Fixed
+- **LM backend dropdown** always showed PT — health endpoint read wrong attribute (`llm_handler.backend` → `llm_handler.llm_backend`)
+- **LM backend not passed to /v1/init** — PT/vLLM selection was ignored, always loaded vLLM
+- **vLLM not freed on unload** — `unload()` called `reset()` instead of `exit()`, CUDA graphs and KV cache stayed in VRAM
+- **RAM leak on model switch** — old model/vae/text_encoder not deleted before loading new ones; pinned memory not unpinned
+- **keyScale select** passed React event object instead of string value (broke DiT metas)
+- **timeSignature select** — same bug
+- **LM model/backend desync** — dropdowns now sync from server on every health poll (with editing guard)
+- **Switch-model log** no longer says "Unloading DiT" when only LM changes
+- **Instruction per task type** — cover and repaint now use correct instruction strings
+- **gc.collect + empty_cache** after LM unload before loading new model
+
 ## 2026-04-13
 
 ### Added
