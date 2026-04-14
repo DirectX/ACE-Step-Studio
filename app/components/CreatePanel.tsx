@@ -1943,21 +1943,24 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   </button>
                 </div>
               </div>
-              <textarea
-                disabled={instrumental}
-                value={lyrics}
-                onChange={(e) => setLyrics(e.target.value)}
-                placeholder={instrumental ? t('instrumental') + ' mode' : t('lyricsPlaceholder')}
-                className={`w-full bg-transparent p-3 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-mono leading-relaxed ${instrumental ? 'opacity-30 cursor-not-allowed' : ''}`}
-                style={{ height: `${lyricsHeight}px` }}
-              />
-              {/* Resize Handle */}
-              <div
-                onMouseDown={startResizing}
-                className="h-3 w-full cursor-ns-resize flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors absolute bottom-0 left-0 z-10"
-              >
-                <div className="w-8 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
-              </div>
+              {!instrumental && (
+                <>
+                  <textarea
+                    value={lyrics}
+                    onChange={(e) => setLyrics(e.target.value)}
+                    placeholder={t('lyricsPlaceholder')}
+                    className="w-full bg-transparent p-3 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none font-mono leading-relaxed"
+                    style={{ height: `${lyricsHeight}px` }}
+                  />
+                  {/* Resize Handle */}
+                  <div
+                    onMouseDown={startResizing}
+                    className="h-3 w-full cursor-ns-resize flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors absolute bottom-0 left-0 z-10"
+                  >
+                    <div className="w-8 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Vocal Language & Gender (Custom mode) */}
