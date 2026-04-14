@@ -30,12 +30,32 @@ const router = Router();
 function autoTitle(params: { title?: string; lyrics?: string; instrumental?: boolean; style?: string; songDescription?: string }): string {
   if (params.title?.trim()) return params.title.trim();
 
-  // Try first meaningful lyric line (skip section markers like [verse], [chorus])
+  // Try first meaningful lyric line from chorus, then fallback to any section
   if (!params.instrumental && params.lyrics) {
-    for (const line of params.lyrics.split('\n')) {
+    const lines = params.lyrics.split('\n');
+    const pickLine = (t: string) => t.length > 40 ? t.slice(0, 40).trimEnd() + '…' : t;
+
+    // Look for first text line after [Chorus] / [Припев] / [Hook]
+    let inChorus = false;
+    for (const line of lines) {
+      const t = line.trim();
+      if (/^\[(chorus|припев|hook)/i.test(t)) {
+        inChorus = true;
+        continue;
+      }
+      if (inChorus && t && !/^\[.*\]$/.test(t)) {
+        return pickLine(t);
+      }
+      if (inChorus && /^\[/.test(t)) {
+        inChorus = false; // next section started, chorus had no text lines
+      }
+    }
+
+    // Fallback: first meaningful line from any section
+    for (const line of lines) {
       const t = line.trim();
       if (t && !/^\[.*\]$/.test(t)) {
-        return t.length > 40 ? t.slice(0, 40).trimEnd() + '…' : t;
+        return pickLine(t);
       }
     }
   }
