@@ -1063,6 +1063,17 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.globalCompositeOperation = 'multiply';
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
+
+        // Date stamp + REC
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.font = 'bold 24px monospace';
+        ctx.fillStyle = 'white';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 4;
+        const frameDate = new Date(Date.now() + time * 1000);
+        ctx.fillText(frameDate.toLocaleString().toUpperCase(), 60, 60);
+        ctx.fillText('REC \u25cf', width - 120, 60);
+        ctx.shadowBlur = 0;
         ctx.globalCompositeOperation = 'source-over';
       }
 
