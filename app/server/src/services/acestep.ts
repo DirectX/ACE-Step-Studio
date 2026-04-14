@@ -213,7 +213,6 @@ async function buildGradioArgs(params: GenerationParams): Promise<Record<string,
     use_cot_metas: useCot ? (params.useCotMetas ?? true) : false,
     use_cot_caption: useCot ? (params.useCotCaption ?? true) : false,
     use_cot_language: useCot ? (params.useCotLanguage ?? true) : false,
-    is_format_caption: true,
     constrained_decoding_debug: params.constrainedDecodingDebug ?? false,
     allow_lm_batch: params.allowLmBatch ?? true,
     auto_score: params.getScores ?? false,
@@ -231,10 +230,6 @@ async function buildGradioArgs(params: GenerationParams): Promise<Record<string,
     repaint_mode: params.repaintMode || 'balanced',
     repaint_strength: params.repaintStrength ?? 0.5,
     autogen_checkbox: params.autogen ?? false,
-    current_batch_index: 0,
-    total_batches: 0,
-    batch_queue: [],
-    generation_params_state: null,
   };
 }
 
