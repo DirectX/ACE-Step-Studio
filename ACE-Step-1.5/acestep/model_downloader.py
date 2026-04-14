@@ -186,11 +186,13 @@ def _download_from_huggingface_internal(
         "token": token,
     }
 
-    # For main model repo: filter to only needed components (skip acestep-v15-turbo 4.79GB etc)
+    # For main model repo: skip DiT model weights (downloaded separately via ensure_dit_model)
     if repo_id == MAIN_MODEL_REPO:
-        allow = [f"{comp}/*" for comp in MAIN_MODEL_COMPONENTS]
-        allow += ["*.json", "*.txt", "*.py", "*.md", "*.jinja", ".gitattributes"]
-        kwargs["allow_patterns"] = allow
+        kwargs["ignore_patterns"] = [
+            "acestep-v15-turbo/*",
+            "acestep-v15-base/*",
+            "acestep-v15-sft/*",
+        ]
 
     snapshot_download(**kwargs)
 
