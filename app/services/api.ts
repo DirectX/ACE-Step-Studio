@@ -150,10 +150,20 @@ export const songsApi = {
   },
 
   getSong: async (id: string, token?: string | null): Promise<{ song: Song }> => {
-    const result = await api(`/api/songs/${id}`, { token: token || undefined }) as { song: Song };
-    const rawUrl = result.song.audio_url || result.song.audioUrl;
-    const resolvedUrl = getAudioUrl(rawUrl, result.song.id);
-    return { song: { ...result.song, audio_url: resolvedUrl, audioUrl: resolvedUrl } };
+    const result = await api(`/api/songs/${id}`, { token: token || undefined }) as { song: any };
+    const s = result.song;
+    const rawUrl = s.audio_url || s.audioUrl;
+    const resolvedUrl = getAudioUrl(rawUrl, s.id);
+    return { song: {
+      ...s,
+      audio_url: resolvedUrl,
+      audioUrl: resolvedUrl,
+      ditModel: s.dit_model || s.ditModel,
+      lmModel: s.lm_model || s.lmModel,
+      lmBackend: s.lm_backend || s.lmBackend,
+      generationTime: s.generation_time || s.generationTime,
+      lrcContent: s.lrc_content || s.lrcContent,
+    }};
   },
 
   getFullSong: async (id: string, token?: string | null): Promise<{ song: Song, comments: any[] }> => {
