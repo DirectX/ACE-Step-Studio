@@ -215,7 +215,7 @@ async def health_check(request: Request):
             lm_model = getattr(llm_handler, 'model_path', None)
             if lm_model:
                 lm_model = os.path.basename(str(lm_model).rstrip("/\\"))
-        lm_backend = getattr(llm_handler, 'backend', None) or 'pt'
+        lm_backend = getattr(llm_handler, 'llm_backend', None) or 'pt'
 
     # VRAM optimization flags
     chunked_ffn = int(os.environ.get("ACESTEP_CHUNKED_FFN", "2"))
