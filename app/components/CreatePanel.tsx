@@ -1800,7 +1800,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('key')}</label>
                   <select
                     value={keyScale}
-                    onChange={setKeyScale}
+                    onChange={e => setKeyScale(e.target.value)}
                     className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                   >
                     <option value="">Auto</option>
@@ -1813,7 +1813,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{t('time')}</label>
                   <select
                     value={timeSignature}
-                    onChange={setTimeSignature}
+                    onChange={e => setTimeSignature(e.target.value)}
                     className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 transition-colors cursor-pointer [&>option]:bg-white [&>option]:dark:bg-zinc-800 [&>option]:text-zinc-900 [&>option]:dark:text-white"
                   >
                     <option value="">Auto</option>
@@ -1840,7 +1840,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
                   max="4"
                   step="1"
                   value={batchSize}
-                  onChange={setBatchSize}
+                  onChange={e => setBatchSize(Number(e.target.value))}
                   className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
                 />
                 <p className="text-[10px] text-zinc-500">{t('numberOfVariations')}</p>

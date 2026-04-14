@@ -19,16 +19,6 @@ export async function getGradioClient(): Promise<Client> {
       });
       clientInstance = client;
       console.log(`[Gradio] Connected to ${config.acestep.apiUrl}`);
-      // Debug: dump parameter names for generation_wrapper
-      try {
-        const api = await client.view_api();
-        const ep = (api as any).named_endpoints?.['/generation_wrapper'];
-        if (ep?.parameters) {
-          const names = ep.parameters.map((p: any, i: number) => `${i}:${p.parameter_name}${p.hidden ? '(hidden)' : ''}`);
-          console.log(`[Gradio] generation_wrapper params: ${names.join(', ')}`);
-        }
-      } catch {}
-
       return client;
     } catch (error) {
       console.error(`[Gradio] Failed to connect to ${config.acestep.apiUrl}:`, error);
