@@ -157,7 +157,9 @@ class InitServiceOrchestratorMixin:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
-            model_path = os.path.join(checkpoint_dir, config_path)
+            # Normalize: "marcorez8/acestep-v15-xl-turbo-bf16" → "acestep-v15-xl-turbo-bf16"
+            normalized_config = os.path.basename(config_path.rstrip("/\\")) if config_path else config_path
+            model_path = os.path.join(checkpoint_dir, normalized_config)
             self._load_main_model_from_checkpoint(
                 model_checkpoint_path=model_path,
                 device=resolved_device,
