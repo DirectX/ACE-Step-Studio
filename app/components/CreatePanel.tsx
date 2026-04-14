@@ -2562,9 +2562,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({
             {/* Apply LM Settings button */}
             <button
               type="button"
-              disabled={!!modelSwitchStatus}
+              disabled={!!modelSwitchStatus || !lmModel}
               onClick={async () => {
-                if (!token) return;
+                if (!token || !lmModel) return;
                 setModelSwitchStatus(`${t('applyingLmSettings') || 'Restarting pipeline'}...`);
                 try {
                   const res = await fetch('/api/generate/switch-model', {

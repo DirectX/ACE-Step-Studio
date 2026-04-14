@@ -920,15 +920,22 @@ router.post('/switch-model', authMiddleware, async (req: AuthenticatedRequest, r
   // Pause health checks during model switch to prevent zombie kill
   pipelineManager.pauseHealthCheck();
 
-  // Show unloading state so frontend can display progress
-  modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
-  console.log(`[Model] Unloading current model: ${activeLoadedModel}`);
+  // Check if DiT is actually changing
+  const ditBasename = (n: string) => n.replace(/^.*\//, '').replace(/[\\/]+$/, '');
+  const ditChanging = ditBasename(model) !== ditBasename(activeLoadedModel);
 
-  // Brief pause so frontend polling picks up the unloading state
-  await new Promise(r => setTimeout(r, 500));
+  if (ditChanging) {
+    modelLoadingStatus = { state: 'unloading', model: activeLoadedModel };
+    console.log(`[Model] Unloading current DiT: ${activeLoadedModel}`);
+    await new Promise(r => setTimeout(r, 500));
+  }
 
   modelLoadingStatus = { state: 'loading', model };
-  console.log(`[Model] Switching DiT to: ${model}${lmModel ? `, LM to: ${lmModel}` : ''}`);
+  if (ditChanging) {
+    console.log(`[Model] Switching DiT to: ${model}${lmModel ? `, LM to: ${lmModel}` : ''}`);
+  } else {
+    console.log(`[Model] Reloading LM: ${lmModel || 'default'}${lmBackend ? ` (${lmBackend})` : ''}`);
+  }
 
   try {
     // Call Gradio's /v1/init — handles unload, download, and reload in-process
