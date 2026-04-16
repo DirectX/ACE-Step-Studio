@@ -190,6 +190,16 @@ update.bat
 - [Gradio](https://gradio.app/) — ML-фреймворк
 - [FFmpeg](https://ffmpeg.org/) — видео-кодирование
 
+## Поддержать проект
+
+Я создаю софт и занимаюсь исследованиями в области ИИ и генерации музыки. Большая часть всего, что я делаю, находится в открытом доступе. Ваши пожертвования позволяют мне создавать и исследовать больше, не отвлекаясь на поиск еды для продолжения существования =)
+
+**[Все способы поддержки](DONATE.md)** | **[dalink.to/nerual_dreming](https://dalink.to/nerual_dreming)** | **[boosty.to/neuro_art](https://boosty.to/neuro_art)**
+
+| BTC | ETH (ERC20) | USDT (TRC20) |
+|:---:|:---:|:---:|
+| `1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC` | `0xb5db65adf478983186d4897ba92fe2c25c594a0c` | `TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C` |
+
 ---
 
 <div align="center">

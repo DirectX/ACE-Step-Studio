@@ -206,6 +206,16 @@ Areas where help is especially needed:
 - [Gradio](https://gradio.app/) — ML model serving
 - [FFmpeg](https://ffmpeg.org/) — video encoding
 
+## Support This Project
+
+I build software and do research in AI and music generation. Most of what I create is free and open source. Your donations allow me to keep creating and exploring without worrying about where the next meal comes from =)
+
+**[All donation methods](DONATE.md)** | **[dalink.to/nerual_dreming](https://dalink.to/nerual_dreming)** | **[boosty.to/neuro_art](https://boosty.to/neuro_art)**
+
+| BTC | ETH (ERC20) | USDT (TRC20) |
+|:---:|:---:|:---:|
+| `1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC` | `0xb5db65adf478983186d4897ba92fe2c25c594a0c` | `TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C` |
+
 ---
 
 <div align="center">
