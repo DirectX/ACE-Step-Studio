@@ -32,25 +32,20 @@ Monthly support (Russian Patreon):
 
 ### Crypto
 
-<table>
-<tr>
-<td align="center">
-<img src="docs/donate/btc.png" width="200"><br>
-<b>BTC — Bitcoin</b><br>
-<code>1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC</code>
-</td>
-<td align="center">
-<img src="docs/donate/eth.png" width="200"><br>
-<b>ETH — Ethereum (ERC20)</b><br>
-<code>0xb5db65adf478983186d4897ba92fe2c25c594a0c</code>
-</td>
-<td align="center">
-<img src="docs/donate/usdt.png" width="200"><br>
-<b>USDT — Tether (TRC20)</b><br>
-<code>TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C</code>
-</td>
-</tr>
-</table>
+**BTC — Bitcoin**
+<img src="docs/donate/btc.png" width="180">
+
+`1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC`
+
+**ETH — Ethereum (ERC20)**
+<img src="docs/donate/eth.png" width="180">
+
+`0xb5db65adf478983186d4897ba92fe2c25c594a0c`
+
+**USDT — Tether (TRC20)**
+<img src="docs/donate/usdt.png" width="180">
+
+`TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C`
 
 ### Thank you!
 
@@ -82,25 +77,20 @@ Every star, share, and contribution matters. You're helping keep open-source AI 
 
 ### Крипта
 
-<table>
-<tr>
-<td align="center">
-<img src="docs/donate/btc.png" width="200"><br>
-<b>BTC — Bitcoin</b><br>
-<code>1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC</code>
-</td>
-<td align="center">
-<img src="docs/donate/eth.png" width="200"><br>
-<b>ETH — Ethereum (ERC20)</b><br>
-<code>0xb5db65adf478983186d4897ba92fe2c25c594a0c</code>
-</td>
-<td align="center">
-<img src="docs/donate/usdt.png" width="200"><br>
-<b>USDT — Tether (TRC20)</b><br>
-<code>TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C</code>
-</td>
-</tr>
-</table>
+**BTC — Bitcoin**
+<img src="docs/donate/btc.png" width="180">
+
+`1E7dHL22RpyhJGVpcvKdbyZgksSYkYeEBC`
+
+**ETH — Ethereum (ERC20)**
+<img src="docs/donate/eth.png" width="180">
+
+`0xb5db65adf478983186d4897ba92fe2c25c594a0c`
+
+**USDT — Tether (TRC20)**
+<img src="docs/donate/usdt.png" width="180">
+
+`TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C`
 
 ### Спасибо!
 
