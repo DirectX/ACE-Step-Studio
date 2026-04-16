@@ -1,34 +1,42 @@
-# Support This Project / Поддержать проект
-
 <div align="center">
 
-[English](#english) | [Русский](#русский)
+# Support Open-Source AI / Поддержать опенсорс
+
+[![Donate Card](https://img.shields.io/badge/Card_%2F_PayPal-dalink.to-29ABE2?style=for-the-badge&logo=paypal&logoColor=white)](https://dalink.to/nerual_dreming)
+[![Boosty](https://img.shields.io/badge/Monthly-Boosty-F15F2C?style=for-the-badge)](https://boosty.to/neuro_art)
+
+[English](#why-donate) · [Русский](#зачем-донатить)
 
 </div>
 
 ---
 
-## English
+## Why donate?
 
-### Why donate?
+I'm Ilya (**[Nerual Dreming](https://t.me/nerual_dreming)**), and I build AI tools that anyone can run locally — for free, without cloud, without subscriptions.
 
-I build software and do research in AI, music generation, and neural networks. Most of what I create is free and open source — no API keys, no subscriptions, no paywalls.
+My projects have been downloaded and used by thousands of people. Most of them will never pay a cent, and that's fine — that's the point of open source. But servers, domains, hardware for testing, and the time I spend building all of this aren't free.
 
-Your donations allow me to keep creating and exploring without worrying about where the next meal comes from. Every contribution, no matter how small, helps me stay focused on building tools that anyone can use for free.
+**Your donation lets me focus on building instead of surviving.**
 
-Thank you for making open source sustainable!
+### What your support funds
 
-### Fiat (USD, EUR, RUB)
+| Amount | Impact |
+|--------|--------|
+| **$5** | Keeps CI/CD and domains running for a week |
+| **$25** | Covers a month of hosting and infrastructure |
+| **$100** | Funds a full day of dedicated development |
+| **$500** | Sponsors an entire feature from idea to release |
 
-The easiest way to send dollars, euros, or rubles:
+### Easiest ways to donate
 
-**[dalink.to/nerual_dreming](https://dalink.to/nerual_dreming)**
+<div align="center">
 
-### Boosty (Patreon alternative)
+[![Card / PayPal (USD, EUR, RUB)](https://img.shields.io/badge/Card_%2F_PayPal_%2F_Apple_Pay-dalink.to-29ABE2?style=for-the-badge&logo=paypal&logoColor=white)](https://dalink.to/nerual_dreming)
 
-Monthly support (Russian Patreon):
+[![Monthly on Boosty (Patreon alternative)](https://img.shields.io/badge/Monthly_Support-Boosty-F15F2C?style=for-the-badge)](https://boosty.to/neuro_art)
 
-**[boosty.to/neuro_art](https://boosty.to/neuro_art)**
+</div>
 
 ### Crypto
 
@@ -44,33 +52,34 @@ Monthly support (Russian Patreon):
 <img src="docs/donate/usdt.png" width="180"><br>
 `TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C`
 
-### Thank you!
-
-Every star, share, and contribution matters. You're helping keep open-source AI tools alive and accessible to everyone.
-
 ---
 
-## Русский
+## Зачем донатить?
 
-### Зачем донатить?
+Я Илья (**[Nerual Dreming](https://t.me/nerual_dreming)**), и я создаю AI-инструменты, которые каждый может запустить локально — бесплатно, без облака, без подписок.
 
-Я создаю софт и занимаюсь исследованиями в области ИИ, генерации музыки и нейросетей. Большая часть всего, что я делаю, находится в открытом доступе — без API-ключей, без подписок, без стен оплаты.
+Мои проекты скачали и используют тысячи людей. Большинство никогда не заплатит ни копейки — и это нормально, в этом суть опенсорса. Но серверы, домены, железо для тестов и время, которое я трачу на разработку — не бесплатны.
 
-Ваши пожертвования позволяют мне создавать и исследовать больше, не отвлекаясь на поиск еды для продолжения существования =) Любой вклад, даже самый маленький, помогает мне оставаться сфокусированным на создании инструментов, которыми каждый может пользоваться бесплатно.
+**Ваш донат позволяет мне фокусироваться на создании, а не на выживании.**
 
-Спасибо, что делаете опенсорс возможным!
+### На что идут деньги
 
-### Фиат (доллары, евро, рубли)
+| Сумма | Что это даёт |
+|-------|-------------|
+| **$5** | Неделя работы CI/CD и доменов |
+| **$25** | Месяц хостинга и инфраструктуры |
+| **$100** | Полный день разработки |
+| **$500** | Целая фича от идеи до релиза |
 
-Самый простой способ отправить донат:
+### Самые простые способы
 
-**[dalink.to/nerual_dreming](https://dalink.to/nerual_dreming)**
+<div align="center">
 
-### Boosty (аналог Patreon)
+[![Карта / PayPal (рубли, доллары, евро)](https://img.shields.io/badge/Карта_%2F_PayPal_%2F_Apple_Pay-dalink.to-29ABE2?style=for-the-badge&logo=paypal&logoColor=white)](https://dalink.to/nerual_dreming)
 
-Ежемесячная поддержка:
+[![Ежемесячная подписка на Boosty](https://img.shields.io/badge/Ежемесячная_поддержка-Boosty-F15F2C?style=for-the-badge)](https://boosty.to/neuro_art)
 
-**[boosty.to/neuro_art](https://boosty.to/neuro_art)**
+</div>
 
 ### Крипта
 
@@ -86,6 +95,18 @@ Every star, share, and contribution matters. You're helping keep open-source AI 
 <img src="docs/donate/usdt.png" width="180"><br>
 `TQST9Lp2TjK6FiVkn4fwfGUee7NmkxEE7C`
 
-### Спасибо!
+---
 
-Каждая звезда, репост и донат имеют значение. Вы помогаете открытым AI-инструментам жить и оставаться доступными для всех.
+<div align="center">
+
+### Thank you! / Спасибо!
+
+Every star, share, and donation matters. You're helping keep open-source AI alive.
+
+Каждая звезда, репост и донат имеют значение. Вы помогаете опенсорс AI жить.
+
+[![GitHub](https://img.shields.io/badge/@timoncool-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/timoncool)
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/nerual_dreming)
+[![ArtGeneration.me](https://img.shields.io/badge/ArtGeneration.me-000?style=for-the-badge)](https://artgeneration.me)
+
+</div>
