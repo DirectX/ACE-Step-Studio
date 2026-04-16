@@ -1,12 +1,13 @@
-# ACE-Step Studio
-
 <div align="center">
+
+# ACE-Step Studio
 
 **Suno at home. Local AI music generation studio — songs, vocals, lyrics, covers, music videos.**
 
-[![Stars](https://img.shields.io/github/stars/timoncool/ACE-Step-Studio?style=social)](https://github.com/timoncool/ACE-Step-Studio/stargazers)
-[![License](https://img.shields.io/github/license/timoncool/ACE-Step-Studio)](LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/timoncool/ACE-Step-Studio)](https://github.com/timoncool/ACE-Step-Studio/commits/master)
+[![Stars](https://img.shields.io/github/stars/timoncool/ACE-Step-Studio?style=flat-square)](https://github.com/timoncool/ACE-Step-Studio/stargazers)
+[![License](https://img.shields.io/github/license/timoncool/ACE-Step-Studio?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/timoncool/ACE-Step-Studio?style=flat-square)](https://github.com/timoncool/ACE-Step-Studio/commits/master)
+[![Downloads](https://img.shields.io/github/downloads/timoncool/ACE-Step-Studio/total?style=flat-square)](https://github.com/timoncool/ACE-Step-Studio/releases)
 
 **[Русская версия](README_RU.md)**
 
@@ -218,10 +219,12 @@ I build software and do research in AI and music generation. Most of what I crea
 
 ---
 
-<div align="center">
+## Star History
 
-**If you find this useful, please give it a star!**
-
-[![Star History Chart](https://api.star-history.com/svg?repos=timoncool/ACE-Step-Studio&type=Date)](https://star-history.com/#timoncool/ACE-Step-Studio&Date)
-
-</div>
+<a href="https://www.star-history.com/?repos=timoncool%2FACE-Step-Studio&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=timoncool/ACE-Step-Studio&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=timoncool/ACE-Step-Studio&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=timoncool/ACE-Step-Studio&type=date&legend=top-left" />
+ </picture>
+</a>
