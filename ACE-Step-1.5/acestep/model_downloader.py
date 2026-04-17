@@ -526,7 +526,7 @@ def download_submodel(
 
     model_path = checkpoints_dir / model_name
 
-    if not force and model_path.exists():
+    if not force and _contains_model_weights(model_path):
         return True, f"Model '{model_name}' already exists at {model_path}"
 
     repo_id = SUBMODEL_REGISTRY[model_name]
