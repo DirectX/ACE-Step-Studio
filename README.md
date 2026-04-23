@@ -87,7 +87,7 @@ Built on [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) — the ope
 
 ## Quick Start
 
-> 🚀 **One-click cross-platform install via Pinokio:** [![Install on Pinokio](https://img.shields.io/badge/Install_on-Pinokio-7c3aed?style=flat-square)](https://pinokio.co/item?uri=https://github.com/timoncool/ACE-Step-Studio-pinokio)
+> 🚀 **One-click cross-platform install via Pinokio:** [![Install on Pinokio](https://img.shields.io/badge/Install_on-Pinokio-7c3aed?style=flat-square)](https://beta.pinokio.co/apps/github-com-timoncool-ace-step-studio-pinokio)
 >
 > Works on Windows / Linux (x64 & aarch64) / macOS (Apple Silicon & Intel). No `install.bat` required — Pinokio bundles Python, Node, ffmpeg, venv and picks the right PyTorch build for your GPU automatically.
 >
