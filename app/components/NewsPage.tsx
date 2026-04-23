@@ -260,7 +260,28 @@ export const NewsPage: React.FC = () => {
         </div>
 
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed whitespace-pre-line">
-          {localize(item.body)}
+          {(() => {
+            const text = localize(item.body);
+            const parts: React.ReactNode[] = [];
+            // Match https:// URLs OR bare domains (dalink.to/...) to make them clickable.
+            const re = /(https?:\/\/[^\s]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\/[^\s]+)/g;
+            let last = 0;
+            let m: RegExpExecArray | null;
+            while ((m = re.exec(text)) !== null) {
+              if (m.index > last) parts.push(text.slice(last, m.index));
+              const url = m[0];
+              const href = /^https?:\/\//.test(url) ? url : `https://${url}`;
+              parts.push(
+                <a key={m.index} href={href} target="_blank" rel="noopener noreferrer"
+                   className="text-blue-600 dark:text-blue-400 hover:underline break-all">
+                  {url}
+                </a>
+              );
+              last = m.index + url.length;
+            }
+            if (last < text.length) parts.push(text.slice(last));
+            return parts;
+          })()}
         </p>
 
         {item.links && item.links.length > 0 && (
