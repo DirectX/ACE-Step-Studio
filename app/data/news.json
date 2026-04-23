@@ -44,8 +44,10 @@
     },
     "tags": ["release", "pinokio"],
     "links": [
-      { "label": "Pinokio — Universal One-Click Launcher", "url": "https://pinokio.co" },
-      { "label": "ACE-Step Studio on GitHub",              "url": "https://github.com/timoncool/ACE-Step-Studio" }
+      { "label": "🚀 Install on Pinokio (1-click)", "url": "https://pinokio.co/item?uri=https://github.com/timoncool/ACE-Step-Studio-pinokio" },
+      { "label": "Pinokio launcher repo (GitHub)",  "url": "https://github.com/timoncool/ACE-Step-Studio-pinokio" },
+      { "label": "Pinokio — download app",          "url": "https://pinokio.co" },
+      { "label": "ACE-Step Studio repo (GitHub)",   "url": "https://github.com/timoncool/ACE-Step-Studio" }
     ]
   },
   {
