@@ -194,8 +194,9 @@ class PipelineManager {
     this.message = 'Pipeline running';
     this.startedAt = Date.now();
 
-    // Open browser only on first start, not on restarts
-    if (this.restartCount === 0) {
+    // Open browser only on first start, not on restarts.
+    // Skip when NO_AUTO_BROWSER is set (Pinokio launcher handles tab opening itself).
+    if (this.restartCount === 0 && process.env.NO_AUTO_BROWSER !== 'true') {
       const url = `http://localhost:${config.port}`;
       console.log(`[Pipeline] Opening browser: ${url}`);
       if (process.platform === 'win32') {
