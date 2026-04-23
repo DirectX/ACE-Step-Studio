@@ -5,21 +5,11 @@
 ### Added
 - **Pinokio launcher** — one-click cross-platform install via [Pinokio](https://pinokio.co). Install on Windows / Linux (x64 & aarch64) / macOS (Apple Silicon & Intel) / AMD / CPU without touching `install.bat`. Launcher repo: [timoncool/ACE-Step-Studio-pinokio](https://github.com/timoncool/ACE-Step-Studio-pinokio)
 - **MLX native acceleration** on Apple Silicon — uses Apple Metal Performance Shaders directly for LM inference
-- **News: donation info** — a pinned News tab entry with Card/PayPal/Boosty/BTC/ETH/USDT payment methods
-- **News: Pinokio release** — a pinned News tab entry announcing the Pinokio launcher with platform matrix and install links
 
 ## 2026-04-17
 
 ### Fixed
 - **Model submodule downloader** — `download_submodel` reported success when the target directory was empty; now validates that files actually downloaded
-
-## 2026-04-16
-
-### Added
-- **Donation page** — [`DONATE.md`](DONATE.md) with Card / PayPal / Apple Pay, Boosty monthly subscription, and crypto (BTC / ETH / USDT) with QR codes
-- **GitHub Sponsor button** on the repo header ([`FUNDING.yml`](.github/FUNDING.yml))
-- **`LICENSE`** — MIT, explicit
-- **Star History** chart in README
 
 ## 2026-04-14
 
