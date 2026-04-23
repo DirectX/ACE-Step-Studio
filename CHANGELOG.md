@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-04-23
+
+### Added
+- **Pinokio launcher** — one-click cross-platform install via [Pinokio](https://pinokio.co) — [ACE-Step-Studio-pinokio](https://github.com/timoncool/ACE-Step-Studio-pinokio)
+  - Schema 6.0.0 with `requires: { bundle: "ai" }`, `venv_python: "3.12"`, dynamic `start.js` with `kernel.port()`
+  - 7-branch `torch.js` covering NVIDIA Win/Linux x64 + Linux aarch64 (CUDA 13.0 for DGX Spark / Jetson), AMD Win (DirectML) / Linux (ROCm 6.3), Apple Silicon (MPS + MLX), Intel Mac, CPU fallback
+  - 3 launch modes (Standard / No-LM / Dev with Vite HMR)
+  - "Open Folder" submenu for Audio / App Data / Models cache
+  - Flash-Attention 2 cp312 wheels for Win/Linux NVIDIA, graceful skip on other platforms
+- **MLX native acceleration** installed on Apple Silicon (launcher only)
+- **Donation news** in News tab with full payment info (Card/PayPal/Boosty/BTC/ETH/USDT)
+- **Pinokio release news** in News tab with cross-platform matrix + install links
+
+### Changed
+- **News body supports line breaks** — `whitespace-pre-line` on news paragraph so `\n` in JSON renders as actual line breaks
+- **README Quick Start** — added Pinokio install/browse buttons before manual Windows install flow
+- **News body URLs auto-linkify** — both `https://...` and bare domains like `dalink.to/path` are clickable
+
+### Fixed
+- **Auto-opens system browser on launch** — `pipeline-manager.ts` now skips opening a browser tab when `NO_AUTO_BROWSER=true` (Pinokio launcher sets this so only the Pinokio tab opens, no duplicate Chrome window)
+
 ## 2026-04-14
 
 ### Added
