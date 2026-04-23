@@ -259,7 +259,7 @@ export const NewsPage: React.FC = () => {
           )}
         </div>
 
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed whitespace-pre-line">
           {localize(item.body)}
         </p>
 
